@@ -536,11 +536,19 @@ async function verifyReset() {
   const email = document.getElementById('reset-email').value.trim().toLowerCase();
   const pseudo = document.getElementById('reset-pseudo').value.trim();
   const err = document.getElementById('forgot-error');
+  const btn = document.querySelector('#forgot-form .auth-btn');
   err.style.display='none';
   if (!email||!pseudo) { err.textContent='Remplis tous les champs.'; err.style.display='block'; return; }
-  const {data} = await sb.from('profiles').select('id').eq('email',email).eq('pseudo',pseudo).maybeSingle();
-  if (!data) { err.textContent='Email ou pseudo incorrect.'; err.style.display='block'; return; }
-  window._resetId=data.id; showForm('newpwd');
+  btn.textContent='Vérification...'; btn.disabled=true;
+  try {
+    const {data} = await sb.from('profiles').select('id').eq('email',email).eq('pseudo',pseudo).maybeSingle();
+    if (!data) { err.textContent='Email ou pseudo incorrect.'; err.style.display='block'; return; }
+    window._resetId=data.id; showForm('newpwd');
+  } catch(e) {
+    err.textContent='Erreur: '+e.message; err.style.display='block';
+  } finally {
+    btn.textContent='Vérifier'; btn.disabled=false;
+  }
 }
 
 async function submitNewPwd() {
