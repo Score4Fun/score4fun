@@ -492,8 +492,18 @@ async function loginUser() {
   const err = document.getElementById('login-error');
   err.style.display='none';
   if (!email||!password) { err.textContent='Remplis tous les champs.'; err.style.display='block'; return; }
+  const btn = document.querySelector('#login-form .auth-btn');
+  btn.textContent='Connexion...'; btn.disabled=true;
   const {data,error} = await sb.auth.signInWithPassword({email,password});
-  if (error) { err.textContent='Email ou mot de passe incorrect.'; err.style.display='block'; return; }
+  btn.textContent='Se connecter'; btn.disabled=false;
+  if (error) {
+    if (error.message.includes('Email not confirmed')) {
+      err.textContent='📧 Confirme ton email ! Vérifie ta boîte mail.';
+    } else {
+      err.textContent='Erreur : '+error.message;
+    }
+    err.style.display='block'; return;
+  }
   // onAuthStateChange prend le relais
 }
 
@@ -1042,26 +1052,3 @@ function renderProfil() {
 // =====================
 // NAVIGATION
 // =====================
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  document.getElementById('nav-'+name).classList.add('active');
-  if (name==='classements') loadRankings();
-  if (name==='groupes') renderGroupes();
-}
-
-// =====================
-// INIT
-// =====================
-sb.auth.onAuthStateChange(async (event,session)=>{
-  if (session?.user && !appLaunched) {
-    await loadProfile(session.user);
-    if (currentProfile) { appLaunched=true; launchApp(); }
-  } else if (!session) {
-    appLaunched=false;
-  }
-});
-</script>
-</body>
-</html>
