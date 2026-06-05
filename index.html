@@ -291,7 +291,7 @@
     <div class="groups-row" id="home-groups-row">
       <div class="group-pill active"><div class="group-dot"></div>Tous</div>
     </div>
-    <div class="section-title">Événements</div>
+    <div class="section-title">Sports</div>
     <div class="sport-tabs" id="sport-tabs-home"></div>
     <div id="home-events-container"></div>
     <div class="section-title">Classements</div>
@@ -441,7 +441,7 @@ const EVENTS = [
   { id:23, sport:'tennis', comp:'Roland Garros 2026', phase:'Finale Dames', emoji:'🎾',
     name:'Finale Dames', sub:'Roland Garros 2026',
     type:'tennis_final_f',
-    candidates:['Iga Swiatek','Aryna Sabalenka','Coco Gauff','Elena Rybakina','Jessica Pegula','Ons Jabeur','Jasmine Paolini','Madison Keys'],
+    candidates:['Mirra Andreeva','Maja Chwalinska'],
     status:'open', urgency:true, cutoff:'Samedi' },
 
   // ===== F1 =====
@@ -589,13 +589,8 @@ function renderEventsBySport(sportKey) {
       <div class="competition-name">${comp}</div>
       <div class="competition-sub">${evs.length} événement(s)</div>
     </div>`;
-    html += `<div class="phase-tabs" id="ptabs-${sportKey}">`;
-    phases.forEach((ph,i) => {
-      html += `<div class="phase-tab ${i===0?'active':''}" onclick="filterPhase('${sportKey}','${comp}','${ph}',this)">${ph}</div>`;
-    });
-    html += `</div>`;
     html += `<div class="events-grid" id="egrid-${sportKey}">`;
-    evs.filter(e=>e.phase===phases[0]).forEach(ev => { html += renderEventCard(ev); });
+    evs.forEach(ev => { html += renderEventCard(ev); });
     html += `</div>`;
   });
   container.innerHTML = html;
