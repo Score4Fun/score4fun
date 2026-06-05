@@ -533,8 +533,13 @@ async function logoutUser() {
 
 async function loadProfile(user) {
   currentUser=user;
-  const {data} = await sb.from('profiles').select('*').eq('id',user.id).single();
-  currentProfile=data;
+  const {data, error} = await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+  if (data) { currentProfile=data; return; }
+  // Profil inexistant → on le crée automatiquement
+  const pseudo = (user.user_metadata?.pseudo) || user.email.split('@')[0];
+  await sb.from('profiles').insert({id:user.id, pseudo, email:user.email, points:0, pronos_count:0, badges_count:0});
+  const {data: newProfile} = await sb.from('profiles').select('*').eq('id',user.id).single();
+  currentProfile = newProfile;
 }
 
 async function loadUserPronos() {
