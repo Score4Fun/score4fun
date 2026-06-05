@@ -8,17 +8,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --orange: #FF6B00;
-      --orange-light: #FF8C33;
-      --orange-dark: #CC5500;
-      --orange-bg: #FFF3E8;
-      --bg: #f8f7f4;
-      --card: #ffffff;
-      --text: #1a1a1a;
-      --text-muted: #888;
-      --border: rgba(0,0,0,0.1);
-      --radius: 12px;
-      --radius-sm: 8px;
+      --orange: #FF6B00; --orange-dark: #CC5500; --orange-bg: #FFF3E8;
+      --green: #2E7D32; --green-bg: #E8F5E9;
+      --bg: #f8f7f4; --text: #1a1a1a; --text-muted: #888;
+      --border: rgba(0,0,0,0.1); --radius: 12px; --radius-sm: 8px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -28,7 +21,7 @@
     .auth-box { background: white; border-radius: 20px; padding: 48px 40px; box-shadow: 0 4px 40px rgba(255,107,0,0.08); width: 100%; max-width: 400px; text-align: center; }
     .auth-logo { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: var(--orange); letter-spacing: 2px; }
     .auth-logo span { color: var(--text); }
-    .auth-tagline { font-size: 13px; color: var(--text-muted); margin: 4px 0 32px; letter-spacing: 0.5px; }
+    .auth-tagline { font-size: 13px; color: var(--text-muted); margin: 4px 0 32px; }
     .auth-input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: 'DM Sans', sans-serif; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
     .auth-input:focus { border-color: var(--orange); }
     .auth-btn { width: 100%; padding: 13px; background: var(--orange); color: white; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-bottom: 12px; transition: background 0.2s; }
@@ -37,17 +30,12 @@
     .auth-btn.secondary:hover { background: var(--orange-bg); }
     .auth-sep { font-size: 12px; color: var(--text-muted); margin: 16px 0; }
     .auth-error { font-size: 13px; color: #e24b4a; margin-bottom: 12px; }
-    .auth-success { font-size: 13px; color: #3B6D11; margin-bottom: 12px; background: #eaf3de; padding: 10px; border-radius: 8px; }
-    .auth-switch { font-size: 13px; color: var(--text-muted); margin-top: 16px; cursor: pointer; }
-    .auth-switch span { color: var(--orange); font-weight: 500; }
+    .auth-success { font-size: 13px; color: var(--green); margin-bottom: 12px; background: var(--green-bg); padding: 10px; border-radius: 8px; }
     .forgot-link { font-size: 12px; color: var(--orange); cursor: pointer; text-align: right; margin-bottom: 16px; margin-top: -4px; display: block; }
     .pseudo-hint { font-size: 12px; color: var(--text-muted); text-align: left; margin-bottom: 16px; margin-top: -8px; }
-    .confirm-info { font-size: 13px; color: var(--text-muted); background: var(--orange-bg); padding: 12px; border-radius: 8px; margin-bottom: 16px; }
 
     /* APP */
     #app-screen { display: none; max-width: 680px; margin: 0 auto; padding: 0 16px 80px; }
-
-    /* TOPBAR */
     .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 12px; border-bottom: 0.5px solid var(--border); margin-bottom: 20px; position: sticky; top: 0; background: var(--bg); z-index: 10; }
     .logo { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--orange); letter-spacing: 1px; }
     .logo span { color: var(--text); }
@@ -56,9 +44,7 @@
     .pseudo-name { font-size: 13px; font-weight: 500; color: var(--orange-dark); }
     .user-pts { font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: var(--orange); }
 
-    /* PAGES */
-    .page { display: none; }
-    .page.active { display: block; }
+    .page { display: none; } .page.active { display: block; }
     .section-title { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; margin-top: 20px; }
 
     /* METRICS */
@@ -67,41 +53,63 @@
     .metric-value { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--orange); line-height: 1; }
     .metric-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
 
-    /* GROUPS ROW */
-    .groups-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 4px; }
-    .groups-row::-webkit-scrollbar { display: none; }
-    .group-pill { display: flex; align-items: center; gap: 6px; white-space: nowrap; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 12px; color: var(--text); transition: all 0.15s; }
-    .group-pill.active { background: var(--orange-bg); border-color: var(--orange); color: var(--orange-dark); font-weight: 500; }
-    .group-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
+    /* SPORT TABS */
+    .sport-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+    .sport-tabs::-webkit-scrollbar { display: none; }
+    .sport-tab { white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+    .sport-tab.active { background: var(--orange); border-color: var(--orange); color: white; }
+
+    /* COMPETITION */
+    .competition-header { background: white; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+    .competition-name { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--orange); }
+    .competition-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* PHASE TABS */
+    .phase-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .phase-tab { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: white; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+    .phase-tab.active { background: var(--orange-bg); border-color: var(--orange); color: var(--orange-dark); font-weight: 500; }
 
     /* EVENT CARDS */
     .events-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
-    .event-card { background: white; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; cursor: pointer; transition: border-color 0.15s; }
+    .event-card { background: white; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; }
     .event-card:hover { border-color: var(--orange); }
     .event-card.urgent { border-left: 3px solid var(--orange); }
+    .event-card.done { border-left: 3px solid var(--green); }
+    .done-badge { position: absolute; top: 10px; right: 10px; background: var(--green); color: white; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 10px; }
     .event-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
     .sport-tag { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 20px; background: var(--orange-bg); color: var(--orange-dark); }
     .countdown { font-size: 11px; color: var(--text-muted); }
     .countdown.urgent { color: var(--orange); font-weight: 500; }
-    .event-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+    .event-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; padding-right: 52px; }
     .event-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
-    .event-status { display: flex; align-items: center; gap: 6px; }
+    .event-status { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
     .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
+    .status-dot.done-dot { background: var(--green); }
     .status-dot.closed { background: var(--text-muted); }
     .status-text { font-size: 11px; color: var(--text-muted); }
-    .prono-btn { margin-top: 10px; width: 100%; padding: 8px; background: var(--orange); color: white; border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.15s; }
+    .prono-btn { width: 100%; padding: 8px; background: var(--orange); color: white; border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.15s; }
     .prono-btn:hover { background: var(--orange-dark); }
+    .prono-btn.modify { background: white; color: var(--green); border: 1.5px solid var(--green); }
+    .prono-btn.modify:hover { background: var(--green-bg); }
     .prono-btn.view { background: #f0eeeb; color: var(--text-muted); cursor: default; }
+
+    /* MATCH 1X2 */
+    .match-1x2 { display: flex; gap: 6px; margin-top: 8px; }
+    .btn-1x2 { flex: 1; padding: 8px 4px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; background: white; font-family: 'DM Sans', sans-serif; transition: all 0.15s; text-align: center; }
+    .btn-1x2:hover { border-color: var(--orange); color: var(--orange); }
+    .btn-1x2.selected { background: var(--orange); color: white; border-color: var(--orange); }
+    .match-teams { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+    .match-vs { font-size: 11px; color: var(--text-muted); }
 
     /* RANKINGS */
     .rankings { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
     .rank-card { background: white; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; }
-    .rank-title { font-size: 12px; font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; color: var(--text); }
+    .rank-title { font-size: 12px; font-weight: 500; margin-bottom: 10px; }
     .rank-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 0.5px solid var(--border); }
     .rank-row:last-child { border-bottom: none; }
     .rank-pos { font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: var(--text-muted); min-width: 20px; }
     .rank-pos.me { color: var(--orange); }
-    .rank-name { font-size: 12px; flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rank-name { font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .rank-name.me { font-weight: 500; color: var(--orange); }
     .rank-pts { font-size: 12px; font-weight: 500; color: var(--text-muted); }
 
@@ -109,41 +117,43 @@
     .prono-list { display: flex; flex-direction: column; gap: 10px; }
     .prono-item { background: white; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; align-items: center; gap: 12px; }
     .prono-item.urgent { border-left: 3px solid var(--orange); }
+    .prono-item.done { border-left: 3px solid var(--green); }
     .prono-sport { font-size: 20px; flex-shrink: 0; }
     .prono-info { flex: 1; }
     .prono-name { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
     .prono-sub { font-size: 12px; color: var(--text-muted); }
-    .prono-tag { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; cursor: pointer; }
+    .prono-tag { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; cursor: pointer; white-space: nowrap; }
     .prono-tag.todo { background: var(--orange-bg); color: var(--orange-dark); }
+    .prono-tag.done-tag { background: var(--green-bg); color: var(--green); }
     .prono-tag.closed-tag { background: #f0eeeb; color: var(--text-muted); cursor: default; }
     .urgent-badge { font-size: 10px; background: var(--orange); color: white; padding: 2px 6px; border-radius: 10px; margin-left: 6px; }
 
     /* MODAL */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
     .modal-overlay.open { display: flex; }
-    .modal { background: white; border-radius: 20px; padding: 28px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+    .modal { background: white; border-radius: 20px; padding: 28px; width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; }
     .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--orange); margin-bottom: 4px; }
     .modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
-    .modal-section { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; margin-top: 16px; }
-
-    /* TOP 4 DROPDOWNS */
-    .top4-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+    .modal-section { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; margin-top: 18px; }
+    .question-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .question-label { font-size: 13px; font-weight: 500; min-width: 150px; flex-shrink: 0; }
+    .question-select { flex: 1; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; background: white; cursor: pointer; }
+    .question-select:focus { border-color: var(--orange); }
+    .question-pts { font-size: 11px; color: var(--text-muted); min-width: 36px; text-align: right; font-weight: 500; }
+    .top4-inputs { display: flex; flex-direction: column; gap: 10px; }
     .top4-row { display: flex; align-items: center; gap: 10px; }
     .top4-pos { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--orange); min-width: 28px; text-align: center; }
-    .top4-select { flex: 1; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; background: white; cursor: pointer; appearance: auto; }
+    .top4-select { flex: 1; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; background: white; cursor: pointer; }
     .top4-select:focus { border-color: var(--orange); }
     .top4-pts { font-size: 12px; color: var(--text-muted); min-width: 44px; text-align: right; font-weight: 500; }
-
-    /* SCORE INPUTS */
-    .score-inputs { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-    .score-team { flex: 1; text-align: center; font-size: 13px; font-weight: 500; }
-    .score-input { width: 64px; padding: 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 20px; font-weight: 500; font-family: 'Bebas Neue', sans-serif; text-align: center; color: var(--orange); outline: none; transition: border-color 0.2s; }
-    .score-input:focus { border-color: var(--orange); }
-    .score-sep { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--text-muted); }
-    .modal-submit { width: 100%; padding: 13px; background: var(--orange); color: white; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 20px; transition: background 0.2s; }
+    .modal-1x2 { display: flex; gap: 10px; margin: 10px 0; }
+    .modal-1x2-btn { flex: 1; padding: 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; background: white; font-family: 'DM Sans', sans-serif; transition: all 0.15s; text-align: center; }
+    .modal-1x2-btn:hover { border-color: var(--orange); }
+    .modal-1x2-btn.selected { background: var(--orange); color: white; border-color: var(--orange); }
+    .modal-submit { width: 100%; padding: 13px; background: var(--orange); color: white; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 20px; }
     .modal-submit:hover { background: var(--orange-dark); }
     .modal-close { width: 100%; padding: 11px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 8px; }
-    .points-info { background: var(--orange-bg); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: var(--orange-dark); margin-top: 12px; }
+    .points-info { background: var(--orange-bg); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: var(--orange-dark); margin-top: 12px; line-height: 1.6; }
 
     /* CLASSEMENTS */
     .rank-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
@@ -161,7 +171,7 @@
     .full-rank-name { font-size: 14px; font-weight: 500; }
     .full-rank-name.me { color: var(--orange); }
     .full-rank-country { font-size: 12px; color: var(--text-muted); }
-    .full-rank-pts { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--text); }
+    .full-rank-pts { font-family: 'Bebas Neue', sans-serif; font-size: 20px; }
     .full-rank-pts.me { color: var(--orange); }
 
     /* GROUPES */
@@ -172,13 +182,13 @@
     .group-card-members { font-size: 12px; color: var(--text-muted); }
     .group-card-code { background: var(--orange-bg); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; color: var(--orange-dark); display: flex; align-items: center; justify-content: space-between; }
     .copy-btn { background: var(--orange); color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
-    .create-group-btn { width: 100%; padding: 13px; background: white; color: var(--orange); border: 1.5px dashed var(--orange); border-radius: var(--radius); font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 4px; transition: background 0.15s; }
+    .create-group-btn { width: 100%; padding: 13px; background: white; color: var(--orange); border: 1.5px dashed var(--orange); border-radius: var(--radius); font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 4px; }
     .create-group-btn:hover { background: var(--orange-bg); }
 
     /* PROFIL */
     .profil-header { background: white; border-radius: var(--radius); border: 0.5px solid var(--border); padding: 24px; text-align: center; margin-bottom: 12px; }
     .profil-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 500; color: white; margin: 0 auto 12px; }
-    .profil-pseudo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--text); }
+    .profil-pseudo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; }
     .profil-country { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
     .profil-stats { display: flex; justify-content: center; gap: 24px; }
     .profil-stat { text-align: center; }
@@ -199,16 +209,22 @@
     .nav-item.active .nav-icon { color: var(--orange); }
     .nav-item.active .nav-label { color: var(--orange); }
 
-    /* TOAST */
     .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
     .toast.show { opacity: 1; }
+
+    .groups-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 4px; }
+    .groups-row::-webkit-scrollbar { display: none; }
+    .group-pill { display: flex; align-items: center; gap: 6px; white-space: nowrap; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 12px; transition: all 0.15s; }
+    .group-pill.active { background: var(--orange-bg); border-color: var(--orange); color: var(--orange-dark); font-weight: 500; }
+    .group-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
 
     @media (max-width: 480px) {
       .events-grid { grid-template-columns: 1fr; }
       .rankings { grid-template-columns: 1fr; }
       .metrics { grid-template-columns: repeat(2, 1fr); }
-      .badges-grid { grid-template-columns: repeat(3, 1fr); }
       .auth-box { padding: 32px 24px; }
+      .question-row { flex-direction: column; align-items: flex-start; }
+      .question-label { min-width: unset; }
     }
   </style>
 </head>
@@ -219,22 +235,16 @@
   <div class="auth-box">
     <div class="auth-logo">Score<span>4</span>Fun</div>
     <div class="auth-tagline">Predict the score · Score the points</div>
-
-    <!-- LOGIN -->
     <div id="login-form">
       <input class="auth-input" type="email" id="login-email" placeholder="Email" />
       <input class="auth-input" type="password" id="login-password" placeholder="Mot de passe" />
       <span class="forgot-link" onclick="showForgot()">Mot de passe oublié ?</span>
       <div id="login-error" class="auth-error" style="display:none;"></div>
-      <div id="login-success" class="auth-success" style="display:none;"></div>
       <button class="auth-btn" onclick="loginUser()">Se connecter</button>
       <div class="auth-sep">— ou —</div>
       <button class="auth-btn secondary" onclick="showRegister()">Créer un compte</button>
     </div>
-
-    <!-- REGISTER -->
     <div id="register-form" style="display:none;">
-      <div class="confirm-info">📧 Un email de confirmation te sera envoyé après l'inscription.</div>
       <input class="auth-input" type="text" id="reg-pseudo" placeholder="Pseudo (visible dans les classements)" />
       <div class="pseudo-hint">Choisis bien — c'est ton identité sur Score4Fun !</div>
       <input class="auth-input" type="email" id="reg-email" placeholder="Email" />
@@ -244,15 +254,13 @@
       <button class="auth-btn" onclick="registerUser()">Créer mon compte</button>
       <button class="auth-btn secondary" onclick="showLogin()">Déjà un compte ? Se connecter</button>
     </div>
-
-    <!-- FORGOT PASSWORD -->
     <div id="forgot-form" style="display:none;">
-      <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px;">Entre ton email — on t'envoie un lien pour réinitialiser ton mot de passe.</p>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px;">Entre ton email pour recevoir un lien de réinitialisation.</p>
       <input class="auth-input" type="email" id="forgot-email" placeholder="Ton email" />
       <div id="forgot-error" class="auth-error" style="display:none;"></div>
       <div id="forgot-success" class="auth-success" style="display:none;"></div>
       <button class="auth-btn" onclick="sendReset()">Envoyer le lien 📧</button>
-      <button class="auth-btn secondary" onclick="showLogin()">← Retour à la connexion</button>
+      <button class="auth-btn secondary" onclick="showLogin()">← Retour</button>
     </div>
   </div>
 </div>
@@ -283,8 +291,9 @@
     <div class="groups-row" id="home-groups-row">
       <div class="group-pill active"><div class="group-dot"></div>Tous</div>
     </div>
-    <div class="section-title">Événements en cours</div>
-    <div class="events-grid" id="events-grid"></div>
+    <div class="section-title">Événements</div>
+    <div class="sport-tabs" id="sport-tabs-home"></div>
+    <div id="home-events-container"></div>
     <div class="section-title">Classements</div>
     <div class="rankings" id="home-rankings"></div>
   </div>
@@ -299,13 +308,13 @@
   <div class="page" id="page-classements">
     <div class="section-title" style="margin-top:8px;">Classements</div>
     <div class="rank-tabs">
-      <div class="rank-tab active" onclick="switchRankTab('general',this)">🌍 Général</div>
-      <div class="rank-tab" onclick="switchRankTab('football',this)">⚽ Football</div>
-      <div class="rank-tab" onclick="switchRankTab('tennis',this)">🎾 Tennis</div>
-      <div class="rank-tab" onclick="switchRankTab('f1',this)">🏎️ F1</div>
-      <div class="rank-tab" onclick="switchRankTab('cyclisme',this)">🚴 Cyclisme</div>
+      <div class="rank-tab active" onclick="switchRankTab(this)">🌍 Général</div>
+      <div class="rank-tab" onclick="switchRankTab(this)">⚽ Football</div>
+      <div class="rank-tab" onclick="switchRankTab(this)">🎾 Tennis</div>
+      <div class="rank-tab" onclick="switchRankTab(this)">🏎️ F1</div>
+      <div class="rank-tab" onclick="switchRankTab(this)">🚴 Cyclisme</div>
     </div>
-    <div class="full-rank-list" id="full-rank-list"><div style="padding:20px;color:var(--text-muted);font-size:13px;">Chargement...</div></div>
+    <div class="full-rank-list" id="full-rank-list"></div>
   </div>
 
   <!-- GROUPES -->
@@ -328,7 +337,7 @@
     <div class="profil-header">
       <div class="profil-avatar" id="profil-avatar">?</div>
       <div class="profil-pseudo" id="profil-pseudo">...</div>
-      <div class="profil-country" id="profil-country">🌍 Monde</div>
+      <div class="profil-country">🌍 Score4Fun</div>
       <div class="profil-stats">
         <div class="profil-stat"><div class="profil-stat-val" id="profil-pts">0</div><div class="profil-stat-label">Points</div></div>
         <div class="profil-stat"><div class="profil-stat-val" id="profil-pronos">0</div><div class="profil-stat-label">Pronos</div></div>
@@ -358,11 +367,11 @@
   </nav>
 </div>
 
-<!-- MODAL PRONO -->
+<!-- MODAL -->
 <div class="modal-overlay" id="prono-modal">
   <div class="modal">
-    <div class="modal-title" id="modal-title">Pronostic</div>
-    <div class="modal-sub" id="modal-sub">Événement</div>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub"></div>
     <div id="modal-content"></div>
     <button class="modal-submit" onclick="submitProno()">Valider mon pronostic ✓</button>
     <button class="modal-close" onclick="closeModal()">Annuler</button>
@@ -377,54 +386,114 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentUser = null;
-let currentProfile = null;
-let currentEvent = null;
+let currentUser = null, currentProfile = null, currentEvent = null;
+let userPronos = {};
 
-const EVENTS = [
-  { id: 1, sport: '⚽', sport_key: 'football', name: 'Coupe du Monde 2026', sub: 'France vs Brésil · Groupe A', type: 'score', team1: 'France 🇫🇷', team2: 'Brésil 🇧🇷', status: 'open', urgency: true, cutoff: '21:00 ce soir' },
-  { id: 2, sport: '🎾', sport_key: 'tennis', name: 'Roland Garros 2026', sub: 'Finale Hommes · Top 4', type: 'top4', candidates: ['Carlos Alcaraz','Jannik Sinner','Novak Djokovic','Rafael Nadal','Alexander Zverev','Casper Ruud','Stefanos Tsitsipas'], status: 'open', urgency: true, cutoff: '14:00 demain' },
-  { id: 3, sport: '🏎️', sport_key: 'f1', name: 'GP Canada F1 2026', sub: 'Course · Top 4', type: 'top4', candidates: ['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','George Russell','Fernando Alonso','Carlos Sainz','Oscar Piastri'], status: 'open', urgency: false, cutoff: 'Dans 3 jours' },
-  { id: 4, sport: '🚴', sport_key: 'cyclisme', name: 'Tour de France 2026', sub: 'Étape 1 · Top 4', type: 'top4', candidates: ['Tadej Pogacar','Jonas Vingegaard','Remco Evenepoel','Primoz Roglic','Adam Yates','Egan Bernal'], status: 'soon', urgency: false, cutoff: 'Dans 5 jours' },
+// =====================
+// DATA — 3 NIVEAUX
+// =====================
+const SPORTS = [
+  { key: 'football', label: '⚽ Football' },
+  { key: 'tennis',   label: '🎾 Tennis' },
+  { key: 'f1',       label: '🏎️ F1' },
+  { key: 'cyclisme', label: '🚴 Cyclisme' },
 ];
 
-const POINTS_MAP = { 0: 10, 1: 8, 2: 6, 3: 4 };
+const EVENTS = [
+  // ===== FOOTBALL - CdM 2026 =====
+  // Journée 1
+  { id:1,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Mexique vs Afrique du Sud', sub:'Groupe A · 11 juin', type:'1x2', team1:'🇲🇽 Mexique', team2:'🇿🇦 Afrique du Sud', status:'open', urgency:true, cutoff:'11 juin 21h' },
+  { id:2,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Corée du Sud vs Tchéquie', sub:'Groupe A · 11 juin', type:'1x2', team1:'🇰🇷 Corée du Sud', team2:'🇨🇿 Tchéquie', status:'open', urgency:true, cutoff:'11 juin' },
+  { id:3,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Canada vs Bosnie-Herzégovine', sub:'Groupe B · 12 juin', type:'1x2', team1:'🇨🇦 Canada', team2:'🇧🇦 Bosnie', status:'open', urgency:true, cutoff:'12 juin' },
+  { id:4,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Qatar vs Suisse', sub:'Groupe B · 12 juin', type:'1x2', team1:'🇶🇦 Qatar', team2:'🇨🇭 Suisse', status:'open', urgency:true, cutoff:'12 juin' },
+  { id:5,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Brésil vs Maroc', sub:'Groupe C · 13 juin', type:'1x2', team1:'🇧🇷 Brésil', team2:'🇲🇦 Maroc', status:'open', urgency:false, cutoff:'13 juin' },
+  { id:6,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Écosse vs Haïti', sub:'Groupe C · 13 juin', type:'1x2', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Écosse', team2:'🇭🇹 Haïti', status:'open', urgency:false, cutoff:'13 juin' },
+  { id:7,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'États-Unis vs Paraguay', sub:'Groupe D · 12 juin', type:'1x2', team1:'🇺🇸 États-Unis', team2:'🇵🇾 Paraguay', status:'open', urgency:false, cutoff:'12 juin' },
+  { id:8,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'France vs Sénégal', sub:'Groupe I · 16 juin', type:'1x2', team1:'🇫🇷 France', team2:'🇸🇳 Sénégal', status:'open', urgency:false, cutoff:'16 juin 21h' },
+  { id:9,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Argentine vs Jordanie', sub:'Groupe J · 17 juin', type:'1x2', team1:'🇦🇷 Argentine', team2:'🇯🇴 Jordanie', status:'open', urgency:false, cutoff:'17 juin' },
+  { id:10, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Colombie vs Portugal', sub:'Groupe K · 18 juin', type:'1x2', team1:'🇨🇴 Colombie', team2:'🇵🇹 Portugal', status:'open', urgency:false, cutoff:'18 juin' },
+  { id:11, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Espagne vs Arabie Saoudite', sub:'Groupe H · 18 juin', type:'1x2', team1:'🇪🇸 Espagne', team2:'🇸🇦 Arabie Saoudite', status:'open', urgency:false, cutoff:'18 juin' },
+  { id:12, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Angleterre vs Belgique', sub:'Groupe G · 15 juin', type:'1x2', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre', team2:'🇧🇪 Belgique', status:'open', urgency:false, cutoff:'15 juin' },
+  { id:13, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Allemagne vs Équateur', sub:'Groupe E · 14 juin', type:'1x2', team1:'🇩🇪 Allemagne', team2:'🇪🇨 Équateur', status:'open', urgency:false, cutoff:'14 juin' },
+  { id:14, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Pays-Bas vs Tunisie', sub:'Groupe F · 14 juin', type:'1x2', team1:'🇳🇱 Pays-Bas', team2:'🇹🇳 Tunisie', status:'open', urgency:false, cutoff:'14 juin' },
 
+  // ===== TENNIS - Roland Garros =====
+  // Demi-finales Hommes
+  { id:20, sport:'tennis', comp:'Roland Garros 2026', phase:'Demi-finales Hommes', emoji:'🎾',
+    name:'1ère demi-finale H', sub:'Mensik vs Zverev',
+    type:'tennis_sf',
+    player1:'Jakub Mensik', player2:'Alexander Zverev',
+    status:'open', urgency:true, cutoff:'Demain 11h' },
+  { id:21, sport:'tennis', comp:'Roland Garros 2026', phase:'Demi-finales Hommes', emoji:'🎾',
+    name:'2ème demi-finale H', sub:'Arnaldi vs Cobolli',
+    type:'tennis_sf',
+    player1:'Matteo Arnaldi', player2:'Flavio Cobolli',
+    status:'open', urgency:true, cutoff:'Demain 14h' },
+
+  // Finale Hommes
+  { id:22, sport:'tennis', comp:'Roland Garros 2026', phase:'Finale Hommes', emoji:'🎾',
+    name:'Finale Hommes', sub:'Roland Garros 2026',
+    type:'tennis_final_h',
+    finalists: ['Jakub Mensik', 'Alexander Zverev', 'Matteo Arnaldi', 'Flavio Cobolli'],
+    status:'open', urgency:false, cutoff:'Dimanche' },
+
+  // Finale Dames
+  { id:23, sport:'tennis', comp:'Roland Garros 2026', phase:'Finale Dames', emoji:'🎾',
+    name:'Finale Dames', sub:'Roland Garros 2026',
+    type:'tennis_final_f',
+    candidates:['Iga Swiatek','Aryna Sabalenka','Coco Gauff','Elena Rybakina','Jessica Pegula','Ons Jabeur','Jasmine Paolini','Madison Keys'],
+    status:'open', urgency:true, cutoff:'Samedi' },
+
+  // ===== F1 =====
+  { id:30, sport:'f1', comp:'Saison F1 2026', phase:'Juin 2026', emoji:'🏎️',
+    name:'GP Canada 2026', sub:'Circuit Gilles Villeneuve · Top 4', type:'top4',
+    candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','George Russell','Fernando Alonso','Carlos Sainz','Oscar Piastri'],
+    status:'open', urgency:false, cutoff:'Dans 3 jours' },
+
+  // ===== CYCLISME =====
+  { id:40, sport:'cyclisme', comp:'Tour de France 2026', phase:'Classement général', emoji:'🚴',
+    name:'Vainqueur TDF 2026', sub:'Tour de France 2026 · Top 4', type:'top4',
+    candidates:['Tadej Pogacar','Jonas Vingegaard','Remco Evenepoel','Primoz Roglic','Adam Yates','Egan Bernal'],
+    status:'soon', urgency:false, cutoff:'Dans 3 semaines' },
+];
+
+const POINTS_MAP = { 0:10, 1:8, 2:6, 3:4 };
+
+// =====================
+// UTILS
+// =====================
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
 }
+function isDone(id) { return !!userPronos[id]; }
 
-// AUTH FORMS
+// =====================
+// AUTH
+// =====================
 function showLogin() {
-  document.getElementById('login-form').style.display = 'block';
-  document.getElementById('register-form').style.display = 'none';
-  document.getElementById('forgot-form').style.display = 'none';
+  ['login-form','register-form','forgot-form'].forEach(id => document.getElementById(id).style.display='none');
+  document.getElementById('login-form').style.display='block';
 }
 function showRegister() {
-  document.getElementById('login-form').style.display = 'none';
-  document.getElementById('register-form').style.display = 'block';
-  document.getElementById('forgot-form').style.display = 'none';
+  ['login-form','register-form','forgot-form'].forEach(id => document.getElementById(id).style.display='none');
+  document.getElementById('register-form').style.display='block';
 }
 function showForgot() {
-  document.getElementById('login-form').style.display = 'none';
-  document.getElementById('register-form').style.display = 'none';
-  document.getElementById('forgot-form').style.display = 'block';
+  ['login-form','register-form','forgot-form'].forEach(id => document.getElementById(id).style.display='none');
+  document.getElementById('forgot-form').style.display='block';
 }
 
 async function loginUser() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const err = document.getElementById('login-error');
-  const ok = document.getElementById('login-success');
-  err.style.display = 'none'; ok.style.display = 'none';
-  if (!email || !password) { err.textContent = 'Remplis tous les champs.'; err.style.display = 'block'; return; }
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) { err.textContent = 'Email ou mot de passe incorrect.'; err.style.display = 'block'; return; }
-  await loadProfile(data.user);
-  launchApp();
+  err.style.display='none';
+  if (!email||!password) { err.textContent='Remplis tous les champs.'; err.style.display='block'; return; }
+  const {data,error} = await sb.auth.signInWithPassword({email,password});
+  if (error) { err.textContent='Email ou mot de passe incorrect.'; err.style.display='block'; return; }
+  await loadProfile(data.user); launchApp();
 }
 
 async function registerUser() {
@@ -433,201 +502,438 @@ async function registerUser() {
   const password = document.getElementById('reg-password').value;
   const err = document.getElementById('reg-error');
   const ok = document.getElementById('reg-success');
-  err.style.display = 'none'; ok.style.display = 'none';
-  if (!pseudo || !email || !password) { err.textContent = 'Remplis tous les champs.'; err.style.display = 'block'; return; }
-  if (password.length < 6) { err.textContent = 'Mot de passe trop court (min. 6 caractères).'; err.style.display = 'block'; return; }
-  const { data, error } = await sb.auth.signUp({ email, password, options: { data: { pseudo } } });
-  if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
-  await sb.from('profiles').insert({ id: data.user.id, pseudo, email, points: 0, pronos_count: 0, badges_count: 1 });
-  ok.textContent = '📧 Compte créé ! Tu peux maintenant te connecter.';
-  ok.style.display = 'block';
-  document.getElementById('reg-pseudo').value = '';
-  document.getElementById('reg-email').value = '';
-  document.getElementById('reg-password').value = '';
+  err.style.display='none'; ok.style.display='none';
+  if (!pseudo||!email||!password) { err.textContent='Remplis tous les champs.'; err.style.display='block'; return; }
+  if (password.length<6) { err.textContent='Mot de passe trop court.'; err.style.display='block'; return; }
+  const {data,error} = await sb.auth.signUp({email,password});
+  if (error) { err.textContent=error.message; err.style.display='block'; return; }
+  await sb.from('profiles').insert({id:data.user.id,pseudo,email,points:0,pronos_count:0,badges_count:1});
+  ok.textContent='✅ Compte créé ! Tu peux maintenant te connecter.'; ok.style.display='block';
 }
 
 async function sendReset() {
   const email = document.getElementById('forgot-email').value.trim();
   const err = document.getElementById('forgot-error');
   const ok = document.getElementById('forgot-success');
-  err.style.display = 'none'; ok.style.display = 'none';
-  if (!email) { err.textContent = 'Entre ton email.'; err.style.display = 'block'; return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
-  if (error) { err.textContent = 'Erreur — vérifie ton email.'; err.style.display = 'block'; return; }
-  ok.textContent = '📧 Email envoyé ! Vérifie ta boîte mail (et tes spams).';
-  ok.style.display = 'block';
+  err.style.display='none'; ok.style.display='none';
+  if (!email) { err.textContent='Entre ton email.'; err.style.display='block'; return; }
+  const {error} = await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+  if (error) { err.textContent='Erreur — vérifie ton email.'; err.style.display='block'; return; }
+  ok.textContent='📧 Email envoyé ! Vérifie ta boîte mail.'; ok.style.display='block';
 }
 
 async function logoutUser() {
   await sb.auth.signOut();
-  currentUser = null; currentProfile = null;
-  document.getElementById('app-screen').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
+  currentUser=null; currentProfile=null; userPronos={};
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
   showLogin();
 }
 
 async function loadProfile(user) {
-  currentUser = user;
-  const { data } = await sb.from('profiles').select('*').eq('id', user.id).single();
-  currentProfile = data;
+  currentUser=user;
+  const {data} = await sb.from('profiles').select('*').eq('id',user.id).single();
+  currentProfile=data;
+}
+
+async function loadUserPronos() {
+  if (!currentUser) return;
+  const {data} = await sb.from('pronos').select('event_id,data').eq('user_id',currentUser.id);
+  if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
 function launchApp() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'block';
-  updateTopBar();
-  renderEvents();
-  loadRankingsHome();
-  renderPronos();
-  renderGroupes();
-  renderProfil();
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  loadUserPronos().then(() => {
+    updateTopBar(); renderSportTabs(); renderEventsBySport('football');
+    loadRankingsHome(); renderPronos(); renderGroupes(); renderProfil();
+  });
 }
 
 function updateTopBar() {
   if (!currentProfile) return;
   const p = currentProfile;
-  document.getElementById('top-avatar').textContent = p.pseudo ? p.pseudo[0].toUpperCase() : '?';
-  document.getElementById('top-pseudo').textContent = p.pseudo || 'Joueur';
-  document.getElementById('top-pts').textContent = (p.points || 0) + ' pts';
-  document.getElementById('stat-pts').textContent = p.points || 0;
-  document.getElementById('stat-pct').textContent = p.pronos_count > 0 ? Math.round((p.good_pronos || 0) / p.pronos_count * 100) + '%' : '0%';
-  document.getElementById('stat-badges').textContent = (p.badges_count || 0) + ' 🏅';
+  document.getElementById('top-avatar').textContent = p.pseudo?p.pseudo[0].toUpperCase():'?';
+  document.getElementById('top-pseudo').textContent = p.pseudo||'Joueur';
+  document.getElementById('top-pts').textContent = (p.points||0)+' pts';
+  document.getElementById('stat-pts').textContent = p.points||0;
+  document.getElementById('stat-pct').textContent = p.pronos_count>0?Math.round((p.good_pronos||0)/p.pronos_count*100)+'%':'0%';
+  document.getElementById('stat-badges').textContent = (p.badges_count||0)+' 🏅';
 }
 
-function renderEvents() {
-  const grid = document.getElementById('events-grid');
-  grid.innerHTML = EVENTS.map(ev => `
-    <div class="event-card ${ev.urgency ? 'urgent' : ''}">
-      <div class="event-header">
-        <span class="sport-tag">${ev.sport} ${ev.sport_key.charAt(0).toUpperCase()+ev.sport_key.slice(1)}</span>
-        <span class="countdown ${ev.urgency ? 'urgent' : ''}">⏱ ${ev.cutoff}</span>
+// =====================
+// SPORT TABS + EVENTS
+// =====================
+function renderSportTabs() {
+  const tabs = document.getElementById('sport-tabs-home');
+  tabs.innerHTML = SPORTS.map((s,i) =>
+    `<div class="sport-tab ${i===0?'active':''}" onclick="filterSport('${s.key}',this)">${s.label}</div>`
+  ).join('');
+}
+
+function filterSport(key, el) {
+  document.querySelectorAll('#sport-tabs-home .sport-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderEventsBySport(key);
+}
+
+function renderEventsBySport(sportKey) {
+  const container = document.getElementById('home-events-container');
+  const comps = [...new Set(EVENTS.filter(e=>e.sport===sportKey).map(e=>e.comp))];
+  let html = '';
+  comps.forEach(comp => {
+    const evs = EVENTS.filter(e=>e.sport===sportKey && e.comp===comp);
+    const phases = [...new Set(evs.map(e=>e.phase))];
+    html += `<div class="competition-header">
+      <div class="competition-name">${comp}</div>
+      <div class="competition-sub">${evs.length} événement(s)</div>
+    </div>`;
+    html += `<div class="phase-tabs" id="ptabs-${sportKey}">`;
+    phases.forEach((ph,i) => {
+      html += `<div class="phase-tab ${i===0?'active':''}" onclick="filterPhase('${sportKey}','${comp}','${ph}',this)">${ph}</div>`;
+    });
+    html += `</div>`;
+    html += `<div class="events-grid" id="egrid-${sportKey}">`;
+    evs.filter(e=>e.phase===phases[0]).forEach(ev => { html += renderEventCard(ev); });
+    html += `</div>`;
+  });
+  container.innerHTML = html;
+}
+
+function filterPhase(sportKey, comp, phase, el) {
+  el.parentElement.querySelectorAll('.phase-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const grid = document.getElementById(`egrid-${sportKey}`);
+  const evs = EVENTS.filter(e=>e.sport===sportKey && e.comp===comp && e.phase===phase);
+  grid.innerHTML = evs.map(ev=>renderEventCard(ev)).join('');
+}
+
+function renderEventCard(ev) {
+  const done = isDone(ev.id);
+  let inner = '';
+
+  if (ev.type === '1x2' && ev.status === 'open') {
+    const sel = userPronos[ev.id]?.result || '';
+    inner = `
+      <div class="match-teams">
+        <span>${ev.team1}</span>
+        <span class="match-vs">vs</span>
+        <span>${ev.team2}</span>
       </div>
-      <div class="event-name">${ev.name}</div>
-      <div class="event-sub">${ev.sub}</div>
+      <div class="match-1x2">
+        <div class="btn-1x2 ${sel==='1'?'selected':''}" onclick="quickSelect(${ev.id},'1',this,event)">1<br><small style="font-size:10px;opacity:0.8;">${ev.team1.split(' ').pop()}</small></div>
+        <div class="btn-1x2 ${sel==='X'?'selected':''}" onclick="quickSelect(${ev.id},'X',this,event)">X<br><small style="font-size:10px;opacity:0.8;">Nul</small></div>
+        <div class="btn-1x2 ${sel==='2'?'selected':''}" onclick="quickSelect(${ev.id},'2',this,event)">2<br><small style="font-size:10px;opacity:0.8;">${ev.team2.split(' ').pop()}</small></div>
+      </div>`;
+  } else {
+    inner = `
       <div class="event-status">
-        <div class="status-dot ${ev.status==='soon'?'closed':''}"></div>
-        <span class="status-text">${ev.status==='open'?'Ouvert — pronostique !':'Bientôt disponible'}</span>
+        <div class="status-dot ${done?'done-dot':ev.status==='soon'?'closed':''}"></div>
+        <span class="status-text">${done?'🎯 Prono enregistré !':ev.status==='open'?'Ouvert !':'Bientôt'}</span>
       </div>
       ${ev.status==='open'
-        ? `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
-        : `<button class="prono-btn view">Bientôt 🔒</button>`}
+        ? done
+          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
+          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
+        : `<button class="prono-btn view">Bientôt 🔒</button>`}`;
+  }
+
+  return `<div class="event-card ${done?'done':ev.urgency?'urgent':''}">
+    ${done?'<div class="done-badge">✓ Fait</div>':''}
+    <div class="event-header">
+      <span class="sport-tag">${ev.emoji} ${ev.sport==='f1'?'F1':ev.sport.charAt(0).toUpperCase()+ev.sport.slice(1)}</span>
+      <span class="countdown ${ev.urgency&&!done?'urgent':''}">⏱ ${ev.cutoff}</span>
     </div>
-  `).join('');
+    <div class="event-name">${ev.name}</div>
+    <div class="event-sub">${ev.sub}</div>
+    ${inner}
+  </div>`;
 }
 
-function renderPronos() {
-  const list = document.getElementById('prono-list');
-  list.innerHTML = EVENTS.map(ev => `
-    <div class="prono-item ${ev.urgency?'urgent':''}">
-      <div class="prono-sport">${ev.sport}</div>
-      <div class="prono-info">
-        <div class="prono-name">${ev.name}${ev.urgency?'<span class="urgent-badge">URGENT</span>':''}</div>
-        <div class="prono-sub">${ev.sub} · Cutoff : ${ev.cutoff}</div>
-      </div>
-      <div>
-        ${ev.status==='open'
-          ? `<span class="prono-tag todo" onclick="openPronoModal(${ev.id})">À faire</span>`
-          : `<span class="prono-tag closed-tag">Bientôt</span>`}
-      </div>
-    </div>
-  `).join('');
+async function quickSelect(eventId, result, el, e) {
+  e.stopPropagation();
+  const card = el.closest('.event-card');
+  card.querySelectorAll('.btn-1x2').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  const ev = EVENTS.find(x=>x.id===eventId);
+  const isNew = !userPronos[eventId];
+  userPronos[eventId] = {result};
+  await sb.from('pronos').upsert({
+    user_id:currentUser.id, event_id:eventId,
+    event_name:ev.name, sport:ev.sport,
+    data:{result}, created_at:new Date().toISOString()
+  },{onConflict:'user_id,event_id'});
+  if (isNew) {
+    await sb.from('profiles').update({pronos_count:(currentProfile.pronos_count||0)+1}).eq('id',currentUser.id);
+    currentProfile.pronos_count=(currentProfile.pronos_count||0)+1;
+    updateTopBar();
+  }
+  // Update badge
+  const badge = card.querySelector('.done-badge');
+  if (!badge) { const b=document.createElement('div'); b.className='done-badge'; b.textContent='✓ Fait'; card.appendChild(b); }
+  card.classList.add('done'); card.classList.remove('urgent');
+  showToast('✅ Pronostic enregistré !');
+  renderPronos();
 }
 
+// =====================
+// MODAL PRONOSTIC
+// =====================
 function openPronoModal(eventId) {
-  currentEvent = EVENTS.find(e => e.id === eventId);
+  currentEvent = EVENTS.find(e=>e.id===eventId);
   if (!currentEvent) return;
   document.getElementById('modal-title').textContent = currentEvent.name;
-  document.getElementById('modal-sub').textContent = currentEvent.sub;
+  document.getElementById('modal-sub').textContent = currentEvent.sub+' · '+currentEvent.cutoff;
   const content = document.getElementById('modal-content');
+  const ex = userPronos[eventId] || {};
 
-  if (currentEvent.type === 'score') {
+  if (currentEvent.type === '1x2') {
+    const sel = ex.result || '';
     content.innerHTML = `
-      <div class="modal-section">Pronostique le score final (90 min)</div>
-      <div class="score-inputs">
-        <div class="score-team">${currentEvent.team1}</div>
-        <input class="score-input" type="number" id="score1" min="0" max="20" value="1" />
-        <div class="score-sep">–</div>
-        <input class="score-input" type="number" id="score2" min="0" max="20" value="1" />
-        <div class="score-team">${currentEvent.team2}</div>
+      <div class="modal-section">Résultat du match</div>
+      <div style="font-size:14px;font-weight:500;text-align:center;margin-bottom:12px;">${currentEvent.team1} vs ${currentEvent.team2}</div>
+      <div class="modal-1x2">
+        <div class="modal-1x2-btn ${sel==='1'?'selected':''}" onclick="select1x2('1',this)">1<br><small>${currentEvent.team1}</small></div>
+        <div class="modal-1x2-btn ${sel==='X'?'selected':''}" onclick="select1x2('X',this)">X<br><small>Match nul</small></div>
+        <div class="modal-1x2-btn ${sel==='2'?'selected':''}" onclick="select1x2('2',this)">2<br><small>${currentEvent.team2}</small></div>
       </div>
-      <div class="points-info">🎯 Score exact = 10 pts · Bon résultat = 5 pts · Mauvais = 0 pt</div>
-    `;
-  } else {
-    const opts = currentEvent.candidates;
-    const makeSelect = (idx, excludeIds) => `
-      <select class="top4-select" id="top4-${idx}" onchange="updateSelects()">
-        <option value="">— Choisir —</option>
-        ${opts.map(o => `<option value="${o}">${o}</option>`).join('')}
-      </select>
-    `;
+      <div class="points-info">🎯 Bonne prédiction = <strong>10 pts</strong> · Mauvaise = 0 pt</div>`;
+
+  } else if (currentEvent.type === 'tennis_sf') {
+    const setsOpts = (v) => [3,4,5].map(n=>`<option value="${n}" ${n==v?'selected':''}>${n} sets</option>`).join('');
     content.innerHTML = `
-      <div class="modal-section">Pronostique le Top 4 — dans l'ordre</div>
+      <div class="modal-section">Demi-finale — ${currentEvent.player1} vs ${currentEvent.player2}</div>
+      <div class="question-row">
+        <div class="question-label">🏆 Qui gagne ?</div>
+        <select class="question-select" id="q-winner">
+          <option value="">— Choisir —</option>
+          <option value="${currentEvent.player1}" ${ex.winner===currentEvent.player1?'selected':''}>${currentEvent.player1}</option>
+          <option value="${currentEvent.player2}" ${ex.winner===currentEvent.player2?'selected':''}>${currentEvent.player2}</option>
+        </select>
+        <div class="question-pts">10 pts</div>
+      </div>
+      <div class="question-row">
+        <div class="question-label">📊 En combien de sets ?</div>
+        <select class="question-select" id="q-sets">
+          <option value="">— Choisir —</option>${setsOpts(ex.sets)}
+        </select>
+        <div class="question-pts">6 pts</div>
+      </div>
+      <div class="points-info">🎯 Total max : <strong>16 pts</strong></div>`;
+
+  } else if (currentEvent.type === 'tennis_final_h') {
+    const cands = currentEvent.finalists;
+    const makeOpts = (v) => cands.map(c=>`<option value="${c}" ${c===v?'selected':''}>${c}</option>`).join('');
+    const setsOpts = (v) => [3,4,5].map(n=>`<option value="${n}" ${n==v?'selected':''}>${n} sets</option>`).join('');
+    content.innerHTML = `
+      <div class="modal-section">Finale Hommes Roland Garros</div>
+      <div class="question-row">
+        <div class="question-label">🏆 Qui gagne la finale ?</div>
+        <select class="question-select" id="q-winner">
+          <option value="">— Choisir —</option>${makeOpts(ex.winner)}
+        </select>
+        <div class="question-pts">10 pts</div>
+      </div>
+      <div class="question-row">
+        <div class="question-label">📊 En combien de sets ?</div>
+        <select class="question-select" id="q-sets">
+          <option value="">— Choisir —</option>${setsOpts(ex.sets)}
+        </select>
+        <div class="question-pts">6 pts</div>
+      </div>
+      <div class="question-row">
+        <div class="question-label">1️⃣ Qui gagne le 1er set ?</div>
+        <select class="question-select" id="q-first-set">
+          <option value="">— Choisir —</option>${makeOpts(ex.first_set)}
+        </select>
+        <div class="question-pts">4 pts</div>
+      </div>
+      <div class="question-row">
+        <div class="question-label">⚡ Nombre d'aces total ?</div>
+        <select class="question-select" id="q-aces">
+          <option value="">— Choisir —</option>
+          <option value="0-10" ${ex.aces==='0-10'?'selected':''}>0 à 10 aces</option>
+          <option value="11-20" ${ex.aces==='11-20'?'selected':''}>11 à 20 aces</option>
+          <option value="21-30" ${ex.aces==='21-30'?'selected':''}>21 à 30 aces</option>
+          <option value="30+" ${ex.aces==='30+'?'selected':''}>Plus de 30 aces</option>
+        </select>
+        <div class="question-pts">3 pts</div>
+      </div>
+      <div class="points-info">🎯 Total max : <strong>23 pts</strong></div>`;
+
+  } else if (currentEvent.type === 'tennis_final_f') {
+    const cands = currentEvent.candidates;
+    const makeOpts = (v) => cands.map(c=>`<option value="${c}" ${c===v?'selected':''}>${c}</option>`).join('');
+    const setsOpts = (v) => [2,3].map(n=>`<option value="${n}" ${n==v?'selected':''}>${n} sets</option>`).join('');
+    content.innerHTML = `
+      <div class="modal-section">Finale Dames Roland Garros</div>
+      <div class="question-row">
+        <div class="question-label">🏆 Qui gagne la finale ?</div>
+        <select class="question-select" id="q-winner">
+          <option value="">— Choisir —</option>${makeOpts(ex.winner)}
+        </select>
+        <div class="question-pts">10 pts</div>
+      </div>
+      <div class="question-row">
+        <div class="question-label">📊 En combien de sets ?</div>
+        <select class="question-select" id="q-sets">
+          <option value="">— Choisir —</option>${setsOpts(ex.sets)}
+        </select>
+        <div class="question-pts">6 pts</div>
+      </div>
+      <div class="question-row">
+        <div class="question-label">1️⃣ Qui gagne le 1er set ?</div>
+        <select class="question-select" id="q-first-set">
+          <option value="">— Choisir —</option>${makeOpts(ex.first_set)}
+        </select>
+        <div class="question-pts">4 pts</div>
+      </div>
+      <div class="question-row">
+        <div class="question-label">⚡ Nombre d'aces total ?</div>
+        <select class="question-select" id="q-aces">
+          <option value="">— Choisir —</option>
+          <option value="0-5" ${ex.aces==='0-5'?'selected':''}>0 à 5 aces</option>
+          <option value="6-12" ${ex.aces==='6-12'?'selected':''}>6 à 12 aces</option>
+          <option value="13-20" ${ex.aces==='13-20'?'selected':''}>13 à 20 aces</option>
+          <option value="20+" ${ex.aces==='20+'?'selected':''}>Plus de 20 aces</option>
+        </select>
+        <div class="question-pts">3 pts</div>
+      </div>
+      <div class="points-info">🎯 Total max : <strong>23 pts</strong></div>`;
+
+  } else {
+    // TOP 4
+    const cands = currentEvent.candidates;
+    const ex4 = ex.top4||[];
+    content.innerHTML = `
+      <div class="modal-section">Pronostique le Top 4</div>
       <div class="top4-inputs">
-        ${[0,1,2,3].map(i => `
+        ${[0,1,2,3].map(i=>`
           <div class="top4-row">
             <div class="top4-pos">${i+1}</div>
-            ${makeSelect(i)}
+            <select class="top4-select" id="top4-${i}" onchange="updateSelects()">
+              <option value="">— Choisir —</option>
+              ${cands.map(c=>`<option value="${c}" ${c===ex4[i]?'selected':''}>${c}</option>`).join('')}
+            </select>
             <div class="top4-pts">${POINTS_MAP[i]} pts</div>
-          </div>
-        `).join('')}
+          </div>`).join('')}
       </div>
-      <div class="points-info">🎯 ScoreShot : 10-8-6-4 pts · -1 pt par place d'écart</div>
-    `;
+      <div class="points-info">🎯 ScoreShot : 10-8-6-4 pts · -1 pt par place d'écart</div>`;
+    setTimeout(updateSelects,50);
   }
+
   document.getElementById('prono-modal').classList.add('open');
 }
 
+function select1x2(val, el) {
+  el.parentElement.querySelectorAll('.modal-1x2-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
 function updateSelects() {
-  const selected = [0,1,2,3].map(i => document.getElementById('top4-'+i)?.value).filter(Boolean);
-  [0,1,2,3].forEach(i => {
-    const sel = document.getElementById('top4-'+i);
-    if (!sel) return;
-    const current = sel.value;
-    Array.from(sel.options).forEach(opt => {
-      if (opt.value === '') return;
-      opt.disabled = selected.includes(opt.value) && opt.value !== current;
+  const selected = [0,1,2,3].map(i=>document.getElementById('top4-'+i)?.value).filter(Boolean);
+  [0,1,2,3].forEach(i=>{
+    const sel=document.getElementById('top4-'+i); if(!sel) return;
+    const cur=sel.value;
+    Array.from(sel.options).forEach(opt=>{
+      if(opt.value==='') return;
+      opt.disabled=selected.includes(opt.value)&&opt.value!==cur;
     });
   });
 }
 
-function closeModal() {
-  document.getElementById('prono-modal').classList.remove('open');
-  currentEvent = null;
-}
+function closeModal() { document.getElementById('prono-modal').classList.remove('open'); currentEvent=null; }
 
 async function submitProno() {
-  if (!currentEvent || !currentUser) return;
-  let pronoData = {};
-  if (currentEvent.type === 'score') {
-    const s1 = parseInt(document.getElementById('score1').value) || 0;
-    const s2 = parseInt(document.getElementById('score2').value) || 0;
-    pronoData = { score1: s1, score2: s2 };
+  if (!currentEvent||!currentUser) return;
+  let pronoData={};
+
+  if (currentEvent.type==='1x2') {
+    const sel = document.querySelector('.modal-1x2-btn.selected');
+    if (!sel) { showToast('⚠️ Choisis 1, X ou 2 !'); return; }
+    pronoData={result:sel.textContent.trim().split('\n')[0].trim()};
+
+  } else if (currentEvent.type==='tennis_sf') {
+    const winner=document.getElementById('q-winner').value;
+    const sets=document.getElementById('q-sets').value;
+    if (!winner||!sets) { showToast('⚠️ Réponds à toutes les questions !'); return; }
+    pronoData={winner,sets};
+
+  } else if (currentEvent.type==='tennis_final_h'||currentEvent.type==='tennis_final_f') {
+    const winner=document.getElementById('q-winner').value;
+    const sets=document.getElementById('q-sets').value;
+    const first_set=document.getElementById('q-first-set').value;
+    const aces=document.getElementById('q-aces').value;
+    if (!winner||!sets||!first_set||!aces) { showToast('⚠️ Réponds à toutes les questions !'); return; }
+    pronoData={winner,sets,first_set,aces};
+
   } else {
-    const top4 = [0,1,2,3].map(i => document.getElementById('top4-'+i)?.value?.trim());
-    if (top4.some(v => !v)) { showToast('⚠️ Sélectionne les 4 positions !'); return; }
-    if (new Set(top4).size < 4) { showToast('⚠️ Pas de doublon !'); return; }
-    pronoData = { top4 };
+    const top4=[0,1,2,3].map(i=>document.getElementById('top4-'+i)?.value?.trim());
+    if (top4.some(v=>!v)) { showToast('⚠️ Sélectionne les 4 positions !'); return; }
+    if (new Set(top4).size<4) { showToast('⚠️ Pas de doublon !'); return; }
+    pronoData={top4};
   }
-  const { error } = await sb.from('pronos').upsert({
-    user_id: currentUser.id, event_id: currentEvent.id,
-    event_name: currentEvent.name, sport: currentEvent.sport_key,
-    data: pronoData, created_at: new Date().toISOString()
-  }, { onConflict: 'user_id,event_id' });
-  if (!error) {
-    await sb.from('profiles').update({ pronos_count: (currentProfile.pronos_count||0)+1 }).eq('id', currentUser.id);
-    currentProfile.pronos_count = (currentProfile.pronos_count||0)+1;
+
+  const isNew=!userPronos[currentEvent.id];
+  await sb.from('pronos').upsert({
+    user_id:currentUser.id, event_id:currentEvent.id,
+    event_name:currentEvent.name, sport:currentEvent.sport,
+    data:pronoData, created_at:new Date().toISOString()
+  },{onConflict:'user_id,event_id'});
+
+  userPronos[currentEvent.id]=pronoData;
+  if (isNew) {
+    await sb.from('profiles').update({pronos_count:(currentProfile.pronos_count||0)+1}).eq('id',currentUser.id);
+    currentProfile.pronos_count=(currentProfile.pronos_count||0)+1;
     updateTopBar();
   }
   closeModal();
-  showToast('✅ Pronostic enregistré !');
+  showToast(isNew?'✅ Pronostic enregistré !':'✏️ Pronostic modifié !');
+  renderPronos();
+  renderEventsBySport(currentEvent.sport);
+  document.querySelector(`[onclick="filterSport('${currentEvent.sport}',this)"]`)?.click();
 }
 
-async function loadRankings(type) {
-  const list = document.getElementById('full-rank-list');
-  const { data } = await sb.from('profiles').select('pseudo, points, pronos_count').order('points', { ascending: false }).limit(20);
-  if (!data || data.length === 0) { list.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:13px;">Sois le premier à te classer ! 🏆</div>'; return; }
-  list.innerHTML = data.map((p,i) => {
-    const isMe = currentProfile && p.pseudo === currentProfile.pseudo;
+// =====================
+// PRONOS PAGE
+// =====================
+function renderPronos() {
+  const list = document.getElementById('prono-list');
+  const sorted = [...EVENTS].sort((a,b)=>{
+    if (a.urgency&&!b.urgency) return -1;
+    if (!a.urgency&&b.urgency) return 1;
+    if (a.status==='open'&&b.status!=='open') return -1;
+    return 0;
+  });
+  list.innerHTML = sorted.map(ev=>{
+    const done=isDone(ev.id);
+    return `<div class="prono-item ${done?'done':ev.urgency?'urgent':''}">
+      <div class="prono-sport">${ev.emoji}</div>
+      <div class="prono-info">
+        <div class="prono-name">${ev.name}${ev.urgency&&!done?'<span class="urgent-badge">URGENT</span>':''}</div>
+        <div class="prono-sub">${ev.comp} · ${ev.cutoff}</div>
+      </div>
+      <div>
+        ${ev.status==='open'
+          ? done
+            ? `<span class="prono-tag done-tag" onclick="openPronoModal(${ev.id})">✏️ Modifier</span>`
+            : `<span class="prono-tag todo" onclick="openPronoModal(${ev.id})">À faire</span>`
+          : `<span class="prono-tag closed-tag">Bientôt</span>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// =====================
+// CLASSEMENTS
+// =====================
+async function loadRankings() {
+  const list=document.getElementById('full-rank-list');
+  const {data}=await sb.from('profiles').select('pseudo,points,pronos_count').order('points',{ascending:false}).limit(20);
+  if (!data||data.length===0) { list.innerHTML='<div style="padding:20px;color:var(--text-muted);font-size:13px;">Sois le premier ! 🏆</div>'; return; }
+  list.innerHTML=data.map((p,i)=>{
+    const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
     return `<div class="full-rank-row ${isMe?'me':''}">
       <div class="full-rank-num ${isMe?'me':''}">${i+1}</div>
       <div class="full-rank-avatar ${isMe?'me':''}">${p.pseudo?p.pseudo[0].toUpperCase():'?'}</div>
@@ -641,93 +947,103 @@ async function loadRankings(type) {
 }
 
 async function loadRankingsHome() {
-  const { data } = await sb.from('profiles').select('pseudo, points').order('points', { ascending: false }).limit(3);
+  const {data}=await sb.from('profiles').select('pseudo,points').order('points',{ascending:false}).limit(3);
   if (!data) return;
-  const myRank = data.findIndex(p => currentProfile && p.pseudo === currentProfile.pseudo) + 1;
-  document.getElementById('stat-rank').textContent = myRank > 0 ? '#'+myRank : '#–';
-  document.getElementById('home-rankings').innerHTML = `
+  const myRank=data.findIndex(p=>currentProfile&&p.pseudo===currentProfile.pseudo)+1;
+  document.getElementById('stat-rank').textContent=myRank>0?'#'+myRank:'#–';
+  document.getElementById('home-rankings').innerHTML=`
     <div class="rank-card">
       <div class="rank-title">🌍 Général</div>
-      ${data.length === 0 ? '<div style="font-size:12px;color:var(--text-muted);">Pas encore de joueurs</div>' :
-        data.map((p,i) => { const isMe = currentProfile && p.pseudo === currentProfile.pseudo;
+      ${data.length===0?'<div style="font-size:12px;color:var(--text-muted);">Pas encore de joueurs</div>':
+        data.map((p,i)=>{const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
           return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo||'Joueur'}</span><span class="rank-pts">${p.points||0}</span></div>`;
         }).join('')}
     </div>
     <div class="rank-card"><div class="rank-title">⚽ Football</div><div style="font-size:12px;color:var(--text-muted);padding:8px 0;">Bientôt</div></div>
-    <div class="rank-card"><div class="rank-title">🎾 Tennis</div><div style="font-size:12px;color:var(--text-muted);padding:8px 0;">Bientôt</div></div>
-  `;
+    <div class="rank-card"><div class="rank-title">🎾 Tennis</div><div style="font-size:12px;color:var(--text-muted);padding:8px 0;">Bientôt</div></div>`;
 }
 
-function switchRankTab(type, el) {
-  document.querySelectorAll('.rank-tab').forEach(t => t.classList.remove('active'));
+function switchRankTab(el) {
+  document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  loadRankings(type);
+  loadRankings();
 }
 
+// =====================
+// GROUPES
+// =====================
 async function renderGroupes() {
-  const cards = document.getElementById('group-cards');
-  const { data } = await sb.from('group_members').select('groups(*)').eq('user_id', currentUser.id);
-  if (!data || data.length === 0) { cards.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Tu n\'es dans aucun groupe pour le moment.</div>'; return; }
-  cards.innerHTML = data.map(m => m.groups).filter(Boolean).map(g => `
+  const cards=document.getElementById('group-cards');
+  const {data}=await sb.from('group_members').select('groups(*)').eq('user_id',currentUser.id);
+  if (!data||data.length===0) { cards.innerHTML='<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Aucun groupe pour le moment.</div>'; return; }
+  cards.innerHTML=data.map(m=>m.groups).filter(Boolean).map(g=>`
     <div class="group-card">
       <div class="group-card-header">
         <div class="group-card-name">👥 ${g.name}</div>
         <div class="group-card-members">${g.members_count||1} membre(s)</div>
       </div>
       <div class="group-card-code">
-        <span>Code d'invitation : <strong>${g.code}</strong></span>
-        <button class="copy-btn" onclick="copyCode('${g.code}')">Copier</button>
+        <span>Code : <strong>${g.code}</strong></span>
+        <button class="copy-btn" onclick="copyCode('${g.code}')">Copier 📋</button>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function copyCode(code) { navigator.clipboard.writeText(code); showToast('Code copié ! 📋'); }
 
 async function createGroup() {
-  const name = prompt('Nom de ton groupe :');
-  if (!name || !name.trim()) return;
-  const code = Math.random().toString(36).substring(2,8).toUpperCase();
-  const { data } = await sb.from('groups').insert({ name: name.trim(), code, created_by: currentUser.id, members_count: 1 }).select().single();
+  const name=prompt('Nom de ton groupe :');
+  if (!name||!name.trim()) return;
+  const code=Math.random().toString(36).substring(2,8).toUpperCase();
+  const {data}=await sb.from('groups').insert({name:name.trim(),code,created_by:currentUser.id,members_count:1}).select().single();
   if (data) {
-    await sb.from('group_members').insert({ group_id: data.id, user_id: currentUser.id, is_admin: true });
-    showToast('Groupe créé ! Code : ' + code);
+    await sb.from('group_members').insert({group_id:data.id,user_id:currentUser.id,is_admin:true});
+    showToast('✅ Groupe créé ! Code : '+code);
     renderGroupes();
   }
 }
 
 async function joinGroup() {
-  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  const code=document.getElementById('join-code').value.trim().toUpperCase();
   if (!code) return;
-  const { data: group } = await sb.from('groups').select('*').eq('code', code).single();
+  const {data:group}=await sb.from('groups').select('*').eq('code',code).single();
   if (!group) { showToast('❌ Code introuvable !'); return; }
-  await sb.from('group_members').upsert({ group_id: group.id, user_id: currentUser.id, is_admin: false }, { onConflict: 'group_id,user_id' });
-  await sb.from('groups').update({ members_count: (group.members_count||1)+1 }).eq('id', group.id);
-  document.getElementById('join-code').value = '';
-  showToast('✅ Tu as rejoint ' + group.name + ' !');
+  await sb.from('group_members').upsert({group_id:group.id,user_id:currentUser.id,is_admin:false},{onConflict:'group_id,user_id'});
+  await sb.from('groups').update({members_count:(group.members_count||1)+1}).eq('id',group.id);
+  document.getElementById('join-code').value='';
+  showToast('✅ Tu as rejoint '+group.name+' !');
   renderGroupes();
 }
 
+// =====================
+// PROFIL
+// =====================
 function renderProfil() {
   if (!currentProfile) return;
-  const p = currentProfile;
-  document.getElementById('profil-avatar').textContent = p.pseudo ? p.pseudo[0].toUpperCase() : '?';
-  document.getElementById('profil-pseudo').textContent = p.pseudo || 'Joueur';
-  document.getElementById('profil-pts').textContent = p.points || 0;
-  document.getElementById('profil-pronos').textContent = p.pronos_count || 0;
-  document.getElementById('profil-badges').textContent = p.badges_count || 0;
+  const p=currentProfile;
+  document.getElementById('profil-avatar').textContent=p.pseudo?p.pseudo[0].toUpperCase():'?';
+  document.getElementById('profil-pseudo').textContent=p.pseudo||'Joueur';
+  document.getElementById('profil-pts').textContent=p.points||0;
+  document.getElementById('profil-pronos').textContent=p.pronos_count||0;
+  document.getElementById('profil-badges').textContent=p.badges_count||0;
 }
 
+// =====================
+// NAVIGATION
+// =====================
 function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
-  if (name === 'classements') loadRankings('general');
-  if (name === 'groupes') renderGroupes();
+  if (name==='classements') loadRankings();
+  if (name==='groupes') renderGroupes();
 }
 
-sb.auth.onAuthStateChange(async (event, session) => {
+// =====================
+// INIT
+// =====================
+sb.auth.onAuthStateChange(async (event,session)=>{
   if (session?.user) {
     await loadProfile(session.user);
     if (currentProfile) launchApp();
