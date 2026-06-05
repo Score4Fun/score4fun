@@ -503,7 +503,9 @@ async function loginUser() {
     }
     err.style.display='block'; return;
   }
-  // onAuthStateChange prend le relais
+  // Login OK — lancement direct
+  await loadProfile(data.user);
+  launchApp();
 }
 
 async function registerUser() {
@@ -1047,5 +1049,4 @@ async function joinGroup() {
 function renderProfil() {
   if (!currentProfile) return;
   const p=currentProfile;
-  document.getElementById('profil-avatar').textContent=p.pseudo?p.pseudo[0].toUpperCase():'?';
-  document.getElementById('pr
+  document.getElementById('profil-avatar').textContent=p.pseudo?p.pseudo[0].toUpp
