@@ -384,8 +384,13 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// Config chargée depuis config.js (SUPABASE_URL, SUPABASE_KEY)
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Init Supabase
+const _SU = 'https://rcvgnazubkaaioxplvqa.supabase.co';
+const _SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
+  'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjdmduYXp1YmthYWlveHBsdnFhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDU5NzA4MCwiZXhwIjoyMDk2MTczMDgwfQ.' +
+  'Evd0FpzVpXr5hJD5LwP4b7rzQpiaQcPnWrqBs5H1xGY';
+let sb;
+try { sb = supabase.createClient(_SU, _SK); } catch(e) { console.error('Supabase:', e.message); }
 
 let currentUser = null, currentProfile = null, currentEvent = null;
 let userPronos = {};
@@ -498,18 +503,13 @@ async function loginUser() {
   err.style.display='none';
   if (!email||!pwd) { err.textContent='Remplis tous les champs.'; err.style.display='block'; return; }
   btn.textContent='Connexion...'; btn.disabled=true;
-  try {
-    const hash = await hashPwd(pwd);
-    const {data} = await sb.from('profiles').select('*').eq('email',email).eq('pwd',hash).maybeSingle();
-    if (!data) { err.textContent='Email ou mot de passe incorrect.'; err.style.display='block'; return; }
-    currentProfile=data; currentUser={id:data.id};
-    localStorage.setItem('s4f_session', JSON.stringify({id:data.id}));
-    launchApp();
-  } catch(e) {
-    err.textContent='Erreur de connexion, réessaie.'; err.style.display='block';
-  } finally {
-    btn.textContent='Se connecter'; btn.disabled=false;
-  }
+  const hash = await hashPwd(pwd);
+  const {data} = await sb.from('profiles').select('*').eq('email',email).eq('pwd',hash).maybeSingle();
+  btn.textContent='Se connecter'; btn.disabled=false;
+  if (!data) { err.textContent='Email ou mot de passe incorrect.'; err.style.display='block'; return; }
+  currentProfile=data; currentUser={id:data.id};
+  localStorage.setItem('s4f_session', JSON.stringify({id:data.id}));
+  launchApp();
 }
 
 async function registerUser() {
@@ -517,27 +517,19 @@ async function registerUser() {
   const email = document.getElementById('reg-email').value.trim().toLowerCase();
   const pwd = document.getElementById('reg-password').value;
   const err = document.getElementById('reg-error');
-  const btn = document.querySelector('#register-form .auth-btn');
   err.style.display='none';
   if (!pseudo||!email||!pwd) { err.textContent='Remplis tous les champs.'; err.style.display='block'; return; }
   if (pwd.length<6) { err.textContent='Mot de passe trop court (min. 6 car.).'; err.style.display='block'; return; }
-  btn.textContent='Création...'; btn.disabled=true;
-  try {
-    const {data:existing} = await sb.from('profiles').select('id').eq('email',email).maybeSingle();
-    if (existing) { err.textContent='Email déjà utilisé.'; err.style.display='block'; return; }
-    const hash = await hashPwd(pwd);
-    const id = crypto.randomUUID();
-    const {error} = await sb.from('profiles').insert({id,pseudo,email,pwd:hash,points:0,pronos_count:0,badges_count:0});
-    if (error) { err.textContent='Erreur: '+error.message; err.style.display='block'; return; }
-    currentProfile={id,pseudo,email,points:0,pronos_count:0,badges_count:0};
-    currentUser={id};
-    localStorage.setItem('s4f_session', JSON.stringify({id}));
-    launchApp();
-  } catch(e) {
-    err.textContent='Erreur: '+e.message; err.style.display='block';
-  } finally {
-    btn.textContent='Créer mon compte'; btn.disabled=false;
-  }
+  const {data:existing} = await sb.from('profiles').select('id').eq('email',email).maybeSingle();
+  if (existing) { err.textContent='Email déjà utilisé.'; err.style.display='block'; return; }
+  const hash = await hashPwd(pwd);
+  const id = crypto.randomUUID();
+  const {error} = await sb.from('profiles').insert({id,pseudo,email,pwd:hash,points:0,pronos_count:0,badges_count:0});
+  if (error) { err.textContent='Erreur: '+error.message; err.style.display='block'; return; }
+  currentProfile={id,pseudo,email,points:0,pronos_count:0,badges_count:0};
+  currentUser={id};
+  localStorage.setItem('s4f_session', JSON.stringify({id}));
+  launchApp();
 }
 
 async function verifyReset() {
