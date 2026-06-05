@@ -1051,4 +1051,4 @@ async function joinGroup() {
   if (!code) return;
   const {data:group}=await sb.from('groups').select('*').eq('code',code).single();
   if (!group) { showToast('❌ Code introuvable !'); return; }
-  await sb.from('group_members').upsert({group_id:group.id,user_id:currentUser.id,is_admin:f
+  await sb.from('group_members').upsert({group_id:group.id,user_id:currentUser.id,is_admin:f<!-- v1780691108 -->
