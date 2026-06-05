@@ -394,8 +394,17 @@
 <div class="toast" id="toast"></div>
 
 <script>
+window.S4F_STARTED = true;
+try {
+  window.S4F_STEP1 = 'avant createClient';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  window.S4F_STEP2 = 'createClient OK';
+  window.S4F_SB = sb;
+} catch(e) {
+  window.S4F_ERROR = e.message;
+}
 // SUPABASE_URL et SUPABASE_KEY chargés depuis config.js
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.S4F_SB || supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null, currentProfile = null, currentEvent = null;
 let userPronos = {};
@@ -1051,7 +1060,4 @@ async function joinGroup() {
   if (!code) return;
   const {data:group}=await sb.from('groups').select('*').eq('code',code).single();
   if (!group) { showToast('❌ Code introuvable !'); return; }
-  await sb.from('group_members').upsert({group_id:group.id,user_id:currentUser.id,is_admin:false},{onConflict:'group_id,user_id'});
-  await sb.from('groups').update({members_count:(group.members_count||1)+1}).eq('id',group.id);
-  document.getElementById('join-code').value='';
-  showToast('✅ Tu as rejoint
+  await sb.from('group_members').upsert({
