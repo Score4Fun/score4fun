@@ -543,13 +543,18 @@ async function logoutUser() {
 
 async function loadProfile(user) {
   currentUser=user;
-  const {data, error} = await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
-  if (data) { currentProfile=data; return; }
-  // Profil inexistant → on le crée automatiquement
-  const pseudo = (user.user_metadata?.pseudo) || user.email.split('@')[0];
-  await sb.from('profiles').insert({id:user.id, pseudo, email:user.email, points:0, pronos_count:0, badges_count:0});
-  const {data: newProfile} = await sb.from('profiles').select('*').eq('id',user.id).single();
-  currentProfile = newProfile;
+  try {
+    const {data} = await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+    if (data) { currentProfile=data; return; }
+    // Profil inexistant → création auto
+    const pseudo = user.user_metadata?.pseudo || user.email.split('@')[0];
+    await sb.from('profiles').insert({id:user.id, pseudo, email:user.email, points:0, pronos_count:0, badges_count:0});
+    const {data: np} = await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+    currentProfile = np || {id:user.id, pseudo, email:user.email, points:0, pronos_count:0, badges_count:0};
+  } catch(e) {
+    // Fallback minimal pour ne pas bloquer le login
+    currentProfile = {id:user.id, pseudo:user.email.split('@')[0], email:user.email, points:0, pronos_count:0, badges_count:0};
+  }
 }
 
 async function loadUserPronos() {
@@ -1044,11 +1049,4 @@ function renderProfil() {
   const p=currentProfile;
   document.getElementById('profil-avatar').textContent=p.pseudo?p.pseudo[0].toUpperCase():'?';
   document.getElementById('profil-pseudo').textContent=p.pseudo||'Joueur';
-  document.getElementById('profil-pts').textContent=p.points||0;
-  document.getElementById('profil-pronos').textContent=p.pronos_count||0;
-  document.getElementById('profil-badges').textContent=p.badges_count||0;
-}
-
-// =====================
-// NAVIGATION
-// =====================
+  docu
