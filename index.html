@@ -5,13 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Score4Fun — Predict the score. Score the points.</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script
-    async
-    crossorigin="anonymous"
-    data-clerk-publishable-key="pk_test_Y29oZXJlbnQtY295b3RlLTY0LmNsZXJrLmFjY291bnRzLmRldiQ"
-    src="https://coherent-coyote-64.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
-    type="text/javascript">
-  </script>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -242,7 +235,26 @@
   <div class="auth-box">
     <div class="auth-logo">Score<span>4</span>Fun</div>
     <div class="auth-tagline">Predict the score · Score the points</div>
-    <div id="clerk-sign-in"></div>
+
+    <!-- LOGIN -->
+    <div id="login-form">
+      <input class="auth-input" type="email" id="login-email" placeholder="Email" autocomplete="email" />
+      <input class="auth-input" type="password" id="login-password" placeholder="Mot de passe" autocomplete="current-password" />
+      <div id="login-error" class="auth-error" style="display:none;"></div>
+      <button class="auth-btn" id="login-btn" onclick="loginUser()">Se connecter</button>
+      <div class="auth-sep">— pas encore de compte ? —</div>
+      <button class="auth-btn secondary" onclick="showForm('register')">Créer un compte</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="register-form" style="display:none;">
+      <input class="auth-input" type="text" id="reg-pseudo" placeholder="Pseudo (ton nom dans les classements)" />
+      <input class="auth-input" type="email" id="reg-email" placeholder="Email" autocomplete="email" />
+      <input class="auth-input" type="password" id="reg-password" placeholder="Mot de passe (min. 6 caractères)" autocomplete="new-password" />
+      <div id="reg-error" class="auth-error" style="display:none;"></div>
+      <button class="auth-btn" onclick="registerUser()">Créer mon compte</button>
+      <button class="auth-btn secondary" onclick="showForm('login')">← Déjà un compte</button>
+    </div>
   </div>
 </div>
 
@@ -362,13 +374,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// SUPABASE — base de données uniquement
 const SUPABASE_URL = 'https://rcvgnazubkaaioxplvqa.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjdmduYXp1YmthYWlveHBsdnFhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDU5NzA4MCwiZXhwIjoyMDk2MTczMDgwfQ.Evd0FpzVpXr5hJD5LwP4b7rzQpiaQcPnWrqBs5H1xGY';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// CLERK — authentification
-const CLERK_KEY = 'pk_test_Y29oZXJlbnQtY295b3RlLTY0LmNsZXJrLmFjY291bnRzLmRldiQ';
 
 let currentUser = null, currentProfile = null, currentEvent = null;
 let userPronos = {};
@@ -456,28 +464,69 @@ function isDone(id) { return !!userPronos[id]; }
 // =====================
 // AUTH
 // =====================
-async function logoutUser() {
-  await window._clerk.signOut();
+// =====================
+// AUTH SIMPLE
+// =====================
+async function hashPwd(pwd) {
+  const data = new TextEncoder().encode(pwd);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function showForm(name) {
+  document.getElementById('login-form').style.display = name==='login' ? 'block' : 'none';
+  document.getElementById('register-form').style.display = name==='register' ? 'block' : 'none';
+}
+
+async function loginUser() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pwd = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  err.style.display='none';
+  if (!email||!pwd) { err.textContent='Remplis tous les champs.'; err.style.display='block'; return; }
+  btn.textContent='Connexion...'; btn.disabled=true;
+  const hash = await hashPwd(pwd);
+  const {data} = await sb.from('profiles').select('*').eq('email',email).eq('pwd',hash).maybeSingle();
+  btn.textContent='Se connecter'; btn.disabled=false;
+  if (!data) { err.textContent='Email ou mot de passe incorrect.'; err.style.display='block'; return; }
+  currentProfile = data;
+  currentUser = {id: data.id};
+  localStorage.setItem('s4f_session', JSON.stringify({id:data.id}));
+  launchApp();
+}
+
+async function registerUser() {
+  const pseudo = document.getElementById('reg-pseudo').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const pwd = document.getElementById('reg-password').value;
+  const err = document.getElementById('reg-error');
+  err.style.display='none';
+  if (!pseudo||!email||!pwd) { err.textContent='Remplis tous les champs.'; err.style.display='block'; return; }
+  if (pwd.length<6) { err.textContent='Mot de passe trop court (min. 6 caractères).'; err.style.display='block'; return; }
+  const {data:existing} = await sb.from('profiles').select('id').eq('email',email).maybeSingle();
+  if (existing) { err.textContent='Cet email est déjà utilisé.'; err.style.display='block'; return; }
+  const hash = await hashPwd(pwd);
+  const id = crypto.randomUUID();
+  const {error} = await sb.from('profiles').insert({id, pseudo, email, pwd:hash, points:0, pronos_count:0, badges_count:0});
+  if (error) { err.textContent='Erreur : '+error.message; err.style.display='block'; return; }
+  currentProfile = {id, pseudo, email, points:0, pronos_count:0, badges_count:0};
+  currentUser = {id};
+  localStorage.setItem('s4f_session', JSON.stringify({id}));
+  launchApp();
+}
+
+function logoutUser() {
+  localStorage.removeItem('s4f_session');
   currentUser=null; currentProfile=null; userPronos={};
   document.getElementById('app-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
-  window._clerk.mountSignIn(document.getElementById('clerk-sign-in'));
+  showForm('login');
 }
 
-async function loadProfile(clerkUser) {
-  currentUser = clerkUser;
-  const userId = clerkUser.id;
-  const email = clerkUser.primaryEmailAddress?.emailAddress || '';
-  const pseudo = clerkUser.username || clerkUser.firstName || email.split('@')[0] || 'Joueur';
-  try {
-    const {data} = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
-    if (data) { currentProfile=data; return; }
-    await sb.from('profiles').insert({id:userId, pseudo, email, points:0, pronos_count:0, badges_count:0});
-    const {data:np} = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
-    currentProfile = np || {id:userId, pseudo, email, points:0, pronos_count:0, badges_count:0};
-  } catch(e) {
-    currentProfile = {id:userId, pseudo, email, points:0, pronos_count:0, badges_count:0};
-  }
+async function loadProfile(userId) {
+  const {data} = await sb.from('profiles').select('*').eq('id',userId).maybeSingle();
+  if (data) { currentProfile=data; currentUser={id:userId}; }
 }
 
 async function loadUserPronos() {
@@ -991,25 +1040,21 @@ function showPage(name) {
 }
 
 // =====================
-// INIT CLERK
+// INIT — vérif session
 // =====================
-document.addEventListener('clerk:loaded', async () => {
-  const clerk = window.Clerk;
-  window._clerk = clerk;
-
-  if (clerk.user) {
-    await loadProfile(clerk.user);
-    launchApp();
-  } else {
-    clerk.mountSignIn(document.getElementById('clerk-sign-in'));
-    clerk.addListener(({user}) => {
-      if (user && document.getElementById('app-screen').style.display !== 'block') {
-        loadProfile(user).then(() => launchApp());
-      }
-    });
+(async () => {
+  const saved = localStorage.getItem('s4f_session');
+  if (saved) {
+    try {
+      const {id} = JSON.parse(saved);
+      await loadProfile(id);
+      if (currentProfile) { launchApp(); return; }
+    } catch(e) {}
+    localStorage.removeItem('s4f_session');
   }
-});
+  showForm('login');
+})();
 </script>
 </body>
 </html>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
