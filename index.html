@@ -388,8 +388,15 @@
 <script>
 const SUPABASE_URL = 'https://rcvgnazubkaaioxplvqa.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjdmduYXp1YmthYWlveHBsdnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTcwODAsImV4cCI6MjA5NjE3MzA4MH0.ERUuNGV6zQNFwknbmMLI9VJJHNUSh6mxzX325ZIzvus';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+let sb;
+try {
+  const { createClient } = supabase;
+  sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch(e) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif;text-align:center;color:red;"><h2>Erreur de chargement</h2><p>' + e.message + '</p><p>Recharge la page (Ctrl+R)</p></div>';
+  });
+}
 
 let currentUser = null, currentProfile = null, currentEvent = null;
 let userPronos = {};
@@ -486,14 +493,19 @@ function showRegister() {
   document.getElementById('register-form').style.display='block';
 }
 async function loginWithGithub() {
-  const {error} = await sb.auth.signInWithOAuth({
-    provider: 'github',
-    options: { redirectTo: window.location.origin }
-  });
-  if (error) {
-    const err = document.getElementById('login-error');
-    err.textContent = 'Erreur GitHub : ' + error.message;
-    err.style.display = 'block';
+  if (!sb) { alert('Supabase non chargé — recharge la page !'); return; }
+  try {
+    const {error} = await sb.auth.signInWithOAuth({
+      provider: 'github',
+      options: { redirectTo: window.location.origin }
+    });
+    if (error) {
+      const err = document.getElementById('login-error');
+      err.textContent = 'Erreur GitHub : ' + error.message;
+      err.style.display = 'block';
+    }
+  } catch(e) {
+    alert('Erreur : ' + e.message);
   }
 }
 
@@ -1024,16 +1036,4 @@ async function renderGroupes() {
   cards.innerHTML=data.map(m=>m.groups).filter(Boolean).map(g=>`
     <div class="group-card">
       <div class="group-card-header">
-        <div class="group-card-name">👥 ${g.name}</div>
-        <div class="group-card-members">${g.members_count||1} membre(s)</div>
-      </div>
-      <div class="group-card-code">
-        <span>Code : <strong>${g.code}</strong></span>
-        <button class="copy-btn" onclick="copyCode('${g.code}')">Copier 📋</button>
-      </div>
-    </div>`).join('');
-}
-
-function copyCode(code) { navigator.clipboard.writeText(code); showToast('Code copié ! 📋'); }
-
-async function cre
+        <div class="group-card-n
