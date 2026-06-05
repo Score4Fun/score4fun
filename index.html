@@ -498,13 +498,18 @@ async function loginUser() {
   err.style.display='none';
   if (!email||!pwd) { err.textContent='Remplis tous les champs.'; err.style.display='block'; return; }
   btn.textContent='Connexion...'; btn.disabled=true;
-  const hash = await hashPwd(pwd);
-  const {data} = await sb.from('profiles').select('*').eq('email',email).eq('pwd',hash).maybeSingle();
-  btn.textContent='Se connecter'; btn.disabled=false;
-  if (!data) { err.textContent='Email ou mot de passe incorrect.'; err.style.display='block'; return; }
-  currentProfile=data; currentUser={id:data.id};
-  localStorage.setItem('s4f_session', JSON.stringify({id:data.id}));
-  launchApp();
+  try {
+    const hash = await hashPwd(pwd);
+    const {data} = await sb.from('profiles').select('*').eq('email',email).eq('pwd',hash).maybeSingle();
+    if (!data) { err.textContent='Email ou mot de passe incorrect.'; err.style.display='block'; return; }
+    currentProfile=data; currentUser={id:data.id};
+    localStorage.setItem('s4f_session', JSON.stringify({id:data.id}));
+    launchApp();
+  } catch(e) {
+    err.textContent='Erreur de connexion, réessaie.'; err.style.display='block';
+  } finally {
+    btn.textContent='Se connecter'; btn.disabled=false;
+  }
 }
 
 async function registerUser() {
