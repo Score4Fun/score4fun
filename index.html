@@ -439,7 +439,7 @@ async function registerUser() {
   const { data, error } = await sb.auth.signUp({ email, password, options: { data: { pseudo } } });
   if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
   await sb.from('profiles').insert({ id: data.user.id, pseudo, email, points: 0, pronos_count: 0, badges_count: 1 });
-  ok.textContent = '📧 Compte créé ! Vérifie ta boîte mail pour confirmer ton email avant de te connecter.';
+  ok.textContent = '📧 Compte créé ! Tu peux maintenant te connecter.';
   ok.style.display = 'block';
   document.getElementById('reg-pseudo').value = '';
   document.getElementById('reg-email').value = '';
