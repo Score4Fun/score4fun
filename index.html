@@ -388,6 +388,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null, currentProfile = null, currentEvent = null;
 let userPronos = {};
+let appLaunched = false;
 
 // =====================
 // DATA — 3 NIVEAUX
@@ -493,7 +494,7 @@ async function loginUser() {
   if (!email||!password) { err.textContent='Remplis tous les champs.'; err.style.display='block'; return; }
   const {data,error} = await sb.auth.signInWithPassword({email,password});
   if (error) { err.textContent='Email ou mot de passe incorrect.'; err.style.display='block'; return; }
-  await loadProfile(data.user); launchApp();
+  // onAuthStateChange prend le relais
 }
 
 async function registerUser() {
@@ -524,7 +525,7 @@ async function sendReset() {
 
 async function logoutUser() {
   await sb.auth.signOut();
-  currentUser=null; currentProfile=null; userPronos={};
+  appLaunched=false; currentUser=null; currentProfile=null; userPronos={};
   document.getElementById('app-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
   showLogin();
@@ -585,12 +586,21 @@ function renderEventsBySport(sportKey) {
   comps.forEach(comp => {
     const evs = EVENTS.filter(e=>e.sport===sportKey && e.comp===comp);
     const phases = [...new Set(evs.map(e=>e.phase))];
+    const activePhase = phases[0];
     html += `<div class="competition-header">
       <div class="competition-name">${comp}</div>
-      <div class="competition-sub">${evs.length} événement(s)</div>
+      <div class="competition-sub">${phases.length} phase(s) · ${evs.length} pronostic(s)</div>
     </div>`;
+    if (phases.length > 1) {
+      html += `<div class="phase-tabs" id="phase-tabs-${sportKey}">`;
+      phases.forEach((ph, i) => {
+        html += `<div class="phase-tab ${i===0?'active':''}" onclick="filterPhase('${sportKey}','${comp}','${ph}',this)">${ph}</div>`;
+      });
+      html += `</div>`;
+    }
+    const initEvs = evs.filter(e=>e.phase===activePhase);
     html += `<div class="events-grid" id="egrid-${sportKey}">`;
-    evs.forEach(ev => { html += renderEventCard(ev); });
+    initEvs.forEach(ev => { html += renderEventCard(ev); });
     html += `</div>`;
   });
   container.innerHTML = html;
@@ -653,23 +663,21 @@ async function quickSelect(eventId, result, el, e) {
   el.classList.add('selected');
   const ev = EVENTS.find(x=>x.id===eventId);
   const isNew = !userPronos[eventId];
+  // Mise à jour UI immédiate (optimiste)
   userPronos[eventId] = {result};
-  await sb.from('pronos').upsert({
-    user_id:currentUser.id, event_id:eventId,
-    event_name:ev.name, sport:ev.sport,
-    data:{result}, created_at:new Date().toISOString()
-  },{onConflict:'user_id,event_id'});
-  if (isNew) {
-    await sb.from('profiles').update({pronos_count:(currentProfile.pronos_count||0)+1}).eq('id',currentUser.id);
-    currentProfile.pronos_count=(currentProfile.pronos_count||0)+1;
-    updateTopBar();
-  }
-  // Update badge
   const badge = card.querySelector('.done-badge');
   if (!badge) { const b=document.createElement('div'); b.className='done-badge'; b.textContent='✓ Fait'; card.appendChild(b); }
   card.classList.add('done'); card.classList.remove('urgent');
   showToast('✅ Pronostic enregistré !');
+  if (isNew) { currentProfile.pronos_count=(currentProfile.pronos_count||0)+1; updateTopBar(); }
   renderPronos();
+  // Sauvegarde en arrière-plan
+  sb.from('pronos').upsert({
+    user_id:currentUser.id, event_id:eventId,
+    event_name:ev.name, sport:ev.sport,
+    data:{result}, created_at:new Date().toISOString()
+  },{onConflict:'user_id,event_id'});
+  if (isNew) sb.from('profiles').update({pronos_count:currentProfile.pronos_count}).eq('id',currentUser.id);
 }
 
 // =====================
@@ -871,23 +879,26 @@ async function submitProno() {
   }
 
   const isNew=!userPronos[currentEvent.id];
-  await sb.from('pronos').upsert({
-    user_id:currentUser.id, event_id:currentEvent.id,
-    event_name:currentEvent.name, sport:currentEvent.sport,
-    data:pronoData, created_at:new Date().toISOString()
-  },{onConflict:'user_id,event_id'});
-
-  userPronos[currentEvent.id]=pronoData;
-  if (isNew) {
-    await sb.from('profiles').update({pronos_count:(currentProfile.pronos_count||0)+1}).eq('id',currentUser.id);
-    currentProfile.pronos_count=(currentProfile.pronos_count||0)+1;
-    updateTopBar();
-  }
+  const evtRef=currentEvent;
+  // Mise à jour UI immédiate
+  userPronos[evtRef.id]=pronoData;
   closeModal();
   showToast(isNew?'✅ Pronostic enregistré !':'✏️ Pronostic modifié !');
   renderPronos();
-  renderEventsBySport(currentEvent.sport);
-  document.querySelector(`[onclick="filterSport('${currentEvent.sport}',this)"]`)?.click();
+  renderEventsBySport(evtRef.sport);
+  document.querySelector(`[onclick="filterSport('${evtRef.sport}',this)"]`)?.click();
+  // Sauvegarde en arrière-plan
+  sb.from('pronos').upsert({
+    user_id:currentUser.id, event_id:evtRef.id,
+    event_name:evtRef.name, sport:evtRef.sport,
+    data:pronoData, created_at:new Date().toISOString()
+  },{onConflict:'user_id,event_id'}).then(()=>{
+    if (isNew) {
+      sb.from('profiles').update({pronos_count:(currentProfile.pronos_count||0)+1}).eq('id',currentUser.id);
+      currentProfile.pronos_count=(currentProfile.pronos_count||0)+1;
+      updateTopBar();
+    }
+  });
 }
 
 // =====================
@@ -1039,9 +1050,11 @@ function showPage(name) {
 // INIT
 // =====================
 sb.auth.onAuthStateChange(async (event,session)=>{
-  if (session?.user) {
+  if (session?.user && !appLaunched) {
     await loadProfile(session.user);
-    if (currentProfile) launchApp();
+    if (currentProfile) { appLaunched=true; launchApp(); }
+  } else if (!session) {
+    appLaunched=false;
   }
 });
 </script>
