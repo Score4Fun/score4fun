@@ -388,7 +388,6 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null, currentProfile = null, currentEvent = null;
 let userPronos = {};
-let appLaunched = false;
 
 // =====================
 // DATA — 3 NIVEAUX
@@ -564,6 +563,7 @@ async function loadUserPronos() {
 }
 
 function launchApp() {
+  if (document.getElementById('app-screen').style.display==='block') return;
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   loadUserPronos().then(() => {
@@ -1048,5 +1048,4 @@ function renderProfil() {
   if (!currentProfile) return;
   const p=currentProfile;
   document.getElementById('profil-avatar').textContent=p.pseudo?p.pseudo[0].toUpperCase():'?';
-  document.getElementById('profil-pseudo').textContent=p.pseudo||'Joueur';
-  docu
+  document.getElementById('pr
