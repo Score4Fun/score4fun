@@ -1453,7 +1453,7 @@ function openPronoModal(eventId) {
       .map(v=>`<option value="${v}" ${ex.topGoals===v?'selected':''}>${v}</option>`).join('');
     const podium = [['champion','🥇 Champion du monde'],['finaliste','🥈 Finaliste'],['third','🥉 3ème place'],['fourth','4ème place']];
     content.innerHTML = `
-      <div class="modal-section">🏆 Top 4 du tournoi · 5 pts chacun</div>
+      <div class="modal-section">🏆 Top 4 du tournoi · 10-8-6-4 pts</div>
       ${podium.map(([k,label])=>`
         <div style="margin-bottom:8px;">
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div>
@@ -1807,11 +1807,11 @@ function openResultDetail(eventId) {
     html += selectRow('Équipe', p.firstScorer, official.firstScorer, 3);
   } else if (ev.type === 'tournament_bonus') {
     const sc = ev.scoring || {};
-    html += `<div class="rd-section">Podium · ${sc.podium||5} pts chacun</div>`;
-    html += selectRow('🥇 Champion', p.champion, official.champion, sc.podium||5);
-    html += selectRow('🥈 Finaliste', p.finaliste, official.finaliste, sc.podium||5);
-    html += selectRow('🥉 3ème', p.third, official.third, sc.podium||5);
-    html += selectRow('4ème', p.fourth, official.fourth, sc.podium||5);
+    html += `<div class="rd-section">Podium · 10-8-6-4 pts</div>`;
+    html += selectRow('🥇 Champion', p.champion, official.champion, POINTS_MAP[0]);
+    html += selectRow('🥈 Finaliste', p.finaliste, official.finaliste, POINTS_MAP[1]);
+    html += selectRow('🥉 3ème', p.third, official.third, POINTS_MAP[2]);
+    html += selectRow('4ème', p.fourth, official.fourth, POINTS_MAP[3]);
     html += `<div class="rd-section">Buteur & buts</div>`;
     html += selectRow('Meilleur buteur', p.topScorer, official.topScorer, sc.topScorer||5);
     html += selectRow('Fourchette buts', p.topGoals, official.topGoals, sc.topGoals||3);
@@ -1902,8 +1902,9 @@ function computeUserPoints(ev, p, official) {
     if (p.halftime && p.halftime === official.halftime) pts += 3;
     if (p.firstScorer && p.firstScorer === official.firstScorer) pts += 3;
   } else if (ev.type === 'tournament_bonus') {
-    ['champion','finaliste','third','fourth'].forEach(k => {
-      if (p[k] && p[k] === official[k]) pts += (sc.podium||5);
+    const podiumKeys = ['champion','finaliste','third','fourth'];
+    podiumKeys.forEach((k, i) => {
+      if (p[k] && p[k] === official[k]) pts += (POINTS_MAP[i]||4);
     });
     if (p.topScorer && p.topScorer === official.topScorer) pts += (sc.topScorer||5);
     if (p.topGoals && p.topGoals === official.topGoals) pts += (sc.topGoals||3);
@@ -1940,7 +1941,7 @@ function getMaxPts(ev) {
   const sc = ev.scoring || {};
   if (ev.type === 'multi_match') return (ev.matches?.length||0) * (sc.perMatch||4);
   if (ev.type === 'opening_match') return 11;
-  if (ev.type === 'tournament_bonus') return (4*(sc.podium||5)) + (sc.topScorer||5) + (sc.topGoals||3);
+  if (ev.type === 'tournament_bonus') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0) + (sc.topScorer||5) + (sc.topGoals||3);
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return 23;
   if (ev.type === 'tennis_sf') return 16;
   if (ev.type === '1x2') return 4;
