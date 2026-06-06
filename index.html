@@ -1315,7 +1315,7 @@ function openPronoModal(eventId) {
         <div class="modal-1x2-btn ${sel==='X'?'selected':''}" onclick="select1x2('X',this)">X<br><small>Match nul</small></div>
         <div class="modal-1x2-btn ${sel==='2'?'selected':''}" onclick="select1x2('2',this)">2<br><small>${currentEvent.team2}</small></div>
       </div>
-      <div class="points-info">🎯 Bonne prédiction = <strong>10 pts</strong> · Mauvaise = 0 pt</div>`;
+      <div class="points-info">🎯 Bonne prédiction = <strong>5 pts</strong> · Mauvaise = 0 pt</div>`;
 
   } else if (currentEvent.type === 'tennis_sf') {
     const setsOpts = (v) => [3,4,5].map(n=>`<option value="${n}" ${n==v?'selected':''}>${n} sets</option>`).join('');
@@ -1815,7 +1815,7 @@ function openResultDetail(eventId) {
     html += selectRow('Fourchette buts', p.topGoals, official.topGoals, sc.topGoals||3);
   } else if (ev.type === '1x2') {
     html += `<div class="rd-section">Résultat du match · 10 pts</div>`;
-    html += match1x2('Résultat (1/X/2)', p.result, official.result, 10);
+    html += match1x2('Résultat (1/X/2)', p.result, official.result, 5);
   } else if (ev.type === 'tennis_sf') {
     html += `<div class="rd-section">Demi-finale Tennis</div>`;
     html += selectRow('🏆 Vainqueur', p.winner, official.winner, 10);
@@ -1900,7 +1900,7 @@ function computeUserPoints(ev, p, official) {
     if (p.winner && p.winner === official.winner) pts += 10;
     if (p.sets   && p.sets  == official.sets)    pts += 6;
   } else if (ev.type === '1x2') {
-    if (p.result && p.result === official.result) pts += 10;
+    if (p.result && p.result === official.result) pts += 5;
   } else if (ev.type === 'f1_race') {
     const top4 = p.top4 || [];
     const off4 = official.top4 || [];
@@ -1925,7 +1925,7 @@ function getMaxPts(ev) {
   if (ev.type === 'tournament_bonus') return (4*(sc.podium||5)) + (sc.topScorer||5) + (sc.topGoals||3);
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return 23;
   if (ev.type === 'tennis_sf') return 16;
-  if (ev.type === '1x2') return 10;
+  if (ev.type === '1x2') return 5;
   if (ev.type === 'f1_race') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0) + 4;
   if (ev.type === 'top4') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0);
   return 10;
