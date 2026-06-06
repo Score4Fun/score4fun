@@ -419,26 +419,24 @@
       <button id="group-share-btn" onclick="" style="margin-left:auto;font-size:12px;padding:5px 12px;background:var(--orange-bg);color:var(--orange-dark);border:none;border-radius:8px;cursor:pointer;font-weight:600;">📤 Inviter</button>
     </div>
 
-    <!-- Admin manage tab (hidden by default) -->
-    <div id="group-tabs" style="display:none;">
-      <div class="rank-tab" id="group-tab-manage" data-tab="manage" onclick="switchGroupTab(this)" style="display:none;">⚙️ Gérer les compétitions</div>
-    </div>
-
-    <!-- Admin manage panel -->
-    <div id="group-tab-manage-panel" style="display:none;">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Sélectionne les compétitions actives pour ce groupe :</div>
-      <div id="group-manage-list"></div>
-    </div>
-
     <!-- 2-column layout: Pronos left, Classement right -->
     <div style="display:flex;gap:12px;align-items:flex-start;">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">⚽ Pronos</div>
+        <!-- Pronos header + admin + button -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">⚽ Pronos</div>
+          <button id="group-add-comp-btn" onclick="toggleGroupManagePanel()" style="display:none;background:var(--orange);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:16px;line-height:1;cursor:pointer;font-weight:700;padding:0;">＋</button>
+        </div>
+        <!-- Admin manage panel (inline, collapsible) -->
+        <div id="group-tab-manage-panel" style="display:none;background:var(--orange-bg);border-radius:10px;padding:10px;margin-bottom:10px;">
+          <div style="font-size:11px;font-weight:700;color:var(--orange-dark);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Ajouter des compétitions</div>
+          <div id="group-manage-list"></div>
+        </div>
         <div id="group-events-list"></div>
       </div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🏆 Classement</div>
-        <div id="group-ranking-list" class="full-rank-list"></div>
+        <div id="group-ranking-list"></div>
       </div>
     </div>
   </div>
@@ -2346,13 +2344,16 @@ async function showGroupPage(groupId, fromPage) {
   _currentGroup = g;
 
   document.getElementById('group-page-title').textContent = '👥 ' + g.name;
-  document.getElementById('group-page-sub').textContent = (g.members_count||1) + ' membre(s) · Code : ' + g.code;
   document.getElementById('group-share-btn').onclick = () => copyGroupInvite(g.code, g.name);
 
-  // Show admin manage button if needed
+  // Vrai compte membres depuis la table
+  const {count:realCount} = await sb.from('group_members').select('id', {count:'exact',head:true}).eq('group_id', groupId);
+  document.getElementById('group-page-sub').textContent = (realCount||1) + ' membre(s) · Code : ' + g.code;
+
+  // Bouton + admin
   const isAdmin = g.created_by === currentUser?.id;
-  const manageBtn = document.getElementById('group-tab-manage');
-  if (manageBtn) manageBtn.style.display = isAdmin ? '' : 'none';
+  const addBtn = document.getElementById('group-add-comp-btn');
+  if (addBtn) addBtn.style.display = isAdmin ? '' : 'none';
   const managePanel = document.getElementById('group-tab-manage-panel');
   if (managePanel) managePanel.style.display = 'none';
 
@@ -2361,10 +2362,12 @@ async function showGroupPage(groupId, fromPage) {
   renderGroupPronos(groupId);
 }
 
-function switchGroupTab(el) {
+function toggleGroupManagePanel() {
   const panel = document.getElementById('group-tab-manage-panel');
+  const btn = document.getElementById('group-add-comp-btn');
   const isOpen = panel && panel.style.display !== 'none';
   if (panel) panel.style.display = isOpen ? 'none' : '';
+  if (btn) btn.textContent = isOpen ? '＋' : '✕';
   if (!isOpen) renderGroupManage(_currentGroup?.id);
 }
 
