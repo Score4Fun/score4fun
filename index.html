@@ -423,7 +423,168 @@ const SPORTS = [
   { key: 'cyclisme', label: '🚴 Cyclisme' },
 ];
 
+const TEAMS_CDM2026 = [
+  '🇲🇽 Mexique','🇿🇦 Afrique du Sud','🇰🇷 Corée du Sud','🇨🇿 Tchéquie',
+  '🇨🇦 Canada','🇧🇦 Bosnie','🇶🇦 Qatar','🇨🇭 Suisse',
+  '🇧🇷 Brésil','🇲🇦 Maroc','🇭🇹 Haïti','🏴󠁧󠁢󠁳󠁣󠁴󠁿 Écosse',
+  '🇺🇸 États-Unis','🇵🇾 Paraguay','🇦🇺 Australie','🇹🇷 Turquie',
+  '🇩🇪 Allemagne','🇨🇼 Curaçao','🇨🇮 Côte d\'Ivoire','🇪🇨 Équateur',
+  '🇳🇱 Pays-Bas','🇯🇵 Japon','🇸🇪 Suède','🇹🇳 Tunisie',
+  '🇧🇪 Belgique','🇪🇬 Égypte','🇮🇷 Iran','🇳🇿 Nouvelle-Zélande',
+  '🇪🇸 Espagne','🇸🇦 Arabie Saoudite','🇺🇾 Uruguay','🇨🇻 Cap-Vert',
+  '🇫🇷 France','🇸🇳 Sénégal','🇳🇴 Norvège','🇮🇶 Irak',
+  '🇦🇷 Argentine','🇩🇿 Algérie','🇦🇹 Autriche','🇯🇴 Jordanie',
+  '🇵🇹 Portugal','🇨🇩 RD Congo','🇺🇿 Ouzbékistan','🇨🇴 Colombie',
+  '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre','🇭🇷 Croatie','🇬🇭 Ghana','🇵🇦 Panama'
+];
+
+
 const EVENTS = [
+  // ===== FOOTBALL - CdM 2026 =====
+  // ── Bonus pré-tournoi
+  { id:100, sport:'football', comp:'CdM 2026', phase:'Pronostics tournoi', emoji:'🌍',
+    name:'Pronostics CdM 2026', sub:'Demi-finalistes · Meilleur buteur · Avant le coup d\'envoi',
+    type:'tournament_bonus',
+    scoring:{ semi:5, topScorer:5, topGoals:3 },
+    status:'open', urgency:true, cutoff:'Avant 19h', deadline:'2026-06-11T17:00:00Z' },
+
+  // ── Ouverture
+  { id:101, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
+    name:'Match d\'ouverture · 11 juin', sub:'1 match',
+    type:'multi_match',
+    matches:[
+      { key:'m1', team1:'🇲🇽 Mexique', team2:'🇿🇦 Afrique du Sud' },
+    ],
+    scoring:{ perMatch:2 },
+    status:'open', urgency:true, cutoff:'11 juin 21h', deadline:'2026-06-11T19:00:00Z' },
+
+  // ── 12-14 juin
+  { id:102, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
+    name:'Chocs · 12 au 14 juin', sub:'6 matchs · Pays organisateurs, Brésil, Allemagne',
+    type:'multi_match',
+    matches:[
+      { key:'m1', team1:'🇨🇦 Canada', team2:'🇧🇦 Bosnie' },
+      { key:'m2', team1:'🇺🇸 États-Unis', team2:'🇵🇾 Paraguay' },
+      { key:'m3', team1:'🇧🇷 Brésil', team2:'🇲🇦 Maroc' },
+      { key:'m4', team1:'🇦🇺 Australie', team2:'🇹🇷 Turquie' },
+      { key:'m5', team1:'🇩🇪 Allemagne', team2:'🇨🇼 Curaçao' },
+      { key:'m6', team1:'🇳🇱 Pays-Bas', team2:'🇯🇵 Japon' },
+    ],
+    scoring:{ perMatch:2 },
+    status:'open', urgency:false, cutoff:'12 juin 21h', deadline:'2026-06-12T19:00:00Z' },
+
+  // ── 15-16 juin
+  { id:103, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
+    name:'Chocs · 15-16 juin', sub:'6 matchs · Espagne, Belgique, France',
+    type:'multi_match',
+    matches:[
+      { key:'m1', team1:'🇪🇸 Espagne', team2:'🇨🇻 Cap-Vert' },
+      { key:'m2', team1:'🇧🇪 Belgique', team2:'🇪🇬 Égypte' },
+      { key:'m3', team1:'🇸🇦 Arabie Saoudite', team2:'🇺🇾 Uruguay' },
+      { key:'m4', team1:'🇫🇷 France', team2:'🇸🇳 Sénégal' },
+      { key:'m5', team1:'🇦🇷 Argentine', team2:'🇩🇿 Algérie' },
+      { key:'m6', team1:'🇳🇴 Norvège', team2:'🇮🇶 Irak' },
+    ],
+    scoring:{ perMatch:2 },
+    status:'open', urgency:false, cutoff:'15 juin 19h', deadline:'2026-06-15T17:00:00Z' },
+
+  // ── 17-18 juin
+  { id:104, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
+    name:'Chocs · 17-18 juin', sub:'5 matchs · Argentine, Portugal, Angleterre, Ghana',
+    type:'multi_match',
+    matches:[
+      { key:'m1', team1:'🇵🇹 Portugal', team2:'🇨🇩 RD Congo' },
+      { key:'m2', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre', team2:'🇭🇷 Croatie' },
+      { key:'m3', team1:'🇬🇭 Ghana', team2:'🇵🇦 Panama' },
+      { key:'m4', team1:'🇨🇴 Colombie', team2:'🇺🇿 Ouzbékistan' },
+      { key:'m5', team1:'🇲🇽 Mexique', team2:'🇰🇷 Corée du Sud' },
+    ],
+    scoring:{ perMatch:2 },
+    status:'open', urgency:false, cutoff:'17 juin 19h', deadline:'2026-06-17T17:00:00Z' },
+
+  // ── 19-21 juin
+  { id:105, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
+    name:'Chocs · 19-21 juin', sub:'6 matchs · Maroc, Brésil, Allemagne, Espagne, Belgique',
+    type:'multi_match',
+    matches:[
+      { key:'m1', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Écosse', team2:'🇲🇦 Maroc' },
+      { key:'m2', team1:'🇧🇷 Brésil', team2:'🇭🇹 Haïti' },
+      { key:'m3', team1:'🇩🇪 Allemagne', team2:'🇨🇮 Côte d\'Ivoire' },
+      { key:'m4', team1:'🇹🇳 Tunisie', team2:'🇯🇵 Japon' },
+      { key:'m5', team1:'🇪🇸 Espagne', team2:'🇸🇦 Arabie Saoudite' },
+      { key:'m6', team1:'🇧🇪 Belgique', team2:'🇮🇷 Iran' },
+    ],
+    scoring:{ perMatch:2 },
+    status:'open', urgency:false, cutoff:'19 juin 21h', deadline:'2026-06-19T19:00:00Z' },
+
+  // ── 22-23 juin
+  { id:106, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
+    name:'Chocs · 22-23 juin', sub:'6 matchs · Argentine, France, Norvège, Portugal, Angleterre',
+    type:'multi_match',
+    matches:[
+      { key:'m1', team1:'🇦🇷 Argentine', team2:'🇦🇹 Autriche' },
+      { key:'m2', team1:'🇫🇷 France', team2:'🇮🇶 Irak' },
+      { key:'m3', team1:'🇳🇴 Norvège', team2:'🇸🇳 Sénégal' },
+      { key:'m4', team1:'🇵🇹 Portugal', team2:'🇺🇿 Ouzbékistan' },
+      { key:'m5', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre', team2:'🇬🇭 Ghana' },
+      { key:'m6', team1:'🇨🇴 Colombie', team2:'🇨🇩 RD Congo' },
+    ],
+    scoring:{ perMatch:2 },
+    status:'open', urgency:false, cutoff:'22 juin 19h', deadline:'2026-06-22T17:00:00Z' },
+
+  // ── 24-25 juin
+  { id:107, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
+    name:'Chocs · 24-25 juin', sub:'6 matchs · Suisse, Bosnie, Brésil, Allemagne',
+    type:'multi_match',
+    matches:[
+      { key:'m1', team1:'🇨🇭 Suisse', team2:'🇨🇦 Canada' },
+      { key:'m2', team1:'🇧🇦 Bosnie', team2:'🇶🇦 Qatar' },
+      { key:'m3', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Écosse', team2:'🇧🇷 Brésil' },
+      { key:'m4', team1:'🇲🇦 Maroc', team2:'🇭🇹 Haïti' },
+      { key:'m5', team1:'🇪🇨 Équateur', team2:'🇩🇪 Allemagne' },
+      { key:'m6', team1:'🇹🇳 Tunisie', team2:'🇳🇱 Pays-Bas' },
+    ],
+    scoring:{ perMatch:2 },
+    status:'open', urgency:false, cutoff:'24 juin 21h', deadline:'2026-06-24T19:00:00Z' },
+
+  // ── 26-27 juin
+  { id:108, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
+    name:'Chocs · 26-27 juin', sub:'6 matchs · France, Espagne, Angleterre, Colombie, Argentine',
+    type:'multi_match',
+    matches:[
+      { key:'m1', team1:'🇳🇴 Norvège', team2:'🇫🇷 France' },
+      { key:'m2', team1:'🇺🇾 Uruguay', team2:'🇪🇸 Espagne' },
+      { key:'m3', team1:'🇧🇪 Belgique', team2:'🇳🇿 Nouvelle-Zélande' },
+      { key:'m4', team1:'🇵🇦 Panama', team2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre' },
+      { key:'m5', team1:'🇨🇴 Colombie', team2:'🇵🇹 Portugal' },
+      { key:'m6', team1:'🇯🇴 Jordanie', team2:'🇦🇷 Argentine' },
+    ],
+    scoring:{ perMatch:2 },
+    status:'open', urgency:false, cutoff:'26 juin 21h', deadline:'2026-06-26T19:00:00Z' },
+
+  // ── Phase finale (placeholders)
+  { id:109, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
+    name:'Round of 32 · Partie 1', sub:'29 juin – 1 juillet',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'29 juin' },
+  { id:110, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
+    name:'Round of 32 · Partie 2', sub:'1 – 4 juillet',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'1 juillet' },
+  { id:111, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
+    name:'Round of 16', sub:'4 – 7 juillet',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'4 juillet' },
+  { id:112, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
+    name:'Quarts de finale', sub:'9 – 12 juillet',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'9 juillet' },
+  { id:113, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
+    name:'Demi-finales', sub:'14 – 15 juillet',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'14 juillet' },
+  { id:114, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
+    name:'Match 3e place', sub:'18 juillet',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'18 juillet' },
+  { id:115, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
+    name:'⭐ Finale CdM 2026', sub:'19 juillet',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'19 juillet' },
+
   // ===== FOOTBALL - Amicaux =====
   { id:50, sport:'football', comp:'Amicaux', phase:'Juin 2026', emoji:'⚽',
     name:'Amicaux internationaux', sub:'3 matchs · Juin 2026',
@@ -754,7 +915,22 @@ function renderEventCard(ev) {
   const done = isDone(ev.id);
   let inner = '';
 
-  if (ev.type === 'multi_match') {
+  if (ev.type === 'tournament_bonus') {
+    const ex = userPronos[ev.id] || {};
+    const keys = ['semi1','semi2','semi3','semi4','topScorer','topGoals'];
+    const nbDone = keys.filter(k => ex[k]).length;
+    const closed = isClosed(ev);
+    inner = `
+      <div class="event-status">
+        <div class="status-dot ${done?'done-dot':closed?'closed':''}"></div>
+        <span class="status-text">${done?'🎯 Prono enregistré !':nbDone>0?`${nbDone}/6 questions répondues`:'6 questions à répondre'}</span>
+      </div>
+      ${!closed
+        ? done
+          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
+          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
+        : `<button class="prono-btn view">Fermé 🔒</button>`}`;
+  } else if (ev.type === 'multi_match') {
     const ex = userPronos[ev.id] || {};
     const nbDone = ev.matches.filter(m => ex[m.key]).length;
     const closed = isClosed(ev);
@@ -958,6 +1134,28 @@ function openPronoModal(eventId) {
       </div>
       <div class="points-info">🎯 Total max : <strong>23 pts</strong></div>`;
 
+  } else if (currentEvent.type === 'tournament_bonus') {
+    const ex = userPronos[currentEvent.id] || {};
+    const teamOpts = t => TEAMS_CDM2026.map(n=>`<option value="${n}" ${ex[t]===n?'selected':''}>${n}</option>`).join('');
+    const goalsOpts = ['1-3 buts','4-5 buts','6-7 buts','8-9 buts','10+ buts']
+      .map(v=>`<option value="${v}" ${ex.topGoals===v?'selected':''}>${v}</option>`).join('');
+    content.innerHTML = `
+      <div class="modal-section">🏆 4 Demi-finalistes</div>
+      ${['semi1','semi2','semi3','semi4'].map((k,i)=>`
+        <div style="margin-bottom:8px;">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Demi-finaliste ${i+1}</div>
+          <select id="q-${k}" class="question-select"><option value="">-- Choisir une équipe --</option>${teamOpts(k)}</select>
+        </div>`).join('')}
+      <div class="modal-section" style="margin-top:18px;">⚽ Meilleur buteur</div>
+      <div style="margin-bottom:8px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nationalité</div>
+        <select id="q-topScorer" class="question-select"><option value="">-- Choisir --</option>${teamOpts('topScorer')}</select>
+      </div>
+      <div style="margin-bottom:8px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nombre de buts</div>
+        <select id="q-topGoals" class="question-select"><option value="">-- Choisir --</option>${goalsOpts}</select>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Demi-finaliste correct = 5 pts · Nationalité buteur = 5 pts · Fourchette buts = 3 pts</div>`;
   } else if (currentEvent.type === 'multi_match') {
     const ex = userPronos[currentEvent.id] || {};
     const matchHtml = currentEvent.matches.map(m => {
@@ -1066,7 +1264,18 @@ async function submitProno() {
   if (isClosed(currentEvent)) { closeModal(); showToast('⏰ Délai dépassé !'); return; }
   let pronoData={};
 
-  if (currentEvent.type==='multi_match') {
+  if (currentEvent.type==='tournament_bonus') {
+    const keys = ['semi1','semi2','semi3','semi4','topScorer','topGoals'];
+    const obj = {};
+    for (const k of keys) {
+      const v = document.getElementById('q-'+k)?.value;
+      if (!v) { showToast('⚠️ Réponds à toutes les questions !'); return; }
+      obj[k] = v;
+    }
+    const semis = [obj.semi1,obj.semi2,obj.semi3,obj.semi4];
+    if (new Set(semis).size < 4) { showToast('⚠️ Pas de doublon en demi-finales !'); return; }
+    pronoData = obj;
+  } else if (currentEvent.type==='multi_match') {
     const pronoObj = {};
     let missing = false;
     currentEvent.matches.forEach(m => {
