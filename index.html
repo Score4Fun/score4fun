@@ -428,6 +428,18 @@ const EVENTS = [
   { id:13, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Allemagne vs Équateur', sub:'Groupe E · 14 juin', type:'1x2', team1:'🇩🇪 Allemagne', team2:'🇪🇨 Équateur', status:'open', urgency:false, cutoff:'14 juin' },
   { id:14, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Pays-Bas vs Tunisie', sub:'Groupe F · 14 juin', type:'1x2', team1:'🇳🇱 Pays-Bas', team2:'🇹🇳 Tunisie', status:'open', urgency:false, cutoff:'14 juin' },
 
+  // ===== FOOTBALL - Amicaux =====
+  { id:50, sport:'football', comp:'Amicaux', phase:'Juin 2026', emoji:'⚽',
+    name:'Amicaux internationaux', sub:'3 matchs · Juin 2026',
+    type:'multi_match',
+    matches:[
+      { key:'m1', team1:'🇧🇪 Belgique', team2:'🇹🇳 Tunisie' },
+      { key:'m2', team1:'🇺🇸 États-Unis', team2:'🇩🇪 Allemagne' },
+      { key:'m3', team1:'🇨🇭 Suisse', team2:'🇦🇺 Australie' },
+    ],
+    topScorer:['🇧🇪 Belgique','🇹🇳 Tunisie','🇺🇸 États-Unis','🇩🇪 Allemagne','🇨🇭 Suisse','🇦🇺 Australie'],
+    status:'open', urgency:true, cutoff:'Avant le coup d\u0027envoi' },
+
   // ===== TENNIS - Roland Garros =====
   // Demi-finales Hommes
 
@@ -696,7 +708,25 @@ function renderEventCard(ev) {
   const done = isDone(ev.id);
   let inner = '';
 
-  if (ev.type === '1x2' && ev.status === 'open') {
+  if (ev.type === 'multi_match') {
+    const ex = userPronos[ev.id] || {};
+    const allDone = ev.matches.every(m => ex[m.key]);
+    inner = `
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">
+        ${ev.matches.map(m=>{
+          const r=ex[m.key];
+          return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:0.5px solid var(--border);">
+            <span>${m.team1} vs ${m.team2}</span>
+            <span style="font-weight:500;color:${r?'var(--green)':'var(--text-muted)'}">${r?r==='1'?'1':r==='2'?'2':'X':'—'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      ${ev.status==='open'
+        ? done
+          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
+          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
+        : `<button class="prono-btn view">Fermé 🔒</button>`}`;
+  } else if (ev.type === '1x2' && ev.status === 'open') {
     const sel = userPronos[ev.id]?.result || '';
     inner = `
       <div class="match-teams">
@@ -883,6 +913,25 @@ function openPronoModal(eventId) {
       </div>
       <div class="points-info">🎯 Total max : <strong>23 pts</strong></div>`;
 
+  } else if (currentEvent.type === 'multi_match') {
+    const ex = userPronos[currentEvent.id] || {};
+    const matchHtml = currentEvent.matches.map(m => {
+      const sel = ex[m.key] || '';
+      return `<div class="modal-section">${m.team1} vs ${m.team2} <span style="font-size:10px;color:var(--text-muted);">5 pts</span></div>
+        <div class="modal-1x2">
+          <div class="modal-1x2-btn ${sel==='1'?'selected':''}" onclick="selectMulti('${m.key}','1',this)">1<br><small>${m.team1.split(' ').pop()}</small></div>
+          <div class="modal-1x2-btn ${sel==='X'?'selected':''}" onclick="selectMulti('${m.key}','X',this)">X<br><small>Nul</small></div>
+          <div class="modal-1x2-btn ${sel==='2'?'selected':''}" onclick="selectMulti('${m.key}','2',this)">2<br><small>${m.team2.split(' ').pop()}</small></div>
+        </div>`;
+    }).join('');
+    const topOpts = currentEvent.topScorer.map(t=>`<option value="${t}" ${ex.topScorer===t?'selected':''}>${t}</option>`).join('');
+    content.innerHTML = matchHtml + `
+      <div class="modal-section">🥇 Quelle équipe marquera le plus de buts ? <span style="font-size:10px;color:var(--text-muted);">3 pts</span></div>
+      <select class="question-select" id="q-topscorer" style="width:100%;margin-bottom:4px;">
+        <option value="">— Choisir une équipe —</option>${topOpts}
+      </select>
+      <div class="points-info">🎯 3 bons résultats + top buteur = <strong>18 pts max</strong></div>`;
+
   } else if (currentEvent.type === 'f1_race') {
     const cands = currentEvent.candidates;
     const ex4 = ex.top4||[];
@@ -939,6 +988,12 @@ function select1x2(val, el) {
   el.classList.add('selected');
 }
 
+function selectMulti(matchKey, val, el) {
+  el.parentElement.querySelectorAll('.modal-1x2-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  el.dataset.matchKey = matchKey;
+}
+
 function updateSelects() {
   const selected = [0,1,2,3].map(i=>document.getElementById('top4-'+i)?.value).filter(Boolean);
   [0,1,2,3].forEach(i=>{
@@ -957,7 +1012,22 @@ async function submitProno() {
   if (!currentEvent||!currentUser) return;
   let pronoData={};
 
-  if (currentEvent.type==='1x2') {
+  if (currentEvent.type==='multi_match') {
+    const pronoObj = {};
+    let missing = false;
+    currentEvent.matches.forEach(m => {
+      const sel = document.querySelector(`.modal-1x2-btn[data-match-key="${m.key}"].selected`);
+      // fallback: cherche par position dans le parent
+      if (sel) { pronoObj[m.key] = sel.textContent.trim().split('\n')[0].trim(); }
+      else { missing = true; }
+    });
+    if (missing) { showToast('⚠️ Pronostique tous les matchs !'); return; }
+    const topScorer = document.getElementById('q-topscorer').value;
+    if (!topScorer) { showToast('⚠️ Choisis le top buteur !'); return; }
+    pronoObj.topScorer = topScorer;
+    pronoData = pronoObj;
+
+  } else if (currentEvent.type==='1x2') {
     const sel = document.querySelector('.modal-1x2-btn.selected');
     if (!sel) { showToast('⚠️ Choisis 1, X ou 2 !'); return; }
     pronoData={result:sel.textContent.trim().split('\n')[0].trim()};
