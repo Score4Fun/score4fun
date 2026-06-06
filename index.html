@@ -1171,8 +1171,13 @@ function renderHomeEvents() {
       </div>`;
     }).join('') + '</div>';
   } else {
-    // Vue sport spécifique : style tuiles
-    container.innerHTML = '<div class="events-grid">' + sorted.map(ev=>renderEventCard(ev)).join('') + '</div>';
+    // Vue sport spécifique : style tuiles — exclure les fermés (dans Résultats)
+    const visible = sorted.filter(ev => ev.status === 'soon' || !isTrulyClosed(ev));
+    if (!visible.length) {
+      container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">Tous les pronostics sont fermés — retrouve-les dans Résultats !</p>';
+      return;
+    }
+    container.innerHTML = '<div class="events-grid">' + visible.map(ev=>renderEventCard(ev)).join('') + '</div>';
   }
 }
 
