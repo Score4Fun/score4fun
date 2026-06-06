@@ -2303,13 +2303,18 @@ async function joinGroup() {
   if (!code) return;
   const {data:group} = await sb.from('groups').select('*').eq('code', code).maybeSingle();
   if (!group) { showToast('❌ Code introuvable !'); return; }
-  const {error} = await sb.from('group_members').upsert({group_id:group.id, user_id:currentUser.id, is_admin:false}, {onConflict:'group_id,user_id'});
+  // Vérifier si déjà membre
+  const {data:existing} = await sb.from('group_members').select('id').eq('group_id', group.id).eq('user_id', currentUser.id).maybeSingle();
+  if (existing) { showToast('👋 Tu es déjà dans ce groupe !'); document.getElementById('join-code').value = ''; return; }
+  const {error} = await sb.from('group_members').insert({group_id:group.id, user_id:currentUser.id, is_admin:false});
   if (!error) {
     const newCount = (group.members_count||1) + 1;
     await sb.from('groups').update({members_count: newCount}).eq('id', group.id);
+    showToast('✅ Bienvenue dans ' + group.name + ' !');
+  } else {
+    showToast('❌ Erreur en rejoignant le groupe');
   }
   document.getElementById('join-code').value = '';
-  showToast('✅ Bienvenue dans ' + group.name + ' !');
   renderGroupes();
 }
 
