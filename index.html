@@ -443,21 +443,22 @@ const EVENTS = [
 
   // J1 League 6 juin
   { id:51, sport:'football', comp:'Amicaux', phase:'6 juin 2026', emoji:'⚽',
-    name:'J1 League · 6 juin', sub:'10 matchs · D1 Japon',
+    name:'Matches D1 Japon · 6 juin', sub:'10 matchs · Pronostiquer avant 07h00',
     type:'multi_match',
     matches:[
-      { key:'j1', team1:'Kashima Antlers', team2:'Vissel Kobe' },
-      { key:'j2', team1:'Chiba', team2:'Avispa Fukuoka' },
-      { key:'j3', team1:'FC Tokyo', team2:'Cerezo Osaka' },
-      { key:'j4', team1:'Mito', team2:'V-Varen Nagasaki' },
-      { key:'j5', team1:'Machida Zelvia', team2:'Nagoya Grampus' },
-      { key:'j6', team1:'Urawa Reds', team2:'Okayama' },
-      { key:'j7', team1:'Verdy', team2:'Gamba Osaka' },
+      { key:'j1', team1:'JEF Utd Chiba', team2:'Avispa Fukuoka' },
+      { key:'j2', team1:'FC Tokyo', team2:'Cerezo Osaka' },
+      { key:'j3', team1:'Kashima Antlers', team2:'Vissel Kobe' },
+      { key:'j4', team1:'Mito Hollyhock', team2:'VV Nagasaki' },
+      { key:'j5', team1:'FC Machida Zelvia', team2:'Nagoya Grampus' },
+      { key:'j6', team1:'Urawa Reds', team2:'Fagiano Okayama' },
+      { key:'j7', team1:'Tokyo Verdy', team2:'Gamba Osaka' },
       { key:'j8', team1:'Yokohama F. Marinos', team2:'Shimizu S-Pulse' },
-      { key:'j9', team1:'Kashiwa Reysol', team2:'Kyoto' },
+      { key:'j9', team1:'Kashiwa Reysol', team2:'Kyoto Sanga' },
       { key:'j10', team1:'Kawasaki Frontale', team2:'Sanfrecce Hiroshima' },
     ],
-    status:'open', urgency:true, cutoff:'6 juin 13h JST', deadline:'2026-06-06T04:00:00Z' },
+    scoring:{ perMatch:1, bonus:{ 10:3, 9:2, 8:1 } },
+    status:'open', urgency:true, cutoff:'Avant 07h00', deadline:'2026-06-06T05:00:00Z' },
 
   // ===== TENNIS - Roland Garros =====
   // Demi-finales Hommes
