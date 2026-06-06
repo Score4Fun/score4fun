@@ -2211,6 +2211,7 @@ async function computeSportRanking(sport) {
     if (profiles) profiles.forEach(p => { profileMap[p.id] = p; });
 
     const userPts = {};
+    const userPronosCount = {}; // nombre de pronos pour CE sport
     for (const prono of pronosData) {
       const ev = EVENTS.find(e => e.id === prono.event_id);
       if (!ev) continue;
@@ -2218,14 +2219,17 @@ async function computeSportRanking(sport) {
       if (!official) continue;
       const pts = computeUserPoints(ev, prono.data, official);
       userPts[prono.user_id] = (userPts[prono.user_id] || 0) + pts;
+      userPronosCount[prono.user_id] = (userPronosCount[prono.user_id] || 0) + 1;
     }
 
     // Inclure tous les joueurs ayant pronostiqué, même 0 pts
     const seen = new Set(Object.keys(userPts));
-    pronosData.forEach(pr => { if (!seen.has(pr.user_id)) userPts[pr.user_id] = 0; });
+    pronosData.forEach(pr => {
+      if (!seen.has(pr.user_id)) { userPts[pr.user_id] = 0; userPronosCount[pr.user_id] = 0; }
+    });
 
     return Object.entries(userPts)
-      .map(([uid, pts]) => ({ pseudo: profileMap[uid]?.pseudo || '?', pts, pronos_count: profileMap[uid]?.pronos_count || 0 }))
+      .map(([uid, pts]) => ({ pseudo: profileMap[uid]?.pseudo || '?', pts, pronos_count: userPronosCount[uid] || 0 }))
       .sort((a,b) => b.pts - a.pts);
   } catch(e) {
     console.error('computeSportRanking error:', e);
