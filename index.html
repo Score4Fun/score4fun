@@ -631,7 +631,7 @@ const EVENTS = [
       { key:'m5', team1:'🇩🇪 Allemagne', team2:'🇨🇼 Curaçao' },
       { key:'m6', team1:'🇳🇱 Pays-Bas', team2:'🇯🇵 Japon' },
     ],
-    scoring:{ perMatch:2 },
+    scoring:{ perMatch:5 },
     status:'open', urgency:false, cutoff:'12 juin 21h', deadline:'2026-06-12T19:00:00Z' },
 
   // ── 15-16 juin
@@ -646,7 +646,7 @@ const EVENTS = [
       { key:'m5', team1:'🇦🇷 Argentine', team2:'🇩🇿 Algérie' },
       { key:'m6', team1:'🇳🇴 Norvège', team2:'🇮🇶 Irak' },
     ],
-    scoring:{ perMatch:2 },
+    scoring:{ perMatch:5 },
     status:'open', urgency:false, cutoff:'15 juin 19h', deadline:'2026-06-15T17:00:00Z' },
 
   // ── 17-18 juin
@@ -660,7 +660,7 @@ const EVENTS = [
       { key:'m4', team1:'🇨🇴 Colombie', team2:'🇺🇿 Ouzbékistan' },
       { key:'m5', team1:'🇲🇽 Mexique', team2:'🇰🇷 Corée du Sud' },
     ],
-    scoring:{ perMatch:2 },
+    scoring:{ perMatch:5 },
     status:'open', urgency:false, cutoff:'17 juin 19h', deadline:'2026-06-17T17:00:00Z' },
 
   // ── 19-21 juin
@@ -675,7 +675,7 @@ const EVENTS = [
       { key:'m5', team1:'🇪🇸 Espagne', team2:'🇸🇦 Arabie Saoudite' },
       { key:'m6', team1:'🇧🇪 Belgique', team2:'🇮🇷 Iran' },
     ],
-    scoring:{ perMatch:2 },
+    scoring:{ perMatch:5 },
     status:'open', urgency:false, cutoff:'19 juin 21h', deadline:'2026-06-19T19:00:00Z' },
 
   // ── 22-23 juin
@@ -690,7 +690,7 @@ const EVENTS = [
       { key:'m5', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre', team2:'🇬🇭 Ghana' },
       { key:'m6', team1:'🇨🇴 Colombie', team2:'🇨🇩 RD Congo' },
     ],
-    scoring:{ perMatch:2 },
+    scoring:{ perMatch:5 },
     status:'open', urgency:false, cutoff:'22 juin 19h', deadline:'2026-06-22T17:00:00Z' },
 
   // ── 24-25 juin
@@ -705,7 +705,7 @@ const EVENTS = [
       { key:'m5', team1:'🇪🇨 Équateur', team2:'🇩🇪 Allemagne' },
       { key:'m6', team1:'🇹🇳 Tunisie', team2:'🇳🇱 Pays-Bas' },
     ],
-    scoring:{ perMatch:2 },
+    scoring:{ perMatch:5 },
     status:'open', urgency:false, cutoff:'24 juin 21h', deadline:'2026-06-24T19:00:00Z' },
 
   // ── 26-27 juin
@@ -720,7 +720,7 @@ const EVENTS = [
       { key:'m5', team1:'🇨🇴 Colombie', team2:'🇵🇹 Portugal' },
       { key:'m6', team1:'🇯🇴 Jordanie', team2:'🇦🇷 Argentine' },
     ],
-    scoring:{ perMatch:2 },
+    scoring:{ perMatch:5 },
     status:'open', urgency:false, cutoff:'26 juin 21h', deadline:'2026-06-26T19:00:00Z' },
 
   // ── Phase finale (placeholders)
@@ -756,6 +756,7 @@ const EVENTS = [
       { key:'m3', team1:'🇨🇭 Suisse', team2:'🇦🇺 Australie' },
     ],
     topScorer:['🇧🇪 Belgique','🇹🇳 Tunisie','🇺🇸 États-Unis','🇩🇪 Allemagne','🇨🇭 Suisse','🇦🇺 Australie'],
+    scoring:{ perMatch:5 },
     status:'open', urgency:true, cutoff:'Avant le coup d\u0027envoi', deadline:'2026-06-06T13:00:00Z' },
 
   // J1 League 6 juin
@@ -1491,8 +1492,8 @@ function openPronoModal(eventId) {
       <select class="question-select" id="q-topscorer" style="width:100%;margin-bottom:4px;">
         <option value="">— Choisir une équipe —</option>${topOpts}
       </select>
-      <div class="points-info">🎯 3 bons résultats + top buteur = <strong>18 pts max</strong></div>`;
-    })() : `<div class="points-info">🎯 ${currentEvent.matches.length} bons résultats = <strong>${currentEvent.matches.length*5} pts max</strong></div>`;
+      <div class="points-info">🎯 ${currentEvent.matches.length} bons résultats + top buteur = <strong>${currentEvent.matches.length*(currentEvent.scoring?.perMatch||5)+3} pts max</strong></div>`;
+    })() : `<div class="points-info">🎯 ${currentEvent.matches.length} bons résultats = <strong>${currentEvent.matches.length*(currentEvent.scoring?.perMatch||5)} pts max</strong>${currentEvent.scoring?.bonus?' · Bonus si tout bon !':''}</div>`;
     content.innerHTML = matchHtml + topScorerHtml;
 
   } else if (currentEvent.type === 'f1_race') {
@@ -1520,7 +1521,7 @@ function openPronoModal(eventId) {
         </select>
         <div class="question-pts">4 pts</div>
       </div>
-      <div class="points-info">🎯 Top 4 : 10-8-6-4 pts · Meilleur tour : 4 pts · Total max : <strong>42 pts</strong></div>`;
+      <div class="points-info">🎯 Top 4 : 10-8-6-4 pts · Meilleur tour : 4 pts · Top 4 : 10-8-6-4 pts · Meilleur tour : 4 pts · Total max : <strong>32 pts</strong></div>`;
     setTimeout(updateSelects,50);
   } else {
     // TOP 4 générique
@@ -1793,7 +1794,7 @@ function openResultDetail(eventId) {
   if (ev.type === 'multi_match') {
     const sc = ev.scoring || {};
     (ev.matches||[]).forEach(m => {
-      html += match1x2(`${m.team1} vs ${m.team2}`, p[m.key], official[m.key], sc.perMatch||2);
+      html += match1x2(`${m.team1} vs ${m.team2}`, p[m.key], official[m.key], sc.perMatch||5);
     });
   } else if (ev.type === 'opening_match') {
     html += `<div class="rd-section">Résultat final · 5 pts</div>`;
@@ -1812,6 +1813,13 @@ function openResultDetail(eventId) {
     html += `<div class="rd-section">Buteur & buts</div>`;
     html += selectRow('Meilleur buteur', p.topScorer, official.topScorer, sc.topScorer||5);
     html += selectRow('Fourchette buts', p.topGoals, official.topGoals, sc.topGoals||3);
+  } else if (ev.type === '1x2') {
+    html += `<div class="rd-section">Résultat du match · 10 pts</div>`;
+    html += match1x2('Résultat (1/X/2)', p.result, official.result, 10);
+  } else if (ev.type === 'tennis_sf') {
+    html += `<div class="rd-section">Demi-finale Tennis</div>`;
+    html += selectRow('🏆 Vainqueur', p.winner, official.winner, 10);
+    html += selectRow('📊 Nombre de sets', String(p.sets), String(official.sets), 6);
   } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
     html += `<div class="rd-section">Finale ${ev.type==='tennis_final_h'?'Hommes':'Dames'} Roland Garros</div>`;
     html += selectRow('🏆 Vainqueur', p.winner, official.winner, 10);
@@ -1888,10 +1896,15 @@ function computeUserPoints(ev, p, official) {
     if (p.sets      && p.sets     == official.sets)        pts += 6;
     if (p.first_set && p.first_set === official.first_set) pts += 4;
     if (p.aces      && p.aces     === official.aces)       pts += 3;
+  } else if (ev.type === 'tennis_sf') {
+    if (p.winner && p.winner === official.winner) pts += 10;
+    if (p.sets   && p.sets  == official.sets)    pts += 6;
+  } else if (ev.type === '1x2') {
+    if (p.result && p.result === official.result) pts += 10;
   } else if (ev.type === 'f1_race') {
     const top4 = p.top4 || [];
     const off4 = official.top4 || [];
-    top4.forEach((v,i) => { if (v && v === off4[i]) pts += 4; });
+    top4.forEach((v,i) => { if (v && v === off4[i]) pts += (POINTS_MAP[i]||4); });
     if (p.fastest && p.fastest === official.fastest) pts += 4;
   } else if (ev.type === 'top4') {
     const top4 = p.top4 || [];
@@ -1907,11 +1920,13 @@ function computeUserPoints(ev, p, official) {
 
 function getMaxPts(ev) {
   const sc = ev.scoring || {};
-  if (ev.type === 'multi_match') return (ev.matches?.length||0) * (sc.perMatch||2);
+  if (ev.type === 'multi_match') return (ev.matches?.length||0) * (sc.perMatch||5);
   if (ev.type === 'opening_match') return 11;
-  if (ev.type === 'tournament_bonus') return 23;
+  if (ev.type === 'tournament_bonus') return (4*(sc.podium||5)) + (sc.topScorer||5) + (sc.topGoals||3);
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return 23;
-  if (ev.type === 'f1_race') return (4*4) + 4;
+  if (ev.type === 'tennis_sf') return 16;
+  if (ev.type === '1x2') return 10;
+  if (ev.type === 'f1_race') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0) + 4;
   if (ev.type === 'top4') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0);
   return 10;
 }
