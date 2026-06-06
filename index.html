@@ -75,7 +75,7 @@
     .event-card:hover { border-color: var(--orange); }
     .event-card.urgent { border-left: 3px solid var(--orange); }
     .event-card.done { border-left: 3px solid var(--green); }
-    .done-badge { position: absolute; top: 10px; right: 10px; background: var(--green); color: white; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 10px; }
+    .done-badge { background: var(--green); color: white; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
     .event-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
     .sport-tag { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 20px; background: var(--orange-bg); color: var(--orange-dark); }
     .countdown { font-size: 11px; color: var(--text-muted); }
@@ -414,20 +414,20 @@ const SPORTS = [
 const EVENTS = [
   // ===== FOOTBALL - CdM 2026 =====
   // Journée 1
-  { id:1,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Mexique vs Afrique du Sud', sub:'Groupe A · 11 juin', type:'1x2', team1:'🇲🇽 Mexique', team2:'🇿🇦 Afrique du Sud', status:'open', urgency:true, cutoff:'11 juin 21h' },
-  { id:2,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Corée du Sud vs Tchéquie', sub:'Groupe A · 11 juin', type:'1x2', team1:'🇰🇷 Corée du Sud', team2:'🇨🇿 Tchéquie', status:'open', urgency:true, cutoff:'11 juin' },
-  { id:3,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Canada vs Bosnie-Herzégovine', sub:'Groupe B · 12 juin', type:'1x2', team1:'🇨🇦 Canada', team2:'🇧🇦 Bosnie', status:'open', urgency:true, cutoff:'12 juin' },
-  { id:4,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Qatar vs Suisse', sub:'Groupe B · 12 juin', type:'1x2', team1:'🇶🇦 Qatar', team2:'🇨🇭 Suisse', status:'open', urgency:true, cutoff:'12 juin' },
-  { id:5,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Brésil vs Maroc', sub:'Groupe C · 13 juin', type:'1x2', team1:'🇧🇷 Brésil', team2:'🇲🇦 Maroc', status:'open', urgency:false, cutoff:'13 juin' },
-  { id:6,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Écosse vs Haïti', sub:'Groupe C · 13 juin', type:'1x2', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Écosse', team2:'🇭🇹 Haïti', status:'open', urgency:false, cutoff:'13 juin' },
-  { id:7,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'États-Unis vs Paraguay', sub:'Groupe D · 12 juin', type:'1x2', team1:'🇺🇸 États-Unis', team2:'🇵🇾 Paraguay', status:'open', urgency:false, cutoff:'12 juin' },
-  { id:8,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'France vs Sénégal', sub:'Groupe I · 16 juin', type:'1x2', team1:'🇫🇷 France', team2:'🇸🇳 Sénégal', status:'open', urgency:false, cutoff:'16 juin 21h' },
-  { id:9,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Argentine vs Jordanie', sub:'Groupe J · 17 juin', type:'1x2', team1:'🇦🇷 Argentine', team2:'🇯🇴 Jordanie', status:'open', urgency:false, cutoff:'17 juin' },
-  { id:10, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Colombie vs Portugal', sub:'Groupe K · 18 juin', type:'1x2', team1:'🇨🇴 Colombie', team2:'🇵🇹 Portugal', status:'open', urgency:false, cutoff:'18 juin' },
-  { id:11, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Espagne vs Arabie Saoudite', sub:'Groupe H · 18 juin', type:'1x2', team1:'🇪🇸 Espagne', team2:'🇸🇦 Arabie Saoudite', status:'open', urgency:false, cutoff:'18 juin' },
-  { id:12, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Angleterre vs Belgique', sub:'Groupe G · 15 juin', type:'1x2', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre', team2:'🇧🇪 Belgique', status:'open', urgency:false, cutoff:'15 juin' },
-  { id:13, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Allemagne vs Équateur', sub:'Groupe E · 14 juin', type:'1x2', team1:'🇩🇪 Allemagne', team2:'🇪🇨 Équateur', status:'open', urgency:false, cutoff:'14 juin' },
-  { id:14, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Pays-Bas vs Tunisie', sub:'Groupe F · 14 juin', type:'1x2', team1:'🇳🇱 Pays-Bas', team2:'🇹🇳 Tunisie', status:'open', urgency:false, cutoff:'14 juin' },
+  { id:1,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Mexique vs Afrique du Sud', sub:'Groupe A · 11 juin', type:'1x2', team1:'🇲🇽 Mexique', team2:'🇿🇦 Afrique du Sud', status:'open', urgency:true, cutoff:'11 juin 21h', deadline:'2026-06-11T19:00:00Z' },
+  { id:2,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Corée du Sud vs Tchéquie', sub:'Groupe A · 11 juin', type:'1x2', team1:'🇰🇷 Corée du Sud', team2:'🇨🇿 Tchéquie', status:'open', urgency:true, cutoff:'11 juin', deadline:'2026-06-12T00:00:00Z' },
+  { id:3,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Canada vs Bosnie-Herzégovine', sub:'Groupe B · 12 juin', type:'1x2', team1:'🇨🇦 Canada', team2:'🇧🇦 Bosnie', status:'open', urgency:true, cutoff:'12 juin', deadline:'2026-06-12T19:00:00Z' },
+  { id:4,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Qatar vs Suisse', sub:'Groupe B · 12 juin', type:'1x2', team1:'🇶🇦 Qatar', team2:'🇨🇭 Suisse', status:'open', urgency:true, cutoff:'12 juin', deadline:'2026-06-13T19:00:00Z' },
+  { id:5,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Brésil vs Maroc', sub:'Groupe C · 13 juin', type:'1x2', team1:'🇧🇷 Brésil', team2:'🇲🇦 Maroc', status:'open', urgency:false, cutoff:'13 juin', deadline:'2026-06-13T15:00:00Z' },
+  { id:6,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Écosse vs Haïti', sub:'Groupe C · 13 juin', type:'1x2', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Écosse', team2:'🇭🇹 Haïti', status:'open', urgency:false, cutoff:'13 juin', deadline:'2026-06-14T01:00:00Z' },
+  { id:7,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'États-Unis vs Paraguay', sub:'Groupe D · 12 juin', type:'1x2', team1:'🇺🇸 États-Unis', team2:'🇵🇾 Paraguay', status:'open', urgency:false, cutoff:'12 juin', deadline:'2026-06-13T01:00:00Z' },
+  { id:8,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'France vs Sénégal', sub:'Groupe I · 16 juin', type:'1x2', team1:'🇫🇷 France', team2:'🇸🇳 Sénégal', status:'open', urgency:false, cutoff:'16 juin 21h', deadline:'2026-06-16T19:00:00Z' },
+  { id:9,  sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Argentine vs Jordanie', sub:'Groupe J · 17 juin', type:'1x2', team1:'🇦🇷 Argentine', team2:'🇯🇴 Jordanie', status:'open', urgency:false, cutoff:'17 juin', deadline:'2026-06-17T15:00:00Z' },
+  { id:10, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Colombie vs Portugal', sub:'Groupe K · 18 juin', type:'1x2', team1:'🇨🇴 Colombie', team2:'🇵🇹 Portugal', status:'open', urgency:false, cutoff:'18 juin', deadline:'2026-06-18T21:00:00Z' },
+  { id:11, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Espagne vs Arabie Saoudite', sub:'Groupe H · 18 juin', type:'1x2', team1:'🇪🇸 Espagne', team2:'🇸🇦 Arabie Saoudite', status:'open', urgency:false, cutoff:'18 juin', deadline:'2026-06-18T19:00:00Z' },
+  { id:12, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Angleterre vs Belgique', sub:'Groupe G · 15 juin', type:'1x2', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre', team2:'🇧🇪 Belgique', status:'open', urgency:false, cutoff:'15 juin', deadline:'2026-06-15T17:00:00Z' },
+  { id:13, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Allemagne vs Équateur', sub:'Groupe E · 14 juin', type:'1x2', team1:'🇩🇪 Allemagne', team2:'🇪🇨 Équateur', status:'open', urgency:false, cutoff:'14 juin', deadline:'2026-06-14T17:00:00Z' },
+  { id:14, sport:'football', comp:'CdM 2026', phase:'Journée 1', emoji:'⚽', name:'Pays-Bas vs Tunisie', sub:'Groupe F · 14 juin', type:'1x2', team1:'🇳🇱 Pays-Bas', team2:'🇹🇳 Tunisie', status:'open', urgency:false, cutoff:'14 juin', deadline:'2026-06-14T20:00:00Z' },
 
   // ===== FOOTBALL - Amicaux =====
   { id:50, sport:'football', comp:'Amicaux', phase:'Juin 2026', emoji:'⚽',
@@ -451,7 +451,7 @@ const EVENTS = [
     name:'Finale Hommes', sub:'Roland Garros 2026',
     type:'tennis_final_h',
     finalists: ['Alexander Zverev', 'Flavio Cobolli'],
-    status:'open', urgency:true, cutoff:'Dimanche' },
+    status:'open', urgency:true, cutoff:'Dimanche', deadline:'2026-06-08T13:00:00Z' },
 
   // Finale Dames
   { id:23, sport:'tennis', comp:'Roland Garros 2026', phase:'Finales', emoji:'🎾',
@@ -494,10 +494,11 @@ function getCountdown(ev) {
   if (!ev.deadline) return ev.cutoff;
   const diff = new Date(ev.deadline) - new Date();
   if (diff <= 0) return '🔒 Fermé';
-  const h = Math.floor(diff/3600000);
-  const m = Math.floor((diff%3600000)/60000);
-  if (h > 24) return ev.cutoff;
-  if (h > 0) return `⏱ ${h}h${String(m).padStart(2,'0')}`;
+  const days = Math.floor(diff / 86400000);
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  if (days >= 2) return `📅 ${days}j restants`;
+  if (h >= 2) return `⏱ ${h}h${String(m).padStart(2,'0')}`;
   return `⏱ ${m} min`;
 }
 
@@ -766,10 +767,11 @@ function renderEventCard(ev) {
   }
 
   return `<div class="event-card ${done?'done':ev.urgency?'urgent':''}">
-    ${done?'<div class="done-badge">✓ Fait</div>':''}
     <div class="event-header">
       <span class="sport-tag">${ev.emoji} ${ev.sport==='f1'?'F1':ev.sport.charAt(0).toUpperCase()+ev.sport.slice(1)}</span>
-      <span class="countdown ${ev.urgency&&!done?'urgent':''}">⏱ ${ev.cutoff}</span>
+      ${done
+        ? '<span class="done-badge">✓ Fait</span>'
+        : `<span class="countdown ${ev.urgency&&!isClosed(ev)?'urgent':''}">${getCountdown(ev)}</span>`}
     </div>
     <div class="event-name">${ev.name}</div>
     <div class="event-sub">${ev.sub}</div>
@@ -788,8 +790,8 @@ async function quickSelect(eventId, result, el, e) {
   const isNew = !userPronos[eventId];
   // Mise à jour UI immédiate (optimiste)
   userPronos[eventId] = {result};
-  const badge = card.querySelector('.done-badge');
-  if (!badge) { const b=document.createElement('div'); b.className='done-badge'; b.textContent='✓ Fait'; card.appendChild(b); }
+  const cdSpan = card.querySelector('.countdown');
+  if (cdSpan) { cdSpan.className='done-badge'; cdSpan.textContent='✓ Fait'; }
   card.classList.add('done'); card.classList.remove('urgent');
   showToast('✅ Pronostic enregistré !');
   if (isNew) { currentProfile.pronos_count=(currentProfile.pronos_count||0)+1; updateTopBar(); }
