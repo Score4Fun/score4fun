@@ -663,6 +663,12 @@ function isClosed(ev) {
   if (ev.deadline) return new Date() > new Date(ev.deadline);
   return false;
 }
+function isTrulyClosed(ev) {
+  // Vraiment fermé = était ouvert ET deadline passée (exclut status:'soon')
+  if (ev.status !== 'open') return false;
+  if (ev.deadline) return new Date() > new Date(ev.deadline);
+  return false;
+}
 function getCountdown(ev) {
   if (!ev.deadline) return ev.cutoff;
   const diff = new Date(ev.deadline) - new Date();
@@ -861,19 +867,21 @@ function renderHomeEvents() {
     return;
   }
   if (!_activeSport) {
-    // Vue "Tous" : style compact liste
-    container.innerHTML = '<div class="prono-list">' + sorted.map(ev => {
+    // Vue "Tous" : style compact liste — exclure les vraiement fermés (open + deadline passée)
+    const trulyOpen = sorted.filter(ev => ev.status === 'soon' || !isTrulyClosed(ev));
+    container.innerHTML = '<div class="prono-list">' + trulyOpen.map(ev => {
       const done = isDone(ev.id);
-      const closed = isClosed(ev);
+      const soon = ev.status === 'soon';
+      const closed = isTrulyClosed(ev);
       const countdown = getCountdown(ev);
-      return `<div class="prono-item ${done?'done':ev.urgency&&!closed?'urgent':''}" style="cursor:${closed||ev.status==='soon'?'default':'pointer'}" onclick="${!closed&&ev.status==='open'?`openPronoModal(${ev.id})`:''}">
+      return `<div class="prono-item ${done?'done':ev.urgency&&!closed&&!soon?'urgent':''}" style="cursor:${closed||soon?'default':'pointer'}" onclick="${!closed&&!soon?`openPronoModal(${ev.id})`:''}">
         <div class="prono-sport">${ev.emoji}</div>
         <div class="prono-info" style="flex:1;min-width:0;">
           <div class="prono-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
-          <div class="prono-sub">${ev.comp} · <span style="color:${closed?'var(--text-muted)':'var(--orange-dark)'};">${countdown}</span></div>
+          <div class="prono-sub">${ev.comp} · <span style="color:${soon?'var(--text-muted)':closed?'var(--text-muted)':'var(--orange-dark)'};">${countdown}</span></div>
         </div>
-        <span class="prono-tag ${done?'done-tag':closed?'closed-tag':ev.status==='soon'?'closed-tag':'todo'}">
-          ${done?'✓ Fait':closed?'Fermé':ev.status==='soon'?'Bientôt':'À faire'}
+        <span class="prono-tag ${done?'done-tag':soon?'closed-tag':closed?'closed-tag':'todo'}">
+          ${done?'✓ Fait':soon?'Bientôt 🔜':closed?'Fermé':'À faire'}
         </span>
       </div>`;
     }).join('') + '</div>';
@@ -1398,7 +1406,7 @@ function renderPronos() {
   const list = document.getElementById('prono-list');
   // Clôturés = isClosed, triés du plus récent au plus ancien
   const closed = [...EVENTS]
-    .filter(ev => isClosed(ev))
+    .filter(ev => isTrulyClosed(ev))
     .sort((a,b) => {
       const da = a.deadline ? new Date(a.deadline) : new Date(0);
       const db = b.deadline ? new Date(b.deadline) : new Date(0);
