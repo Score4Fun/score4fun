@@ -608,7 +608,7 @@ const EVENTS = [
   { id:100, sport:'football', comp:'CdM 2026', phase:'Pronostics tournoi', emoji:'🌍',
     name:'Pronostics CdM 2026', sub:'Top 4 · Meilleur buteur · Avant le coup d\'envoi',
     type:'tournament_bonus',
-    scoring:{ podium:5, topScorer:5, topGoals:3 },
+    scoring:{ topScorer:7, topGoals:4 },
     status:'open', urgency:true, cutoff:'Avant 19h', deadline:'2026-06-11T17:00:00Z' },
 
   // ── Ouverture
@@ -1459,7 +1459,7 @@ function openPronoModal(eventId) {
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div>
           <select id="q-${k}" class="question-select"><option value="">-- Choisir une équipe --</option>${teamOpts(k)}</select>
         </div>`).join('')}
-      <div class="modal-section" style="margin-top:18px;">⚽ Meilleur buteur · 5 pts + 3 pts</div>
+      <div class="modal-section" style="margin-top:18px;">⚽ Meilleur buteur · 7 pts + 4 pts</div>
       <div style="margin-bottom:8px;">
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nationalité</div>
         <select id="q-topScorer" class="question-select"><option value="">-- Choisir --</option>${teamOpts('topScorer')}</select>
@@ -1468,7 +1468,7 @@ function openPronoModal(eventId) {
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nombre de buts</div>
         <select id="q-topGoals" class="question-select"><option value="">-- Choisir --</option>${goalsOpts}</select>
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Podium correct = 5 pts · Nationalité buteur = 5 pts · Fourchette buts = 3 pts</div>`;
+      <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Podium 10-8-6-4 (partiel si proche) · Nationalité buteur = 7 pts · Fourchette buts = 4 pts · Max : 39 pts</div>`;
   } else if (currentEvent.type === 'multi_match') {
     const ex = userPronos[currentEvent.id] || {};
     const matchHtml = currentEvent.matches.map(m => {
@@ -1813,8 +1813,8 @@ function openResultDetail(eventId) {
     html += selectRow('🥉 3ème', p.third, official.third, POINTS_MAP[2]);
     html += selectRow('4ème', p.fourth, official.fourth, POINTS_MAP[3]);
     html += `<div class="rd-section">Buteur & buts</div>`;
-    html += selectRow('Meilleur buteur', p.topScorer, official.topScorer, sc.topScorer||5);
-    html += selectRow('Fourchette buts', p.topGoals, official.topGoals, sc.topGoals||3);
+    html += selectRow('Nationalité buteur', p.topScorer, official.topScorer, sc.topScorer||7);
+    html += selectRow('Fourchette buts', p.topGoals, official.topGoals, sc.topGoals||4);
   } else if (ev.type === '1x2') {
     html += `<div class="rd-section">Résultat du match · 10 pts</div>`;
     html += match1x2('Résultat (1/X/2)', p.result, official.result, 4);
@@ -1903,11 +1903,15 @@ function computeUserPoints(ev, p, official) {
     if (p.firstScorer && p.firstScorer === official.firstScorer) pts += 3;
   } else if (ev.type === 'tournament_bonus') {
     const podiumKeys = ['champion','finaliste','third','fourth'];
+    const offPodium = podiumKeys.map(k => official[k]);
     podiumKeys.forEach((k, i) => {
-      if (p[k] && p[k] === official[k]) pts += (POINTS_MAP[i]||4);
+      if (!p[k]) return;
+      const j = offPodium.indexOf(p[k]);
+      if (j === -1) return;
+      pts += Math.max(0, Math.min(POINTS_MAP[i]||0, POINTS_MAP[j]||0) - Math.abs(i-j));
     });
-    if (p.topScorer && p.topScorer === official.topScorer) pts += (sc.topScorer||5);
-    if (p.topGoals && p.topGoals === official.topGoals) pts += (sc.topGoals||3);
+    if (p.topScorer && p.topScorer === official.topScorer) pts += (sc.topScorer||7);
+    if (p.topGoals && p.topGoals === official.topGoals) pts += (sc.topGoals||4);
   } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
     if (p.winner    && p.winner    === official.winner)    pts += 10;
     if (p.sets      && p.sets     == official.sets)        pts += 6;
@@ -1941,7 +1945,7 @@ function getMaxPts(ev) {
   const sc = ev.scoring || {};
   if (ev.type === 'multi_match') return (ev.matches?.length||0) * (sc.perMatch||4);
   if (ev.type === 'opening_match') return 11;
-  if (ev.type === 'tournament_bonus') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0) + (sc.topScorer||5) + (sc.topGoals||3);
+  if (ev.type === 'tournament_bonus') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0) + (sc.topScorer||7) + (sc.topGoals||4);
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return 23;
   if (ev.type === 'tennis_sf') return 16;
   if (ev.type === '1x2') return 4;
