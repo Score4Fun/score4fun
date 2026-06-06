@@ -159,7 +159,32 @@
     .modal-close { width: 100%; padding: 11px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 8px; }
     .points-info { background: var(--orange-bg); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: var(--orange-dark); margin-top: 12px; line-height: 1.6; }
 
+    /* RESULT DETAIL */
+    .rd-match-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .rd-match-name { font-size: 12px; font-weight: 500; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+    .rd-btns { display: flex; gap: 5px; }
+    .rd-btn { width: 38px; height: 34px; border-radius: 8px; border: 1.5px solid var(--border); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; background: #fafaf9; color: var(--text-muted); position: relative; }
+    .rd-btn.my-correct { background: var(--green); border-color: var(--green); color: white; }
+    .rd-btn.my-wrong { background: #ffebee; border-color: #ef9a9a; color: #c62828; }
+    .rd-btn.official-mark { background: white; border: 2px dashed var(--green); color: var(--green); }
+    .rd-pts { font-size: 12px; font-weight: 700; color: var(--green); width: 36px; text-align: right; flex-shrink: 0; }
+    .rd-pts.zero { color: #ddd; }
+    .rd-section { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin: 14px 0 8px; }
+    .rd-select-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .rd-select-label { font-size: 12px; font-weight: 500; color: var(--text-muted); width: 120px; flex-shrink: 0; }
+    .rd-select-val { flex: 1; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--border); background: #fafaf9; color: var(--text); }
+    .rd-select-val.correct { background: #e8f5e9; border-color: var(--green); color: var(--green); }
+    .rd-select-val.wrong { background: #ffebee; border-color: #ef9a9a; color: #c62828; }
+    .rd-total { margin-top: 16px; border-radius: 12px; padding: 16px; text-align: center; }
+    .rd-total.good { background: var(--green-bg); }
+    .rd-total.bad { background: #fce4ec; }
+    .rd-total-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; line-height: 1; }
+    .rd-total.good .rd-total-num { color: var(--green); }
+    .rd-total.bad .rd-total-num { color: #c62828; }
+    .rd-total-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
     /* CLASSEMENTS */
+
     .rank-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
     .rank-tab { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; font-size: 12px; cursor: pointer; transition: all 0.15s; }
     .rank-tab.active { background: var(--orange); color: white; border-color: var(--orange); }
@@ -1502,49 +1527,74 @@ function openResultDetail(eventId) {
   if (!official) return;
 
   document.getElementById('result-modal-title').textContent = ev.emoji + ' ' + ev.name;
-  document.getElementById('result-modal-sub').textContent = ev.comp + ' · Résultats officiels';
+  document.getElementById('result-modal-sub').textContent = ev.comp;
 
   let html = '';
-  const row = (label, myVal, officialVal) => {
-    const ok = myVal && myVal === officialVal;
-    const icon = myVal ? (ok ? '✅' : '❌') : '—';
-    const pts = ok ? getRowPts(ev, label) : 0;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);">
-      <div style="font-size:20px;width:28px;text-align:center;">${icon}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:.4px;">${label}</div>
-        <div style="font-size:13px;">Mon prono : <strong>${myVal||'—'}</strong></div>
-        <div style="font-size:12px;color:var(--text-muted);">Officiel : ${officialVal||'?'}</div>
-      </div>
-      ${pts>0?`<div style="font-weight:700;color:var(--green);font-size:13px;white-space:nowrap;">+${pts} pts</div>`:''}
+
+  // Helper: 3 boutons 1X2 avec état
+  const match1x2 = (label, myPick, officialPick, rowPts) => {
+    const scored = myPick && myPick === officialPick;
+    const btns = ['1','X','2'].map(v => {
+      let cls = '';
+      if (v === myPick && v === officialPick) cls = 'my-correct';
+      else if (v === myPick && myPick !== officialPick) cls = 'my-wrong';
+      else if (v === officialPick) cls = 'official-mark';
+      return `<div class="rd-btn ${cls}">${v}</div>`;
+    }).join('');
+    const pts = scored ? rowPts : 0;
+    return `<div class="rd-match-row">
+      <div class="rd-match-name">${label}</div>
+      <div class="rd-btns">${btns}</div>
+      <div class="rd-pts ${pts===0?'zero':''}">${pts>0?'+'+pts+' pt':''}</div>
+    </div>`;
+  };
+
+  // Helper: sélecteur texte (pour bonus / questions)
+  const selectRow = (label, myPick, officialPick, rowPts) => {
+    const scored = myPick && myPick === officialPick;
+    const cls = !myPick ? '' : scored ? 'correct' : 'wrong';
+    const pts = scored ? rowPts : 0;
+    return `<div class="rd-select-row">
+      <div class="rd-select-label">${label}</div>
+      <div class="rd-select-val ${cls}" style="font-size:12px;">${myPick||'—'}</div>
+      ${myPick!==officialPick?`<div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;">✓ ${officialPick||'?'}</div>`:''}
+      <div class="rd-pts ${pts===0?'zero':''}">${pts>0?'+'+pts+' pt':''}</div>
     </div>`;
   };
 
   if (ev.type === 'multi_match') {
+    const sc = ev.scoring || {};
     (ev.matches||[]).forEach(m => {
-      html += row(`${m.team1} vs ${m.team2}`, p[m.key], official[m.key]);
+      html += match1x2(`${m.team1} vs ${m.team2}`, p[m.key], official[m.key], sc.perMatch||2);
     });
   } else if (ev.type === 'opening_match') {
-    html += row('Résultat final', p.result, official.result);
-    html += row('Mi-temps', p.halftime, official.halftime);
-    html += row('1er buteur (équipe)', p.firstScorer, official.firstScorer);
+    html += `<div class="rd-section">Résultat final · 5 pts</div>`;
+    html += match1x2('Résultat (1/X/2)', p.result, official.result, 5);
+    html += `<div class="rd-section">Mi-temps · 3 pts</div>`;
+    html += match1x2('Mi-temps (1/X/2)', p.halftime, official.halftime, 3);
+    html += `<div class="rd-section">1er buteur (équipe) · 3 pts</div>`;
+    html += selectRow('Équipe', p.firstScorer, official.firstScorer, 3);
   } else if (ev.type === 'tournament_bonus') {
-    html += row('🥇 Champion', p.champion, official.champion);
-    html += row('🥈 Finaliste', p.finaliste, official.finaliste);
-    html += row('🥉 3ème place', p.third, official.third);
-    html += row('4ème place', p.fourth, official.fourth);
-    html += row('Meilleur buteur (nat.)', p.topScorer, official.topScorer);
-    html += row('Fourchette buts', p.topGoals, official.topGoals);
+    const sc = ev.scoring || {};
+    html += `<div class="rd-section">Podium · ${sc.podium||5} pts chacun</div>`;
+    html += selectRow('🥇 Champion', p.champion, official.champion, sc.podium||5);
+    html += selectRow('🥈 Finaliste', p.finaliste, official.finaliste, sc.podium||5);
+    html += selectRow('🥉 3ème', p.third, official.third, sc.podium||5);
+    html += selectRow('4ème', p.fourth, official.fourth, sc.podium||5);
+    html += `<div class="rd-section">Buteur & buts</div>`;
+    html += selectRow('Meilleur buteur', p.topScorer, official.topScorer, sc.topScorer||5);
+    html += selectRow('Fourchette buts', p.topGoals, official.topGoals, sc.topGoals||3);
   } else {
     Object.keys(official).forEach(k => {
-      html += row(k, p[k], official[k]);
+      html += selectRow(k, p[k], official[k], 3);
     });
   }
 
   const total = computeUserPoints(ev, p, official);
   const max = getMaxPts(ev);
-  html += `<div style="margin-top:16px;padding:14px;background:${total>0?'var(--green-bg)':'#fce4ec'};border-radius:var(--radius-sm);text-align:center;">
-    <div style="font-size:22px;font-weight:700;color:${total>0?'var(--green)':'#c62828'};">${total>0?'🎯':''} ${total} / ${max} pts</div>
+  html += `<div class="rd-total ${total>0?'good':'bad'}">
+    <div class="rd-total-num">${total>0?'🎯 ':''} ${total} pt${total>1?'s':''}</div>
+    <div class="rd-total-sub">sur ${max} pts possibles</div>
   </div>`;
 
   document.getElementById('result-modal-content').innerHTML = html;
