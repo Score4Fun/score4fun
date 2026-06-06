@@ -1116,29 +1116,34 @@ function openPronoModal(eventId) {
   } else if (currentEvent.type === 'opening_match') {
     const ex = userPronos[currentEvent.id] || {};
     const sel = (q,v) => ex[q]===v ? 'selected' : '';
+    const qLabel = (icon, text, pts) => `<div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:700;color:var(--text);">${icon} ${text}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--orange);background:var(--orange-bg);padding:2px 8px;border-radius:10px;">${pts} pts</div>
+    </div>`;
     content.innerHTML = `
-      <div class="modal-section">⚽ Résultat final · 5 pts</div>
-      <div style="display:flex;gap:6px;margin-bottom:16px;" data-q="result">
-        <div class="btn-sm-1x2 ${sel('result','1')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="1" onclick="selectOpeningBtn('result',this)"><span>1</span><small style="font-size:9px;opacity:.7">Mexique</small></div>
-        <div class="btn-sm-1x2 ${sel('result','X')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="X" onclick="selectOpeningBtn('result',this)"><span>X</span><small style="font-size:9px;opacity:.7">Nul</small></div>
-        <div class="btn-sm-1x2 ${sel('result','2')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="2" onclick="selectOpeningBtn('result',this)"><span>2</span><small style="font-size:9px;opacity:.7">Afr.Sud</small></div>
+      ${qLabel('⚽','Résultat final',5)}
+      <div style="display:flex;gap:6px;margin-bottom:4px;" data-q="result">
+        <div class="btn-sm-1x2 ${sel('result','1')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="1" onclick="selectOpeningBtn('result',this)"><span style="font-size:17px;font-weight:800;">1</span><small style="font-size:10px;opacity:.75;">🇲🇽 Mexique</small></div>
+        <div class="btn-sm-1x2 ${sel('result','X')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="X" onclick="selectOpeningBtn('result',this)"><span style="font-size:17px;font-weight:800;">X</span><small style="font-size:10px;opacity:.75;">Nul</small></div>
+        <div class="btn-sm-1x2 ${sel('result','2')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="2" onclick="selectOpeningBtn('result',this)"><span style="font-size:17px;font-weight:800;">2</span><small style="font-size:10px;opacity:.75;">🇿🇦 Afr. du Sud</small></div>
       </div>
-      <div class="modal-section">⏱ Mi-temps · 3 pts</div>
-      <div style="display:flex;gap:6px;margin-bottom:16px;" data-q="halftime">
-        <div class="btn-sm-1x2 ${sel('halftime','1')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="1" onclick="selectOpeningBtn('halftime',this)"><span>1</span><small style="font-size:9px;opacity:.7">Mexique</small></div>
-        <div class="btn-sm-1x2 ${sel('halftime','X')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="X" onclick="selectOpeningBtn('halftime',this)"><span>X</span><small style="font-size:9px;opacity:.7">Nul</small></div>
-        <div class="btn-sm-1x2 ${sel('halftime','2')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="2" onclick="selectOpeningBtn('halftime',this)"><span>2</span><small style="font-size:9px;opacity:.7">Afr.Sud</small></div>
+      ${qLabel('⏱','Résultat à la mi-temps',3)}
+      <div style="display:flex;gap:6px;margin-bottom:4px;" data-q="halftime">
+        <div class="btn-sm-1x2 ${sel('halftime','1')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="1" onclick="selectOpeningBtn('halftime',this)"><span style="font-size:17px;font-weight:800;">1</span><small style="font-size:10px;opacity:.75;">🇲🇽 Mexique</small></div>
+        <div class="btn-sm-1x2 ${sel('halftime','X')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="X" onclick="selectOpeningBtn('halftime',this)"><span style="font-size:17px;font-weight:800;">X</span><small style="font-size:10px;opacity:.75;">Nul</small></div>
+        <div class="btn-sm-1x2 ${sel('halftime','2')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="2" onclick="selectOpeningBtn('halftime',this)"><span style="font-size:17px;font-weight:800;">2</span><small style="font-size:10px;opacity:.75;">🇿🇦 Afr. du Sud</small></div>
       </div>
-      <div class="modal-section">🥅 Premier buteur · 3 pts</div>
+      ${qLabel('🥅','Quelle équipe scorera en premier ?',3)}
       <div style="display:flex;gap:6px;" data-q="firstScorer">
-        <div class="btn-sm-1x2 ${sel('firstScorer','Mexique')}" style="flex:1;height:46px;flex-direction:column;gap:2px;font-size:11px;" data-val="Mexique" onclick="selectOpeningBtn('firstScorer',this)"><span>🇲🇽</span><small>Mexique</small></div>
-        <div class="btn-sm-1x2 ${sel('firstScorer','Afrique du Sud')}" style="flex:1;height:46px;flex-direction:column;gap:2px;font-size:11px;" data-val="Afrique du Sud" onclick="selectOpeningBtn('firstScorer',this)"><span>🇿🇦</span><small>Afr. du Sud</small></div>
-        <div class="btn-sm-1x2 ${sel('firstScorer','Personne')}" style="flex:1;height:46px;flex-direction:column;gap:2px;font-size:11px;" data-val="Personne" onclick="selectOpeningBtn('firstScorer',this)"><span>🤝</span><small>Personne</small></div>
-      </div>`;
+        <div class="btn-sm-1x2 ${sel('firstScorer','Mexique')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Mexique" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🇲🇽</span><small style="font-size:10px;">Mexique</small></div>
+        <div class="btn-sm-1x2 ${sel('firstScorer','Afrique du Sud')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Afrique du Sud" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🇿🇦</span><small style="font-size:10px;">Afr. du Sud</small></div>
+        <div class="btn-sm-1x2 ${sel('firstScorer','Aucun but')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Aucun but" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🫙</span><small style="font-size:10px;">Aucun but</small></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:14px;text-align:center;">🎯 Total max : <strong>11 pts</strong></div>`;
   } else if (currentEvent.type === 'tournament_bonus') {
     const ex = userPronos[currentEvent.id] || {};
     const teamOpts = k => TEAMS_CDM2026.map(n=>`<option value="${n}" ${ex[k]===n?'selected':''}>${n}</option>`).join('');
-    const goalsOpts = ['1-6 buts','7-9 buts','10-12 buts','13 buts ⚡ Record Just Fontaine','14+ buts 🔥 > Just Fontaine']
+    const goalsOpts = ['1-6 buts','7-9 buts','10-12 buts','13+ buts 😢 Just Fontaine...']
       .map(v=>`<option value="${v}" ${ex.topGoals===v?'selected':''}>${v}</option>`).join('');
     const podium = [['champion','🥇 Champion du monde'],['finaliste','🥈 Finaliste'],['third','🥉 3ème place'],['fourth','4ème place']];
     content.innerHTML = `
@@ -1273,7 +1278,7 @@ async function submitProno() {
   let pronoData={};
 
   if (currentEvent.type==='opening_match') {
-    const getBtn = q => document.querySelector(`.btn-sm-1x2[data-q="${q}"].selected`)?.dataset.val;
+    const getBtn = q => document.querySelector(`[data-q="${q}"] .btn-sm-1x2.selected`)?.dataset.val;
     const result = getBtn('result');
     const halftime = getBtn('halftime');
     const firstScorer = getBtn('firstScorer');
