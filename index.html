@@ -512,19 +512,20 @@
 </div>
 
 <script>
-// Version cache-busting
-(function() {
-  const V = '202606061254';
-  const stored = localStorage.getItem('s4f_ver');
-  if (stored && stored !== V) {
-    localStorage.setItem('s4f_ver', V);
-    // Force reload sans cache
-    const url = location.href.split('?')[0] + '?v=' + V;
-    location.replace(url);
-  } else {
-    localStorage.setItem('s4f_ver', V);
-  }
-})();
+// Service Worker — toujours la dernière version
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newSW = reg.installing;
+      newSW.addEventListener('statechange', () => {
+        if (newSW.state === 'activated' && navigator.serviceWorker.controller) {
+          location.reload();
+        }
+      });
+    });
+    reg.update();
+  }).catch(e => console.warn('SW:', e));
+}
 </script>
 <script>
 // Init Supabase
