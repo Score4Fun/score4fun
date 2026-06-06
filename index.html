@@ -1963,6 +1963,45 @@ function renderAdminForm(ev, existing) {
       </div>`).join('') +
       `<button onclick="saveResult(${ev.id},'tournament_bonus')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Sauvegarder & Calculer pts</button>`;
   }
+  // Tennis finals
+  if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
+    const cands = ev.finalists || ev.candidates || [];
+    const isH = ev.type === 'tennis_final_h';
+    const setsVals = isH ? [3,4,5] : [2,3];
+    const acesOpts = isH
+      ? ['0-10','11-20','21-30','30+'].map(v => `<option value="${v}" ${ex.aces===v?'selected':''}>${v} aces</option>`).join('')
+      : ['0-5','6-12','13-20','20+'].map(v => `<option value="${v}" ${ex.aces===v?'selected':''}>${v} aces</option>`).join('');
+    const candOpts = (val) => cands.map(c => `<option value="${c}" ${ex[val]===c?'selected':''}>${c}</option>`).join('');
+    return `
+      <div style="font-size:12px;display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:140px;font-weight:500;">🏆 Vainqueur</span>
+          <select id="admin-${ev.id}-winner" style="font-size:12px;flex:1;">
+            <option value="">—</option>${candOpts('winner')}
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:140px;font-weight:500;">📊 Nombre de sets</span>
+          <select id="admin-${ev.id}-sets" style="font-size:12px;flex:1;">
+            <option value="">—</option>
+            ${setsVals.map(n=>`<option value="${n}" ${ex.sets==n?'selected':''}>${n} sets</option>`).join('')}
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:140px;font-weight:500;">1️⃣ Gagnant 1er set</span>
+          <select id="admin-${ev.id}-first_set" style="font-size:12px;flex:1;">
+            <option value="">—</option>${candOpts('first_set')}
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:140px;font-weight:500;">⚡ Aces total</span>
+          <select id="admin-${ev.id}-aces" style="font-size:12px;flex:1;">
+            <option value="">—</option>${acesOpts}
+          </select>
+        </div>
+      </div>
+      <button onclick="saveResult(${ev.id},'tennis')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Sauvegarder & Calculer pts</button>`;
+  }
   // Autres types : JSON brut
   return `<textarea id="admin-${ev.id}-json" style="width:100%;font-size:11px;font-family:monospace;height:60px;border:1px solid var(--border);border-radius:4px;padding:4px;">${existing?JSON.stringify(existing,null,2):''}</textarea>
     <button onclick="saveResult(${ev.id},'json')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Sauvegarder & Calculer pts</button>`;
@@ -1988,6 +2027,11 @@ async function saveResult(eventId, type) {
       result_data[k] = document.getElementById(`admin-${eventId}-${k}`)?.value || '';
     });
   } else {
+    if (type === 'tennis') {
+      ['winner','sets','first_set','aces'].forEach(k => {
+        result_data[k] = document.getElementById(`admin-${eventId}-${k}`)?.value || '';
+      });
+    } else
     try { result_data = JSON.parse(document.getElementById(`admin-${eventId}-json`)?.value || '{}'); }
     catch(e) { showToast('⚠️ JSON invalide'); return; }
   }
