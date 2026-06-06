@@ -51,12 +51,12 @@
     .section-title { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; margin-top: 20px; }
 
     /* METRICS */
-    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-bottom: 4px; }
-    .metric-card { background: white; border-radius: var(--radius-sm); padding: 10px 8px; text-align: center; border: 0.5px solid var(--border); }
-    .metric-card-perf { grid-column: span 2; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 14px; }
-    .metric-value { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--orange); line-height: 1; }
-    .metric-label { font-size: 10px; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
-    .gauge-wrap { flex: 1; min-width: 0; }
+    .metrics { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 6px; margin-bottom: 4px; }
+    .metric-card { background: white; border-radius: var(--radius-sm); padding: 8px 4px; text-align: center; border: 0.5px solid var(--border); }
+    .metric-card-perf { padding: 6px 4px; }
+    .metric-value { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--orange); line-height: 1; }
+    .metric-label { font-size: 9px; color: var(--text-muted); margin-top: 2px; font-weight: 500; }
+    .gauge-wrap { width: 100%; }
 
     /* SPORT TABS */
     .sport-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
@@ -255,7 +255,7 @@
     @media (max-width: 480px) {
       .events-grid { grid-template-columns: 1fr; }
       .rankings { grid-template-columns: 1fr; }
-      .metrics { grid-template-columns: repeat(3, 1fr); }
+      .metrics { grid-template-columns: repeat(5, 1fr); }
       .auth-box { padding: 32px 24px; }
       .question-row { flex-direction: column; align-items: flex-start; }
       .question-label { min-width: unset; }
@@ -336,11 +336,8 @@
       <div class="metric-card"><div class="metric-value" id="stat-podiums">–</div><div class="metric-label">Podiums 🥉</div></div>
       <div class="metric-card metric-card-perf" id="stat-perf-card">
         <div class="gauge-wrap" id="stat-gauge"></div>
-        <div style="text-align:left;">
-          <div style="font-size:10px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:.4px;">Performance</div>
-          <div id="stat-pct" style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--orange);line-height:1;">–%</div>
-          <div id="stat-pct-sub" style="font-size:10px;color:var(--text-muted);">pts obtenus / pts max</div>
-        </div>
+        <div id="stat-pct" style="font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--orange);line-height:1;margin-top:2px;">–%</div>
+        <div id="stat-pct-sub" class="metric-label">Perf.</div>
       </div>
       <div class="metric-card"><div class="metric-value" id="stat-badges">0 🎖️</div><div class="metric-label">Badges</div></div>
     </div>
