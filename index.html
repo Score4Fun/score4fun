@@ -1820,6 +1820,16 @@ async function recalculateAllPoints(triggerLabel) {
 
     const msg = errors ? `⚠️ ${updated} ok, ${errors} erreurs` : `✅ ${updated} joueur(s) mis à jour`;
     showToast(msg);
+    // Rafraîchir les points de l'utilisateur courant dans le top bar
+    if (currentProfile && userTotals[currentProfile.id] !== undefined) {
+      currentProfile.points = userTotals[currentProfile.id];
+      updateTopBar();
+    } else if (currentProfile) {
+      // Pas de prono = 0 pts, recharger depuis DB
+      const {data:p} = await sb.from('profiles').select('points').eq('id',currentProfile.id).maybeSingle();
+      if (p) { currentProfile.points = p.points||0; updateTopBar(); }
+    }
+    loadRankingsHome();
     if (triggerLabel) console.log(triggerLabel, userTotals);
   } catch(e) {
     showToast('❌ Erreur: ' + e.message);
