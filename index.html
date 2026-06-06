@@ -1795,7 +1795,7 @@ async function recalculateAllPoints(triggerLabel) {
 
     // 2. Charger tous les pronos pour ces events
     const eventIds = Object.keys(officialMap).map(Number);
-    const {data:pronos, error:pe} = await sb.from('pronos').select('user_id, event_id, prono_data').in('event_id', eventIds);
+    const {data:pronos, error:pe} = await sb.from('pronos').select('user_id, event_id, data').in('event_id', eventIds);
     if (pe) throw pe;
 
     // 3. Calculer les points totaux par user (reset à 0)
@@ -1804,7 +1804,7 @@ async function recalculateAllPoints(triggerLabel) {
       const ev = EVENTS.find(e => e.id === prono.event_id);
       const official = officialMap[prono.event_id];
       if (!ev || !official) continue;
-      const pts = computeUserPoints(ev, prono.prono_data, official);
+      const pts = computeUserPoints(ev, prono.data, official);
       userTotals[prono.user_id] = (userTotals[prono.user_id] || 0) + pts;
     }
 
@@ -1850,7 +1850,7 @@ async function computeSportRanking(sport) {
     const eventIdsWithResults = Object.keys(officialMap).map(Number);
     if (!eventIdsWithResults.length) return [];
 
-    const {data:pronosData, error:pe} = await sb.from('pronos').select('user_id,event_id,prono_data').in('event_id', eventIdsWithResults);
+    const {data:pronosData, error:pe} = await sb.from('pronos').select('user_id,event_id,data').in('event_id', eventIdsWithResults);
     if (pe || !pronosData || !pronosData.length) return [];
 
     const {data:profiles} = await sb.from('profiles').select('id,pseudo,pronos_count');
@@ -1863,7 +1863,7 @@ async function computeSportRanking(sport) {
       if (!ev) continue;
       const official = officialMap[prono.event_id];
       if (!official) continue;
-      const pts = computeUserPoints(ev, prono.prono_data, official);
+      const pts = computeUserPoints(ev, prono.data, official);
       userPts[prono.user_id] = (userPts[prono.user_id] || 0) + pts;
     }
 
