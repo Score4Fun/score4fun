@@ -908,23 +908,7 @@ function openPronoModal(eventId) {
         </select>
         <div class="question-pts">4 pts</div>
       </div>
-      <div class="modal-section">🚨 Y aura-t-il une Safety Car ?</div>
-      <div class="modal-1x2" style="gap:10px;margin:8px 0;">
-        <div class="modal-1x2-btn ${ex.safety==='oui'?'selected':''}" onclick="select1x2('oui',this)" style="flex:1;padding:12px;text-align:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:white;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s;">🟡 Oui</div>
-        <div class="modal-1x2-btn ${ex.safety==='non'?'selected':''}" onclick="select1x2('non',this)" style="flex:1;padding:12px;text-align:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:white;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s;">🟢 Non</div>
-      </div>
-      <div class="modal-section">🔵 Pilotes dans le même tour que le gagnant ?</div>
-      <div class="question-row">
-        <select class="question-select" id="q-samelap" style="width:100%">
-          <option value="">— Choisir —</option>
-          <option value="1-7" ${ex.samelap==='1-7'?'selected':''}>Moins de 8 pilotes</option>
-          <option value="8-12" ${ex.samelap==='8-12'?'selected':''}>8 à 12 pilotes</option>
-          <option value="13-16" ${ex.samelap==='13-16'?'selected':''}>13 à 16 pilotes</option>
-          <option value="17+" ${ex.samelap==='17+'?'selected':''}>17 ou plus</option>
-        </select>
-        <div class="question-pts">3 pts</div>
-      </div>
-      <div class="points-info">🎯 Top 4 : 10-8-6-4 pts · Meilleur tour : 4 pts · Safety Car : 3 pts · Même tour : 3 pts · Total max : <strong>32 pts</strong></div>`;
+      <div class="points-info">🎯 Top 4 : 10-8-6-4 pts · Meilleur tour : 4 pts · Total max : <strong>42 pts</strong></div>`;
     setTimeout(updateSelects,50);
   } else {
     // TOP 4 générique
@@ -998,12 +982,7 @@ async function submitProno() {
     if (new Set(top4).size<4) { showToast('⚠️ Pas de doublon !'); return; }
     const fastest=document.getElementById('q-fastest').value;
     if (!fastest) { showToast('⚠️ Choisis le meilleur tour !'); return; }
-    const safetySel=document.querySelector('.modal-1x2-btn.selected');
-    if (!safetySel) { showToast('⚠️ Safety Car : Oui ou Non ?'); return; }
-    const safety=safetySel.textContent.trim().includes('Oui')?'oui':'non';
-    const samelap=document.getElementById('q-samelap').value;
-    if (!samelap) { showToast('⚠️ Choisis le nombre de pilotes dans le même tour !'); return; }
-    pronoData={top4,fastest,safety,samelap};
+    pronoData={top4,fastest};
   } else {
     const top4=[0,1,2,3].map(i=>document.getElementById('top4-'+i)?.value?.trim());
     if (top4.some(v=>!v)) { showToast('⚠️ Sélectionne les 4 positions !'); return; }
