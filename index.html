@@ -410,6 +410,16 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- DETAIL RESULTAT MODAL -->
+<div class="modal-overlay" id="result-modal">
+  <div class="modal">
+    <div class="modal-title" id="result-modal-title"></div>
+    <div class="modal-sub" id="result-modal-sub"></div>
+    <div id="result-modal-content"></div>
+    <button class="modal-close" onclick="document.getElementById('result-modal').classList.remove('open')">Fermer</button>
+  </div>
+</div>
+
 <script>
 // Init Supabase
 const _SU = 'https://rcvgnazubkaaioxplvqa.supabase.co';
@@ -1432,7 +1442,8 @@ async function renderPronos() {
   // Charger les résultats officiels pour les events clôturés
   const closedIds = closed.map(ev=>ev.id);
   const {data:resultsData} = await sb.from('results').select('event_id,result_data').in('event_id', closedIds);
-  const officialResults = {};
+  window._officialResults = window._officialResults || {};
+  const officialResults = window._officialResults;
   if (resultsData) resultsData.forEach(r => { officialResults[r.event_id] = r.result_data; });
 
   list.innerHTML = closed.map(ev => {
@@ -1471,7 +1482,8 @@ async function renderPronos() {
       ptsTag = '<span class="prono-tag zero-tag pts-tag">0 pt</span>';
     }
 
-    return `<div class="prono-item ${done?'done':''}">
+    const clickable = official && done;
+    return `<div class="prono-item ${done?'done':''}" style="cursor:${clickable?'pointer':'default'}" ${clickable?`onclick="openResultDetail(${ev.id})"`:''}">
       <div class="prono-sport">${ev.emoji}</div>
       <div class="prono-info" style="flex:1;min-width:0;">
         <div class="prono-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
@@ -1480,6 +1492,79 @@ async function renderPronos() {
       ${ptsTag}
     </div>`;
   }).join('');
+}
+
+function openResultDetail(eventId) {
+  const ev = EVENTS.find(e=>e.id===eventId);
+  if (!ev) return;
+  const official = (window._officialResults||{})[eventId];
+  const p = userPronos[eventId] || {};
+  if (!official) return;
+
+  document.getElementById('result-modal-title').textContent = ev.emoji + ' ' + ev.name;
+  document.getElementById('result-modal-sub').textContent = ev.comp + ' · Résultats officiels';
+
+  let html = '';
+  const row = (label, myVal, officialVal) => {
+    const ok = myVal && myVal === officialVal;
+    const icon = myVal ? (ok ? '✅' : '❌') : '—';
+    const pts = ok ? getRowPts(ev, label) : 0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);">
+      <div style="font-size:20px;width:28px;text-align:center;">${icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:.4px;">${label}</div>
+        <div style="font-size:13px;">Mon prono : <strong>${myVal||'—'}</strong></div>
+        <div style="font-size:12px;color:var(--text-muted);">Officiel : ${officialVal||'?'}</div>
+      </div>
+      ${pts>0?`<div style="font-weight:700;color:var(--green);font-size:13px;white-space:nowrap;">+${pts} pts</div>`:''}
+    </div>`;
+  };
+
+  if (ev.type === 'multi_match') {
+    (ev.matches||[]).forEach(m => {
+      html += row(`${m.team1} vs ${m.team2}`, p[m.key], official[m.key]);
+    });
+  } else if (ev.type === 'opening_match') {
+    html += row('Résultat final', p.result, official.result);
+    html += row('Mi-temps', p.halftime, official.halftime);
+    html += row('1er buteur (équipe)', p.firstScorer, official.firstScorer);
+  } else if (ev.type === 'tournament_bonus') {
+    html += row('🥇 Champion', p.champion, official.champion);
+    html += row('🥈 Finaliste', p.finaliste, official.finaliste);
+    html += row('🥉 3ème place', p.third, official.third);
+    html += row('4ème place', p.fourth, official.fourth);
+    html += row('Meilleur buteur (nat.)', p.topScorer, official.topScorer);
+    html += row('Fourchette buts', p.topGoals, official.topGoals);
+  } else {
+    Object.keys(official).forEach(k => {
+      html += row(k, p[k], official[k]);
+    });
+  }
+
+  const total = computeUserPoints(ev, p, official);
+  const max = getMaxPts(ev);
+  html += `<div style="margin-top:16px;padding:14px;background:${total>0?'var(--green-bg)':'#fce4ec'};border-radius:var(--radius-sm);text-align:center;">
+    <div style="font-size:22px;font-weight:700;color:${total>0?'var(--green)':'#c62828'};">${total>0?'🎯':''} ${total} / ${max} pts</div>
+  </div>`;
+
+  document.getElementById('result-modal-content').innerHTML = html;
+  document.getElementById('result-modal').classList.add('open');
+}
+
+function getRowPts(ev, label) {
+  const sc = ev.scoring || {};
+  if (ev.type === 'multi_match') return sc.perMatch || 2;
+  if (ev.type === 'opening_match') {
+    if (label === 'Résultat final') return 5;
+    if (label === 'Mi-temps') return 3;
+    if (label === '1er buteur (équipe)') return 3;
+  }
+  if (ev.type === 'tournament_bonus') {
+    if (['🥇 Champion','🥈 Finaliste','🥉 3ème place','4ème place'].includes(label)) return sc.podium||5;
+    if (label === 'Meilleur buteur (nat.)') return sc.topScorer||5;
+    if (label === 'Fourchette buts') return sc.topGoals||3;
+  }
+  return 3;
 }
 
 function computeUserPoints(ev, p, official) {
