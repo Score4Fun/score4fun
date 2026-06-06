@@ -2119,7 +2119,7 @@ async function saveResult(eventId, type) {
   const {error} = await sb.from('results').upsert({event_id:eventId, result_data, entered_at:new Date().toISOString()}, {onConflict:'event_id'});
   if (error) { showToast('❌ Erreur: '+error.message); return; }
   adminResults[eventId] = result_data;
-  showToast('✅ Résultat sauvegardé !');
+  showToast('⏳ Sauvegarde + recalcul en cours…');
   await calculatePoints(eventId, ev, result_data);
   renderAdmin();
 }
@@ -2161,7 +2161,7 @@ async function recalculateAllPoints(triggerLabel) {
     // Remettre à 0 les joueurs sans prono sur aucun event corrigé
     // (optionnel — on laisse leur score inchangé)
 
-    const msg = errors ? `⚠️ ${updated} ok, ${errors} erreurs` : `✅ ${updated} joueur(s) mis à jour`;
+    const msg = errors ? `⚠️ ${updated} ok, ${errors} erreurs` : `✅ Sauvegardé & ${updated} joueur(s) recalculé(s)`;
     showToast(msg);
     // Rafraîchir les points de l'utilisateur courant dans le top bar
     if (currentProfile && userTotals[currentProfile.id] !== undefined) {
