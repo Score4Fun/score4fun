@@ -2358,8 +2358,7 @@ async function showGroupPage(groupId, fromPage) {
   if (managePanel) managePanel.style.display = 'none';
 
   showPage('group');
-  renderGroupClassement(groupId);
-  renderGroupPronos(groupId);
+  await Promise.all([renderGroupClassement(groupId), renderGroupPronos(groupId)]);
 }
 
 function toggleGroupManagePanel() {
@@ -2383,29 +2382,27 @@ async function renderGroupClassement(groupId) {
     return;
   }
 
-  // Events du groupe (pronos de gauche seulement)
+  // Events du groupe (pronos de gauche seulement) — forcer Number pour la comparaison
   const {data:gevents} = await sb.from('group_events').select('event_id').eq('group_id', groupId);
-  const groupEventIds = (gevents||[]).map(e => e.event_id);
+  const groupEventIds = (gevents||[]).map(e => Number(e.event_id));
 
   // Résultats officiels pour ces events uniquement
   const {data:results} = groupEventIds.length
     ? await sb.from('results').select('event_id,result_data').in('event_id', groupEventIds)
     : {data:[]};
   const officialMap = {};
-  (results||[]).forEach(r => { officialMap[r.event_id] = r.result_data; });
+  (results||[]).forEach(r => { officialMap[Number(r.event_id)] = r.result_data; });
   const scoredIds = Object.keys(officialMap).map(Number);
 
-  // Profils des membres — fallback: lire un par un si le IN échoue
+  // Profils : essayer .in() d'abord, sinon un par un, sinon pseudo = début de l'uuid
   let profiles = [];
-  const {data:pAll, error:pErr} = await sb.from('profiles').select('id,pseudo,points').in('id', memberIds);
+  const {data:pAll} = await sb.from('profiles').select('id,pseudo,points').in('id', memberIds);
   if (pAll && pAll.length) {
     profiles = pAll;
   } else {
-    // Fallback: lire chaque profil individuellement
     for (const uid of memberIds) {
       const {data:p} = await sb.from('profiles').select('id,pseudo,points').eq('id', uid).maybeSingle();
-      if (p) profiles.push(p);
-      else profiles.push({id: uid, pseudo: uid.slice(0,8)+'…', points: 0});
+      profiles.push(p || {id: uid, pseudo: '?', points: 0});
     }
   }
 
@@ -2464,7 +2461,7 @@ async function renderGroupPronos(groupId) {
     return;
   }
 
-  const groupEventIds = gevents.map(e => e.event_id);
+  const groupEventIds = gevents.map(e => Number(e.event_id));
   const events = EVENTS.filter(e => groupEventIds.includes(e.id));
 
   list.innerHTML = events.map(ev => {
@@ -2486,7 +2483,7 @@ async function renderGroupManage(groupId) {
   list.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">⏳ Chargement…</div>';
 
   const {data:gevents} = await sb.from('group_events').select('event_id').eq('group_id', groupId);
-  const activeIds = new Set((gevents||[]).map(e => e.event_id));
+  const activeIds = new Set((gevents||[]).map(e => Number(e.event_id)));
 
   // Grouper par compétition (comp) — 1 checkbox = 1 compétition entière
   const byComp = {};
