@@ -1442,7 +1442,7 @@ function renderPronos() {
         <div class="prono-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
         <div class="prono-sub">${ev.comp} · ${done&&pronoSummary ? pronoSummary : 'Pas de prono'}</div>
       </div>
-      <span class="prono-tag ${done?'done-tag':'closed-tag'}">${done?'✓ Fait':'—'}</span>
+      <span class="prono-tag closed-tag">🔒 Closed</span>
     </div>`;
   }).join('');
 }
