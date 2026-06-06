@@ -852,6 +852,7 @@ function renderHomeEvents() {
   const container = document.getElementById('home-events-container');
   let evs = EVENTS;
   if (_activeSport) evs = evs.filter(e=>e.sport===_activeSport);
+  if (_activeComp)  evs = evs.filter(e=>e.comp===_activeComp);
   const sorted = [...evs].sort((a,b) => {
     const da = a.deadline ? new Date(a.deadline) : new Date('9999-12-31');
     const db = b.deadline ? new Date(b.deadline) : new Date('9999-12-31');
