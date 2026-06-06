@@ -1521,7 +1521,9 @@ function openPronoModal(eventId) {
         </select>
         <div class="question-pts">4 pts</div>
       </div>
-      <div class="points-info">🎯 Exact : 10-8-6-4 pts · 1 place d'écart : -1 pt · 2 places : -2 · 3 places : -3 · Meilleur tour : 4 pts · Max : <strong>32 pts</strong></div>`;
+      <div class="points-info">🎯 Max : <strong>32 pts</strong> · Meilleur tour : <strong>4 pts</strong><br>
+        <span style='font-size:10px;color:var(--orange-dark);font-family:monospace;'>pts = min(pts_toi, pts_lui) − |écart|</span><br>
+        <span style='font-size:10px;color:var(--text-muted);'>ex: prédit 2e, finit 3e → min(8,6)−1 = 5 pts ✓</span></div>`;
     setTimeout(updateSelects,50);
   } else {
     // TOP 4 générique
