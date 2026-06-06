@@ -1452,8 +1452,8 @@ async function submitProno() {
   closeModal();
   showToast(isNew?'✅ Pronostic enregistré !':'✏️ Pronostic modifié !');
   renderPronos();
-  renderEventsBySport(evtRef.sport);
-  document.querySelector(`[onclick="filterSport('${evtRef.sport}',this)"]`)?.click();
+  // Garder le filtre actuel (ne pas forcer le sport si on est en vue "Tous")
+  renderHomeEvents();
   // Sauvegarde en arrière-plan
   sb.from('pronos').upsert({
     user_id:currentUser.id, event_id:evtRef.id,
