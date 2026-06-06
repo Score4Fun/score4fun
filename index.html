@@ -404,6 +404,7 @@
       <div class="rank-tab" data-sport="f1" onclick="switchRankTab(this)">🏎️ F1</div>
       <div class="rank-tab" data-sport="cyclisme" onclick="switchRankTab(this)">🚴 Cyclisme</div>
     </div>
+    <div id="rank-comp-tabs" style="display:none;margin-bottom:10px;display:none;gap:6px;flex-wrap:wrap;"></div>
     <div class="full-rank-list" id="full-rank-list"></div>
   </div>
 
@@ -2268,9 +2269,9 @@ async function calculatePoints(eventId, ev, official) {
 // CLASSEMENTS
 // =====================
 // Calcule les points d'un sport depuis pronos+results (client-side)
-async function computeSportRanking(sport) {
+async function computeSportRanking(sport, comp) {
   try {
-    const sportIds = EVENTS.filter(ev => ev.sport === sport).map(ev => ev.id);
+    const sportIds = EVENTS.filter(ev => ev.sport === sport && (!comp || ev.comp === comp)).map(ev => ev.id);
     if (!sportIds.length) return [];
 
     const {data:resultsData, error:re} = await sb.from('results').select('event_id,result_data').in('event_id', sportIds);
@@ -2336,7 +2337,7 @@ function renderRankList(rows, container) {
   }).join('');
 }
 
-async function loadRankings(sport) {
+async function loadRankings(sport, comp) {
   const list = document.getElementById('full-rank-list');
   if (!list) return;
   list.innerHTML = '<div style="padding:20px 16px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
@@ -2357,7 +2358,7 @@ async function loadRankings(sport) {
       }
       renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:countMap[p.id]||0})), list);
     } else {
-      const ranked = await computeSportRanking(sport);
+      const ranked = await computeSportRanking(sport, comp);
       renderRankList(ranked, list);
     }
   } catch(e) {
@@ -2405,10 +2406,39 @@ async function loadRankingsHome() {
   }
 }
 
+let _rankSport = '';
+let _rankComp = null;
+
 function switchRankTab(el) {
   document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  loadRankings(el.dataset.sport || '');
+  _rankSport = el.dataset.sport || '';
+  _rankComp = null;
+  // Comp tabs
+  const compTabsEl = document.getElementById('rank-comp-tabs');
+  if (_rankSport) {
+    const comps = [...new Set(EVENTS.filter(e=>e.sport===_rankSport).map(e=>e.comp))];
+    if (comps.length > 1) {
+      compTabsEl.style.display = 'flex';
+      compTabsEl.innerHTML = [{label:'Toutes',val:null},...comps.map(c=>({label:c,val:c}))]
+        .map(c=>`<div class="phase-tab ${c.val===null?'active':''}" onclick="switchRankCompTab(this,'${c.val||''}')">${c.label}</div>`)
+        .join('');
+    } else {
+      compTabsEl.style.display = 'none';
+      compTabsEl.innerHTML = '';
+    }
+  } else {
+    compTabsEl.style.display = 'none';
+    compTabsEl.innerHTML = '';
+  }
+  loadRankings(_rankSport, null);
+}
+
+function switchRankCompTab(el, comp) {
+  document.querySelectorAll('#rank-comp-tabs .phase-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  _rankComp = comp || null;
+  loadRankings(_rankSport, _rankComp);
 }
 
 // =====================
@@ -2777,7 +2807,7 @@ function showPage(name) {
   document.getElementById('page-'+name).classList.add('active');
   const navEl = document.getElementById('nav-'+name);
   if (navEl) navEl.classList.add('active');
-  if (name==='classements') { document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active')); const first=document.querySelector('.rank-tab'); if(first){first.classList.add('active');} loadRankings(''); }
+  if (name==='classements') { document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active')); const first=document.querySelector('.rank-tab'); if(first){first.classList.add('active');} _rankSport=''; _rankComp=null; const ct=document.getElementById('rank-comp-tabs'); if(ct){ct.style.display='none';ct.innerHTML='';} loadRankings('',null); }
   if (name==='groupes') renderGroupes();
   if (name==='admin') renderAdmin();
 }
