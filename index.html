@@ -1859,6 +1859,20 @@ function computeUserPoints(ev, p, official) {
     });
     if (p.topScorer && p.topScorer === official.topScorer) pts += (sc.topScorer||5);
     if (p.topGoals && p.topGoals === official.topGoals) pts += (sc.topGoals||3);
+  } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
+    if (p.winner    && p.winner    === official.winner)    pts += 10;
+    if (p.sets      && p.sets     == official.sets)        pts += 6;
+    if (p.first_set && p.first_set === official.first_set) pts += 4;
+    if (p.aces      && p.aces     === official.aces)       pts += 3;
+  } else if (ev.type === 'f1_race') {
+    const top4 = p.top4 || [];
+    const off4 = official.top4 || [];
+    top4.forEach((v,i) => { if (v && v === off4[i]) pts += 4; });
+    if (p.fastest && p.fastest === official.fastest) pts += 4;
+  } else if (ev.type === 'top4') {
+    const top4 = p.top4 || [];
+    const off4 = official.top4 || [];
+    top4.forEach((v,i) => { if (v && v === off4[i]) pts += POINTS_MAP[i]||2; });
   } else {
     Object.keys(official).forEach(k => {
       if (p[k] && p[k] === official[k]) pts += 3;
@@ -1872,6 +1886,9 @@ function getMaxPts(ev) {
   if (ev.type === 'multi_match') return (ev.matches?.length||0) * (sc.perMatch||2);
   if (ev.type === 'opening_match') return 11;
   if (ev.type === 'tournament_bonus') return 23;
+  if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return 23;
+  if (ev.type === 'f1_race') return (4*4) + 4;
+  if (ev.type === 'top4') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0);
   return 10;
 }
 
