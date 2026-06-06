@@ -127,6 +127,9 @@
     .prono-tag.todo { background: var(--orange-bg); color: var(--orange-dark); }
     .prono-tag.done-tag { background: var(--green-bg); color: var(--green); }
     .prono-tag.closed-tag { background: #f0eeeb; color: var(--text-muted); cursor: default; }
+    .prono-tag.pts-tag { background: #fff8e1; color: #e65100; cursor: default; border: 1.5px solid #ffcc02; font-weight: 700; }
+    .prono-tag.pts-tag.pts-good { background: #e8f5e9; color: var(--green); border-color: var(--green); }
+    .prono-tag.pts-tag.zero-tag { background: #fce4ec; color: #c62828; border-color: #ef9a9a; }
     .urgent-badge { font-size: 10px; background: var(--orange); color: white; padding: 2px 6px; border-radius: 10px; margin-left: 6px; }
 
     /* MODAL */
@@ -1412,23 +1415,30 @@ async function submitProno() {
 // =====================
 // PRONOS PAGE
 // =====================
-function renderPronos() {
+async function renderPronos() {
   const list = document.getElementById('prono-list');
-  // Clôturés = isClosed, triés du plus récent au plus ancien
+  // Clôturés = isTrulyClosed, triés du plus récent au plus ancien
   const closed = [...EVENTS]
     .filter(ev => isTrulyClosed(ev))
     .sort((a,b) => {
       const da = a.deadline ? new Date(a.deadline) : new Date(0);
       const db = b.deadline ? new Date(b.deadline) : new Date(0);
-      return db - da; // plus récent en haut
+      return db - da;
     });
   if (!closed.length) {
     list.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">Aucun pronostic clôturé pour l\'instant.</p>';
     return;
   }
+  // Charger les résultats officiels pour les events clôturés
+  const closedIds = closed.map(ev=>ev.id);
+  const {data:resultsData} = await sb.from('results').select('event_id,result_data').in('event_id', closedIds);
+  const officialResults = {};
+  if (resultsData) resultsData.forEach(r => { officialResults[r.event_id] = r.result_data; });
+
   list.innerHTML = closed.map(ev => {
     const done = isDone(ev.id);
     const ex = userPronos[ev.id] || {};
+    const official = officialResults[ev.id];
     let pronoSummary = '';
     if (done) {
       if (ev.type==='multi_match') {
@@ -1446,15 +1456,65 @@ function renderPronos() {
         pronoSummary = `Résultat: ${ex.result}`;
       }
     }
+
+    // Calcul des points si résultat officiel disponible
+    let ptsTag = '<span class="prono-tag closed-tag">🔒 Closed</span>';
+    if (official && done) {
+      const pts = computeUserPoints(ev, ex, official);
+      const maxPts = getMaxPts(ev);
+      if (pts > 0) {
+        ptsTag = `<span class="prono-tag pts-tag pts-good">🎯 +${pts} pts</span>`;
+      } else {
+        ptsTag = `<span class="prono-tag pts-tag zero-tag">0 pt</span>`;
+      }
+    } else if (official && !done) {
+      ptsTag = '<span class="prono-tag zero-tag pts-tag">0 pt</span>';
+    }
+
     return `<div class="prono-item ${done?'done':''}">
       <div class="prono-sport">${ev.emoji}</div>
       <div class="prono-info" style="flex:1;min-width:0;">
         <div class="prono-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
-        <div class="prono-sub">${ev.comp} · ${done&&pronoSummary ? pronoSummary : 'Pas de prono'}</div>
+        <div class="prono-sub">${ev.comp} · ${done&&pronoSummary ? pronoSummary : (official?'Pas de prono':'En attente résultats')}</div>
       </div>
-      <span class="prono-tag closed-tag">🔒 Closed</span>
+      ${ptsTag}
     </div>`;
   }).join('');
+}
+
+function computeUserPoints(ev, p, official) {
+  const sc = ev.scoring || {};
+  let pts = 0;
+  if (ev.type === 'multi_match') {
+    (ev.matches||[]).forEach(m => {
+      if (p[m.key] && p[m.key] === official[m.key]) pts += (sc.perMatch||2);
+    });
+    const correct = (ev.matches||[]).filter(m=>p[m.key]===official[m.key]).length;
+    if (sc.bonus && sc.bonus[correct]) pts += sc.bonus[correct];
+  } else if (ev.type === 'opening_match') {
+    if (p.result && p.result === official.result) pts += 5;
+    if (p.halftime && p.halftime === official.halftime) pts += 3;
+    if (p.firstScorer && p.firstScorer === official.firstScorer) pts += 3;
+  } else if (ev.type === 'tournament_bonus') {
+    ['champion','finaliste','third','fourth'].forEach(k => {
+      if (p[k] && p[k] === official[k]) pts += (sc.podium||5);
+    });
+    if (p.topScorer && p.topScorer === official.topScorer) pts += (sc.topScorer||5);
+    if (p.topGoals && p.topGoals === official.topGoals) pts += (sc.topGoals||3);
+  } else {
+    Object.keys(official).forEach(k => {
+      if (p[k] && p[k] === official[k]) pts += 3;
+    });
+  }
+  return pts;
+}
+
+function getMaxPts(ev) {
+  const sc = ev.scoring || {};
+  if (ev.type === 'multi_match') return (ev.matches?.length||0) * (sc.perMatch||2);
+  if (ev.type === 'opening_match') return 11;
+  if (ev.type === 'tournament_bonus') return 23;
+  return 10;
 }
 
 
