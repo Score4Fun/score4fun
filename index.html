@@ -2339,7 +2339,7 @@ async function loadRankings(sport) {
     if (!sport) {
       // Général : profiles.points (déjà cumulé par calculatePoints)
       const [{data, error}, {data:resultsRaw}] = await Promise.all([
-        sb.from('profiles').select('id,pseudo,points').order('points',{ascending:false}).limit(50),
+        sb.from('profiles').select('id,pseudo,points').order('points',{ascending:false}),
         sb.from('results').select('event_id')
       ]);
       if (error) throw error;
