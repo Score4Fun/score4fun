@@ -484,6 +484,10 @@
       <div class="section-title" style="margin:0;">⚙️ Admin — Résultats officiels</div>
       <button onclick="recalculateAllPoints('manual')" style="font-size:12px;padding:6px 14px;background:var(--green);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔄 Recalculer tout</button>
     </div>
+    <div style="display:flex;gap:6px;margin:6px 0 10px;flex-wrap:wrap;">
+      <button id="admin-filter-all" onclick="setAdminFilter('all')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">Tous</button>
+      <button id="admin-filter-pending" onclick="setAdminFilter('pending')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">⏳ En attente de résultat</button>
+    </div>
     <div id="admin-list"></div>
   </div>
 
@@ -1961,6 +1965,16 @@ function getMaxPts(ev) {
 const ADMIN_EMAIL = 'mervin.anthony@yahoo.com';
 let adminResults = {}; // event_id → result_data
 
+let _adminFilter = 'all';
+function setAdminFilter(f) {
+  _adminFilter = f;
+  document.getElementById('admin-filter-all').style.background = f==='all' ? 'var(--orange)' : 'white';
+  document.getElementById('admin-filter-all').style.color = f==='all' ? 'white' : 'var(--text)';
+  document.getElementById('admin-filter-pending').style.background = f==='pending' ? 'var(--orange)' : 'white';
+  document.getElementById('admin-filter-pending').style.color = f==='pending' ? 'white' : 'var(--text)';
+  renderAdmin();
+}
+
 async function renderAdmin() {
   const list = document.getElementById('admin-list');
   if (!list) return;
@@ -1969,11 +1983,14 @@ async function renderAdmin() {
   adminResults = {};
   if (data) data.forEach(r => { adminResults[r.event_id] = r.result_data; });
 
-  const events = EVENTS.filter(ev => ev.status === 'open').sort((a,b) => {
+  let events = EVENTS.filter(ev => ev.status === 'open').sort((a,b) => {
     const da = a.deadline ? new Date(a.deadline) : new Date('9999');
     const db = b.deadline ? new Date(b.deadline) : new Date('9999');
     return da - db;
   });
+  if (_adminFilter === 'pending') {
+    events = events.filter(ev => isTrulyClosed(ev) && !adminResults[ev.id]);
+  }
 
   list.innerHTML = events.map(ev => {
     const res = adminResults[ev.id];
