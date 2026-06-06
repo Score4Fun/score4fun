@@ -972,9 +972,9 @@ function openPronoModal(eventId) {
           <span class="match-row-t2">${m.team2}</span>
         </div>
         <div class="match-row-btns">
-          <div class="btn-sm-1x2 ${sel==='1'?'selected':''}" onclick="selectMulti('${m.key}','1',this)">1</div>
-          <div class="btn-sm-1x2 ${sel==='X'?'selected':''}" onclick="selectMulti('${m.key}','X',this)">X</div>
-          <div class="btn-sm-1x2 ${sel==='2'?'selected':''}" onclick="selectMulti('${m.key}','2',this)">2</div>
+          <div class="btn-sm-1x2 ${sel==='1'?'selected':''}" data-match-key="${m.key}" data-val="1" onclick="selectMulti('${m.key}','1',this)">1</div>
+          <div class="btn-sm-1x2 ${sel==='X'?'selected':''}" data-match-key="${m.key}" data-val="X" onclick="selectMulti('${m.key}','X',this)">X</div>
+          <div class="btn-sm-1x2 ${sel==='2'?'selected':''}" data-match-key="${m.key}" data-val="2" onclick="selectMulti('${m.key}','2',this)">2</div>
         </div>
       </div>`;
     }).join('');
@@ -1045,9 +1045,9 @@ function select1x2(val, el) {
 }
 
 function selectMulti(matchKey, val, el) {
-  el.parentElement.querySelectorAll('.modal-1x2-btn').forEach(b=>b.classList.remove('selected'));
-  el.classList.add('selected');
-  el.dataset.matchKey = matchKey;
+  const wasSelected = el.classList.contains('selected');
+  el.parentElement.querySelectorAll('.btn-sm-1x2').forEach(b=>b.classList.remove('selected'));
+  if (!wasSelected) el.classList.add('selected');
 }
 
 function updateSelects() {
@@ -1074,8 +1074,7 @@ async function submitProno() {
     let missing = false;
     currentEvent.matches.forEach(m => {
       const sel = document.querySelector(`.btn-sm-1x2[data-match-key="${m.key}"].selected`);
-      // fallback: cherche par position dans le parent
-      if (sel) { pronoObj[m.key] = sel.textContent.trim().split('\n')[0].trim(); }
+      if (sel) { pronoObj[m.key] = sel.dataset.val; }
       else { missing = true; }
     });
     if (missing) { showToast('⚠️ Pronostique tous les matchs !'); return; }
