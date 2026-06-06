@@ -1521,7 +1521,7 @@ function openPronoModal(eventId) {
         </select>
         <div class="question-pts">4 pts</div>
       </div>
-      <div class="points-info">🎯 Top 4 : 10-8-6-4 pts · Meilleur tour : 4 pts · Total max : <strong>32 pts</strong></div>`;
+      <div class="points-info">🎯 Exact : 10-8-6-4 pts · 1 place d'écart : -1 pt · 2 places : -2 · 3 places : -3 · Meilleur tour : 4 pts · Max : <strong>32 pts</strong></div>`;
     setTimeout(updateSelects,50);
   } else {
     // TOP 4 générique
@@ -1826,19 +1826,33 @@ function openResultDetail(eventId) {
     html += selectRow('📊 Nombre de sets', String(p.sets), String(official.sets), 6);
     html += selectRow('1️⃣ Gagnant 1er set', p.first_set, official.first_set, 4);
     html += selectRow('⚡ Aces total', p.aces, official.aces, 3);
-  } else if (ev.type === 'f1_race') {
-    html += `<div class="rd-section">Top 4 · 4 pts chacun</div>`;
-    (official.top4||[]).forEach((v,i) => {
-      html += selectRow(`#${i+1}`, (p.top4||[])[i], v, 4);
+  } else if (ev.type === 'f1_race' || ev.type === 'top4') {
+    const myTop4 = p.top4 || [];
+    const offTop4 = official.top4 || [];
+    const top4PartialPts = (myPick, i) => {
+      if (!myPick) return 0;
+      const j = offTop4.indexOf(myPick);
+      if (j === -1) return 0;
+      return Math.max(0, Math.min(POINTS_MAP[i]||0, POINTS_MAP[j]||0) - Math.abs(i-j));
+    };
+    html += `<div class="rd-section">Top 4 — barème 10-8-6-4 pts (partiel si proche)</div>`;
+    offTop4.forEach((official_driver, i) => {
+      const myPick = myTop4[i];
+      const partialPts = top4PartialPts(myPick, i);
+      const exact = myPick === official_driver;
+      const inTop4 = myPick && offTop4.indexOf(myPick) !== -1;
+      const cls = exact ? 'correct' : (inTop4 ? 'wrong' : '');
+      html += `<div class="rd-select-row">
+        <div class="rd-select-label">#${i+1} · ${POINTS_MAP[i]}pts</div>
+        <div class="rd-select-val ${cls}">${myPick||'—'}</div>
+        ${!exact ? `<div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;">✓ ${official_driver}</div>` : ''}
+        <div class="rd-pts ${partialPts===0?'zero':''}">${partialPts>0?'+'+partialPts+' pt':''}</div>
+      </div>`;
     });
-    html += `<div class="rd-section">Meilleur tour · 4 pts</div>`;
-    html += selectRow('Pilote', p.fastest, official.fastest, 4);
-  } else if (ev.type === 'top4') {
-    html += `<div class="rd-section">Top 4</div>`;
-    const pts4 = Object.values(POINTS_MAP);
-    (official.top4||[]).forEach((v,i) => {
-      html += selectRow(`#${i+1} (${pts4[i]||2} pts)`, (p.top4||[])[i], v, pts4[i]||2);
-    });
+    if (ev.type === 'f1_race') {
+      html += `<div class="rd-section">Meilleur tour · 4 pts</div>`;
+      html += selectRow('Pilote', p.fastest, official.fastest, 4);
+    }
   } else {
     Object.keys(official).forEach(k => {
       html += selectRow(k, p[k], official[k], 3);
@@ -1901,15 +1915,17 @@ function computeUserPoints(ev, p, official) {
     if (p.sets   && p.sets  == official.sets)    pts += 6;
   } else if (ev.type === '1x2') {
     if (p.result && p.result === official.result) pts += 4;
-  } else if (ev.type === 'f1_race') {
+  } else if (ev.type === 'f1_race' || ev.type === 'top4') {
     const top4 = p.top4 || [];
     const off4 = official.top4 || [];
-    top4.forEach((v,i) => { if (v && v === off4[i]) pts += (POINTS_MAP[i]||4); });
-    if (p.fastest && p.fastest === official.fastest) pts += 4;
-  } else if (ev.type === 'top4') {
-    const top4 = p.top4 || [];
-    const off4 = official.top4 || [];
-    top4.forEach((v,i) => { if (v && v === off4[i]) pts += POINTS_MAP[i]||2; });
+    top4.forEach((v, i) => {
+      if (!v) return;
+      const j = off4.indexOf(v);
+      if (j === -1) return; // pas dans le top4 officiel
+      const diff = Math.abs(i - j);
+      pts += Math.max(0, Math.min(POINTS_MAP[i]||0, POINTS_MAP[j]||0) - diff);
+    });
+    if (ev.type === 'f1_race' && p.fastest && p.fastest === official.fastest) pts += 4;
   } else {
     Object.keys(official).forEach(k => {
       if (p[k] && p[k] === official[k]) pts += 3;
