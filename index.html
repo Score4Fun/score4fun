@@ -331,7 +331,7 @@
     <div class="metrics">
       <div class="metric-card"><div class="metric-value" id="stat-pts">0</div><div class="metric-label">Points</div></div>
       <div class="metric-card"><div class="metric-value" id="stat-rank">#–</div><div class="metric-label">Classement</div></div>
-      <div class="metric-card"><div class="metric-value" id="stat-pct">0%</div><div class="metric-label">Bons pronos</div></div>
+      <div class="metric-card"><div class="metric-value" id="stat-pct">–%</div><div class="metric-label">Rating</div></div>
       <div class="metric-card"><div class="metric-value" id="stat-badges">0 🏅</div><div class="metric-label">Badges</div></div>
     </div>
     <div class="section-title">Mes groupes</div>
@@ -858,7 +858,7 @@ function launchApp() {
   document.getElementById('app-screen').style.display='block';
   loadUserPronos().then(() => {
     showPage('home');
-    updateTopBar(); renderSportTabs(); renderHomeEvents();
+    updateTopBar(); renderSportTabs(); renderHomeEvents(); updateRating();
     loadRankingsHome(); renderPronos(); renderGroupes(); renderProfil();
   });
 }
@@ -870,8 +870,30 @@ function updateTopBar() {
   document.getElementById('top-pseudo').textContent = p.pseudo||'Joueur';
   document.getElementById('top-pts').textContent = (p.points||0)+' pts';
   document.getElementById('stat-pts').textContent = p.points||0;
-  document.getElementById('stat-pct').textContent = p.pronos_count>0?Math.round((p.good_pronos||0)/p.pronos_count*100)+'%':'0%';
+  // Rating calculé async séparément
   document.getElementById('stat-badges').textContent = (p.badges_count||0)+' 🏅';
+}
+
+async function updateRating() {
+  // Points obtenus / points max possibles sur tous les events scorés
+  const {data:results} = await sb.from('results').select('event_id,result_data');
+  if (!results || !results.length) { document.getElementById('stat-pct').textContent = '–%'; return; }
+
+  let totalPts = 0, totalMax = 0;
+  results.forEach(r => {
+    const ev = EVENTS.find(e => e.id === r.event_id);
+    if (!ev) return;
+    const myProno = userPronos[r.event_id];
+    if (!myProno) return; // pas pronostiqué
+    const earned = computeUserPoints(ev, myProno, r.result_data);
+    const max = getMaxPts(ev);
+    totalPts += earned;
+    totalMax += max;
+  });
+
+  if (totalMax === 0) { document.getElementById('stat-pct').textContent = '–%'; return; }
+  const pct = Math.round(totalPts / totalMax * 100);
+  document.getElementById('stat-pct').textContent = pct + '%';
 }
 
 // =====================
@@ -1847,7 +1869,7 @@ async function recalculateAllPoints(triggerLabel) {
       const {data:p} = await sb.from('profiles').select('points').eq('id',currentProfile.id).maybeSingle();
       if (p) { currentProfile.points = p.points||0; updateTopBar(); }
     }
-    loadRankingsHome();
+    loadRankingsHome(); updateRating();
     if (triggerLabel) console.log(triggerLabel, userTotals);
   } catch(e) {
     showToast('❌ Erreur: ' + e.message);
