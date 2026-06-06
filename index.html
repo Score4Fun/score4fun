@@ -709,32 +709,46 @@ function renderHomeEvents() {
   let evs = EVENTS;
   if (_activeSport) evs = evs.filter(e=>e.sport===_activeSport);
   if (_activeComp)  evs = evs.filter(e=>e.comp===_activeComp);
-  const sports = _activeSport ? [_activeSport] : [...new Set(EVENTS.map(e=>e.sport))];
   let out = '';
-  sports.forEach(sport => {
-    const sEvs = evs.filter(e=>e.sport===sport);
-    if (!sEvs.length) return;
-    const comps = [...new Set(sEvs.map(e=>e.comp))];
-    comps.forEach(comp => {
-      const cEvs = sEvs.filter(e=>e.comp===comp);
-      const phases = [...new Set(cEvs.map(e=>e.phase))];
-      out += `<div class="competition-header">
-        <div class="competition-name">${comp}</div>
-        <div class="competition-sub">${cEvs.length} pronostic(s)</div>
-      </div>`;
-      if (phases.length > 1) {
-        out += `<div class="phase-tabs" id="phase-tabs-${sport}">`;
-        phases.forEach((ph,i) => {
-          out += `<div class="phase-tab ${i===0?'active':''}" onclick="filterPhase('${sport}','${comp}','${ph}',this)">${ph}</div>`;
-        });
-        out += `</div>`;
-      }
-      const showEvs = phases.length > 1 ? cEvs.filter(e=>e.phase===phases[0]) : cEvs;
-      out += `<div class="events-grid" id="egrid-${sport}">`;
-      showEvs.forEach(ev => { out += renderEventCard(ev); });
-      out += `</div>`;
+
+  if (!_activeSport) {
+    // Vue "Tous" : tri par deadline, rendu plat
+    const sorted = [...evs].sort((a,b) => {
+      const da = a.deadline ? new Date(a.deadline) : new Date('9999-12-31');
+      const db = b.deadline ? new Date(b.deadline) : new Date('9999-12-31');
+      return da - db;
     });
-  });
+    out += '<div class="events-grid">';
+    sorted.forEach(ev => { out += renderEventCard(ev); });
+    out += '</div>';
+  } else {
+    const sports = [_activeSport];
+    sports.forEach(sport => {
+      const sEvs = evs.filter(e=>e.sport===sport);
+      if (!sEvs.length) return;
+      const comps = [...new Set(sEvs.map(e=>e.comp))];
+      comps.forEach(comp => {
+        const cEvs = sEvs.filter(e=>e.comp===comp);
+        const phases = [...new Set(cEvs.map(e=>e.phase))];
+        out += `<div class="competition-header">
+          <div class="competition-name">${comp}</div>
+          <div class="competition-sub">${cEvs.length} pronostic(s)</div>
+        </div>`;
+        if (phases.length > 1) {
+          out += `<div class="phase-tabs" id="phase-tabs-${sport}">`;
+          phases.forEach((ph,i) => {
+            out += `<div class="phase-tab ${i===0?'active':''}" onclick="filterPhase('${sport}','${comp}','${ph}',this)">${ph}</div>`;
+          });
+          out += `</div>`;
+        }
+        const showEvs = phases.length > 1 ? cEvs.filter(e=>e.phase===phases[0]) : cEvs;
+        out += `<div class="events-grid" id="egrid-${sport}">`;
+        showEvs.forEach(ev => { out += renderEventCard(ev); });
+        out += `</div>`;
+      });
+    });
+  }
+
   container.innerHTML = out || '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">Aucun pronostic disponible.</p>';
 }
 
