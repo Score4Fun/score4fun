@@ -484,11 +484,20 @@
       <div class="section-title" style="margin:0;">⚙️ Admin — Résultats officiels</div>
       <button onclick="recalculateAllPoints('manual')" style="font-size:12px;padding:6px 14px;background:var(--green);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔄 Recalculer tout</button>
     </div>
-    <div style="display:flex;gap:6px;margin:6px 0 10px;flex-wrap:wrap;">
-      <button id="admin-filter-all" onclick="setAdminFilter('all')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">Tous</button>
-      <button id="admin-filter-pending" onclick="setAdminFilter('pending')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">⏳ En attente de résultat</button>
+    <div style="display:flex;gap:6px;margin:6px 0 10px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:8px;">
+      <button id="admin-tab-results" onclick="setAdminTab('results')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">📋 Résultats</button>
+      <button id="admin-tab-users" onclick="setAdminTab('users')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">👥 Utilisateurs</button>
     </div>
-    <div id="admin-list"></div>
+    <div id="admin-results-section">
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        <button id="admin-filter-all" onclick="setAdminFilter('all')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">Tous</button>
+        <button id="admin-filter-pending" onclick="setAdminFilter('pending')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">⏳ En attente de résultat</button>
+      </div>
+      <div id="admin-list"></div>
+    </div>
+    <div id="admin-users-section" style="display:none;">
+      <div id="admin-users-list"></div>
+    </div>
   </div>
 
     <!-- PROFIL -->
@@ -1966,6 +1975,54 @@ const ADMIN_EMAIL = 'mervin.anthony@yahoo.com';
 let adminResults = {}; // event_id → result_data
 
 let _adminFilter = 'all';
+let _adminTab = 'results';
+
+function setAdminTab(tab) {
+  _adminTab = tab;
+  document.getElementById('admin-tab-results').style.background = tab==='results' ? 'var(--orange)' : 'white';
+  document.getElementById('admin-tab-results').style.color = tab==='results' ? 'white' : 'var(--text)';
+  document.getElementById('admin-tab-users').style.background = tab==='users' ? 'var(--orange)' : 'white';
+  document.getElementById('admin-tab-users').style.color = tab==='users' ? 'white' : 'var(--text)';
+  document.getElementById('admin-results-section').style.display = tab==='results' ? '' : 'none';
+  document.getElementById('admin-users-section').style.display = tab==='users' ? '' : 'none';
+  if (tab === 'users') renderAdminUsers();
+}
+
+async function renderAdminUsers() {
+  const el = document.getElementById('admin-users-list');
+  el.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+  const {data, error} = await sb.from('profiles').select('id,pseudo,email,points,pronos_count').order('pseudo');
+  if (error || !data) { el.innerHTML = '<div style="color:#c62828;">❌ Erreur</div>'; return; }
+  el.innerHTML = data.map(u => {
+    const isMe = u.email === currentProfile?.email;
+    const badge = isMe ? '<span style="font-size:11px;color:var(--text-muted);">👑 Admin</span>' :
+      `<button onclick="deleteUser('${u.id}','${u.pseudo}')" style="font-size:12px;padding:4px 12px;background:#c62828;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🗑 Virer</button>`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;background:white;border:0.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:8px;">
+      <div>
+        <div style="font-weight:700;font-size:13px;">${u.pseudo}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${u.email} · ${u.points||0} pts · ${u.pronos_count||0} pronos</div>
+      </div>
+      ${badge}
+    </div>`;
+  }).join('');
+}
+
+async function deleteUser(uid, pseudo) {
+  if (!confirm(`Virer ${pseudo} définitivement ? Ses pronos et classements seront supprimés.`)) return;
+  showToast('⏳ Suppression en cours…');
+  try {
+    await sb.from('pronos').delete().eq('user_id', uid);
+    await sb.from('group_members').delete().eq('user_id', uid);
+    await sb.from('profiles').delete().eq('id', uid);
+    showToast(`✅ ${pseudo} supprimé(e)`);
+    await recalculateAllPoints('deleteUser');
+    renderAdminUsers();
+  } catch(e) {
+    showToast('❌ Erreur: ' + e.message);
+  }
+}
+
+
 function setAdminFilter(f) {
   _adminFilter = f;
   document.getElementById('admin-filter-all').style.background = f==='all' ? 'var(--orange)' : 'white';
