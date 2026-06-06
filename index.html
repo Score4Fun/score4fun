@@ -443,19 +443,17 @@ const EVENTS = [
   // ===== FOOTBALL - CdM 2026 =====
   // ── Bonus pré-tournoi
   { id:100, sport:'football', comp:'CdM 2026', phase:'Pronostics tournoi', emoji:'🌍',
-    name:'Pronostics CdM 2026', sub:'Demi-finalistes · Meilleur buteur · Avant le coup d\'envoi',
+    name:'Pronostics CdM 2026', sub:'Top 4 · Meilleur buteur · Avant le coup d\'envoi',
     type:'tournament_bonus',
-    scoring:{ semi:5, topScorer:5, topGoals:3 },
+    scoring:{ podium:5, topScorer:5, topGoals:3 },
     status:'open', urgency:true, cutoff:'Avant 19h', deadline:'2026-06-11T17:00:00Z' },
 
   // ── Ouverture
   { id:101, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
-    name:'Match d\'ouverture · 11 juin', sub:'1 match',
-    type:'multi_match',
-    matches:[
-      { key:'m1', team1:'🇲🇽 Mexique', team2:'🇿🇦 Afrique du Sud' },
-    ],
-    scoring:{ perMatch:2 },
+    name:'Match d\'ouverture · 11 juin', sub:'🇲🇽 Mexique vs 🇿🇦 Afrique du Sud',
+    type:'opening_match',
+    team1:'🇲🇽 Mexique', team2:'🇿🇦 Afrique du Sud',
+    scoring:{ result:5, halftime:3, firstScorer:3 },
     status:'open', urgency:true, cutoff:'11 juin 21h', deadline:'2026-06-11T19:00:00Z' },
 
   // ── 12-14 juin
@@ -884,13 +882,27 @@ function renderEventCard(ev) {
 
   if (ev.type === 'tournament_bonus') {
     const ex = userPronos[ev.id] || {};
-    const keys = ['semi1','semi2','semi3','semi4','topScorer','topGoals'];
+    const keys = ['champion','finaliste','third','fourth','topScorer','topGoals'];
     const nbDone = keys.filter(k => ex[k]).length;
     const closed = isClosed(ev);
     inner = `
       <div class="event-status">
         <div class="status-dot ${done?'done-dot':closed?'closed':''}"></div>
         <span class="status-text">${done?'🎯 Prono enregistré !':nbDone>0?`${nbDone}/6 questions répondues`:'6 questions à répondre'}</span>
+      </div>
+      ${!closed
+        ? done
+          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
+          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
+        : `<button class="prono-btn view">Fermé 🔒</button>`}`;
+  } else if (ev.type === 'opening_match') {
+    const ex = userPronos[ev.id] || {};
+    const nb = ['result','halftime','firstScorer'].filter(k=>ex[k]).length;
+    const closed = isClosed(ev);
+    inner = `
+      <div class="event-status">
+        <div class="status-dot ${done?'done-dot':closed?'closed':''}"></div>
+        <span class="status-text">${done?'🎯 Prono enregistré !':nb>0?`${nb}/3 questions répondues`:'3 questions à répondre'}</span>
       </div>
       ${!closed
         ? done
@@ -1101,19 +1113,42 @@ function openPronoModal(eventId) {
       </div>
       <div class="points-info">🎯 Total max : <strong>23 pts</strong></div>`;
 
+  } else if (currentEvent.type === 'opening_match') {
+    const ex = userPronos[currentEvent.id] || {};
+    const sel = (q,v) => ex[q]===v ? 'selected' : '';
+    content.innerHTML = `
+      <div class="modal-section">⚽ Résultat final · 5 pts</div>
+      <div style="display:flex;gap:6px;margin-bottom:16px;" data-q="result">
+        <div class="btn-sm-1x2 ${sel('result','1')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="1" onclick="selectOpeningBtn('result',this)"><span>1</span><small style="font-size:9px;opacity:.7">Mexique</small></div>
+        <div class="btn-sm-1x2 ${sel('result','X')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="X" onclick="selectOpeningBtn('result',this)"><span>X</span><small style="font-size:9px;opacity:.7">Nul</small></div>
+        <div class="btn-sm-1x2 ${sel('result','2')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="2" onclick="selectOpeningBtn('result',this)"><span>2</span><small style="font-size:9px;opacity:.7">Afr.Sud</small></div>
+      </div>
+      <div class="modal-section">⏱ Mi-temps · 3 pts</div>
+      <div style="display:flex;gap:6px;margin-bottom:16px;" data-q="halftime">
+        <div class="btn-sm-1x2 ${sel('halftime','1')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="1" onclick="selectOpeningBtn('halftime',this)"><span>1</span><small style="font-size:9px;opacity:.7">Mexique</small></div>
+        <div class="btn-sm-1x2 ${sel('halftime','X')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="X" onclick="selectOpeningBtn('halftime',this)"><span>X</span><small style="font-size:9px;opacity:.7">Nul</small></div>
+        <div class="btn-sm-1x2 ${sel('halftime','2')}" style="flex:1;height:42px;flex-direction:column;gap:1px;" data-val="2" onclick="selectOpeningBtn('halftime',this)"><span>2</span><small style="font-size:9px;opacity:.7">Afr.Sud</small></div>
+      </div>
+      <div class="modal-section">🥅 Premier buteur · 3 pts</div>
+      <div style="display:flex;gap:6px;" data-q="firstScorer">
+        <div class="btn-sm-1x2 ${sel('firstScorer','Mexique')}" style="flex:1;height:46px;flex-direction:column;gap:2px;font-size:11px;" data-val="Mexique" onclick="selectOpeningBtn('firstScorer',this)"><span>🇲🇽</span><small>Mexique</small></div>
+        <div class="btn-sm-1x2 ${sel('firstScorer','Afrique du Sud')}" style="flex:1;height:46px;flex-direction:column;gap:2px;font-size:11px;" data-val="Afrique du Sud" onclick="selectOpeningBtn('firstScorer',this)"><span>🇿🇦</span><small>Afr. du Sud</small></div>
+        <div class="btn-sm-1x2 ${sel('firstScorer','Personne')}" style="flex:1;height:46px;flex-direction:column;gap:2px;font-size:11px;" data-val="Personne" onclick="selectOpeningBtn('firstScorer',this)"><span>🤝</span><small>Personne</small></div>
+      </div>`;
   } else if (currentEvent.type === 'tournament_bonus') {
     const ex = userPronos[currentEvent.id] || {};
-    const teamOpts = t => TEAMS_CDM2026.map(n=>`<option value="${n}" ${ex[t]===n?'selected':''}>${n}</option>`).join('');
-    const goalsOpts = ['1-3 buts','4-5 buts','6-7 buts','8-9 buts','10+ buts']
+    const teamOpts = k => TEAMS_CDM2026.map(n=>`<option value="${n}" ${ex[k]===n?'selected':''}>${n}</option>`).join('');
+    const goalsOpts = ['1-6 buts','7-9 buts','10-12 buts','13 buts ⚡ Record Just Fontaine','14+ buts 🔥 > Just Fontaine']
       .map(v=>`<option value="${v}" ${ex.topGoals===v?'selected':''}>${v}</option>`).join('');
+    const podium = [['champion','🥇 Champion du monde'],['finaliste','🥈 Finaliste'],['third','🥉 3ème place'],['fourth','4ème place']];
     content.innerHTML = `
-      <div class="modal-section">🏆 4 Demi-finalistes</div>
-      ${['semi1','semi2','semi3','semi4'].map((k,i)=>`
+      <div class="modal-section">🏆 Top 4 du tournoi · 5 pts chacun</div>
+      ${podium.map(([k,label])=>`
         <div style="margin-bottom:8px;">
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Demi-finaliste ${i+1}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div>
           <select id="q-${k}" class="question-select"><option value="">-- Choisir une équipe --</option>${teamOpts(k)}</select>
         </div>`).join('')}
-      <div class="modal-section" style="margin-top:18px;">⚽ Meilleur buteur</div>
+      <div class="modal-section" style="margin-top:18px;">⚽ Meilleur buteur · 5 pts + 3 pts</div>
       <div style="margin-bottom:8px;">
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nationalité</div>
         <select id="q-topScorer" class="question-select"><option value="">-- Choisir --</option>${teamOpts('topScorer')}</select>
@@ -1122,7 +1157,7 @@ function openPronoModal(eventId) {
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nombre de buts</div>
         <select id="q-topGoals" class="question-select"><option value="">-- Choisir --</option>${goalsOpts}</select>
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Demi-finaliste correct = 5 pts · Nationalité buteur = 5 pts · Fourchette buts = 3 pts</div>`;
+      <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Podium correct = 5 pts · Nationalité buteur = 5 pts · Fourchette buts = 3 pts</div>`;
   } else if (currentEvent.type === 'multi_match') {
     const ex = userPronos[currentEvent.id] || {};
     const matchHtml = currentEvent.matches.map(m => {
@@ -1212,6 +1247,12 @@ function selectMulti(matchKey, val, el) {
   if (!wasSelected) el.classList.add('selected');
 }
 
+function selectOpeningBtn(question, el) {
+  const wasSelected = el.classList.contains('selected');
+  el.closest('[data-q]').querySelectorAll('.btn-sm-1x2').forEach(b=>b.classList.remove('selected'));
+  if (!wasSelected) el.classList.add('selected');
+}
+
 function updateSelects() {
   const selected = [0,1,2,3].map(i=>document.getElementById('top4-'+i)?.value).filter(Boolean);
   [0,1,2,3].forEach(i=>{
@@ -1231,16 +1272,25 @@ async function submitProno() {
   if (isClosed(currentEvent)) { closeModal(); showToast('⏰ Délai dépassé !'); return; }
   let pronoData={};
 
-  if (currentEvent.type==='tournament_bonus') {
-    const keys = ['semi1','semi2','semi3','semi4','topScorer','topGoals'];
+  if (currentEvent.type==='opening_match') {
+    const getBtn = q => document.querySelector(`.btn-sm-1x2[data-q="${q}"].selected`)?.dataset.val;
+    const result = getBtn('result');
+    const halftime = getBtn('halftime');
+    const firstScorer = getBtn('firstScorer');
+    if (!result) { showToast('⚠️ Choisis le résultat final !'); return; }
+    if (!halftime) { showToast('⚠️ Choisis le résultat à la mi-temps !'); return; }
+    if (!firstScorer) { showToast('⚠️ Choisis qui marquera en premier !'); return; }
+    pronoData = { result, halftime, firstScorer };
+  } else if (currentEvent.type==='tournament_bonus') {
+    const keys = ['champion','finaliste','third','fourth','topScorer','topGoals'];
     const obj = {};
     for (const k of keys) {
       const v = document.getElementById('q-'+k)?.value;
       if (!v) { showToast('⚠️ Réponds à toutes les questions !'); return; }
       obj[k] = v;
     }
-    const semis = [obj.semi1,obj.semi2,obj.semi3,obj.semi4];
-    if (new Set(semis).size < 4) { showToast('⚠️ Pas de doublon en demi-finales !'); return; }
+    const podium = [obj.champion,obj.finaliste,obj.third,obj.fourth];
+    if (new Set(podium).size < 4) { showToast('⚠️ Pas de doublon dans le podium !'); return; }
     pronoData = obj;
   } else if (currentEvent.type==='multi_match') {
     const pronoObj = {};
