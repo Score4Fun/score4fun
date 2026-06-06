@@ -291,9 +291,15 @@
       <span class="forgot-link" onclick="showForm('forgot')">Mot de passe oublié ?</span>
     </div>
     <div id="register-form" style="display:none;">
-      <input class="auth-input" type="text" id="reg-pseudo" placeholder="Pseudo (ton nom dans les classements)" />
-      <input class="auth-input" type="email" id="reg-email" placeholder="Email" autocomplete="email" />
-      <input class="auth-input" type="password" id="reg-password" placeholder="Mot de passe (min. 6 car.)" autocomplete="new-password" />
+      <input class="auth-input" type="text" id="reg-pseudo" placeholder="Pseudo" autocomplete="off" style="margin-bottom:4px;" />
+      <div style="font-size:11px;color:var(--text-muted);text-align:left;margin-bottom:12px;padding:0 2px;">
+        👤 Ton prénom ou surnom — c'est ce que tes amis verront dans les classements.
+      </div>
+      <input class="auth-input" type="email" id="reg-email" placeholder="Email" autocomplete="email" style="margin-bottom:4px;" />
+      <input class="auth-input" type="password" id="reg-password" placeholder="Mot de passe" autocomplete="new-password" style="margin-bottom:4px;" />
+      <div style="font-size:11px;color:var(--text-muted);text-align:left;margin-bottom:14px;padding:6px 10px;background:#f9f7f5;border-radius:8px;line-height:1.6;">
+        🔒 Ton email et mot de passe servent uniquement à te connecter — ils ne sont jamais partagés ni conservés en clair. Le mot de passe peut être un simple mot 😉
+      </div>
       <div id="reg-error" class="auth-error" style="display:none;"></div>
       <button class="auth-btn" onclick="registerUser()">Créer mon compte</button>
       <button class="auth-btn secondary" onclick="showForm('login')">← Déjà un compte</button>
