@@ -1837,51 +1837,55 @@ async function calculatePoints(eventId, ev, official) {
 // =====================
 // Calcule les points d'un sport depuis pronos+results (client-side)
 async function computeSportRanking(sport) {
-  // Events du sport ayant un résultat officiel
-  const sportEvents = EVENTS.filter(ev => ev.sport === sport);
-  const sportIds = sportEvents.map(ev => ev.id);
-  if (!sportIds.length) return [];
+  try {
+    const sportIds = EVENTS.filter(ev => ev.sport === sport).map(ev => ev.id);
+    if (!sportIds.length) return [];
 
-  // Charger résultats officiels pour ce sport
-  const {data:resultsData} = await sb.from('results').select('event_id,result_data').in('event_id', sportIds);
-  if (!resultsData || !resultsData.length) return [];
-  const officialMap = {};
-  resultsData.forEach(r => { officialMap[r.event_id] = r.result_data; });
+    const {data:resultsData, error:re} = await sb.from('results').select('event_id,result_data').in('event_id', sportIds);
+    if (re || !resultsData || !resultsData.length) return [];
 
-  // Charger tous les pronos pour ces events
-  const eventIdsWithResults = Object.keys(officialMap).map(Number);
-  const {data:pronosData} = await sb.from('pronos').select('user_id,event_id,prono_data').in('event_id', eventIdsWithResults);
-  if (!pronosData || !pronosData.length) return [];
+    const officialMap = {};
+    resultsData.forEach(r => { officialMap[r.event_id] = r.result_data; });
 
-  // Charger tous les profils (pour le pseudo)
-  const {data:profiles} = await sb.from('profiles').select('id,pseudo,pronos_count');
-  const profileMap = {};
-  if (profiles) profiles.forEach(p => { profileMap[p.id] = p; });
+    const eventIdsWithResults = Object.keys(officialMap).map(Number);
+    if (!eventIdsWithResults.length) return [];
 
-  // Calculer les points par user
-  const userPts = {};
-  for (const prono of pronosData) {
-    const ev = EVENTS.find(e => e.id === prono.event_id);
-    if (!ev) continue;
-    const official = officialMap[prono.event_id];
-    if (!official) continue;
-    const pts = computeUserPoints(ev, prono.prono_data, official);
-    if (!userPts[prono.user_id]) userPts[prono.user_id] = 0;
-    userPts[prono.user_id] += pts;
+    const {data:pronosData, error:pe} = await sb.from('pronos').select('user_id,event_id,prono_data').in('event_id', eventIdsWithResults);
+    if (pe || !pronosData || !pronosData.length) return [];
+
+    const {data:profiles} = await sb.from('profiles').select('id,pseudo,pronos_count');
+    const profileMap = {};
+    if (profiles) profiles.forEach(p => { profileMap[p.id] = p; });
+
+    const userPts = {};
+    for (const prono of pronosData) {
+      const ev = EVENTS.find(e => e.id === prono.event_id);
+      if (!ev) continue;
+      const official = officialMap[prono.event_id];
+      if (!official) continue;
+      const pts = computeUserPoints(ev, prono.prono_data, official);
+      userPts[prono.user_id] = (userPts[prono.user_id] || 0) + pts;
+    }
+
+    // Inclure tous les joueurs ayant pronostiqué, même 0 pts
+    const seen = new Set(Object.keys(userPts));
+    pronosData.forEach(pr => { if (!seen.has(pr.user_id)) userPts[pr.user_id] = 0; });
+
+    return Object.entries(userPts)
+      .map(([uid, pts]) => ({ pseudo: profileMap[uid]?.pseudo || '?', pts, pronos_count: profileMap[uid]?.pronos_count || 0 }))
+      .sort((a,b) => b.pts - a.pts);
+  } catch(e) {
+    console.error('computeSportRanking error:', e);
+    return [];
   }
-
-  // Trier et retourner
-  return Object.entries(userPts)
-    .map(([uid, pts]) => ({ pseudo: profileMap[uid]?.pseudo || '?', pts, pronos_count: profileMap[uid]?.pronos_count || 0, id: uid }))
-    .sort((a,b) => b.pts - a.pts);
 }
 
-function renderRankList(data, container) {
-  if (!data || data.length === 0) {
-    container.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:13px;">Aucun résultat calculé pour le moment 🏆</div>';
+function renderRankList(rows, container) {
+  if (!rows || rows.length === 0) {
+    container.innerHTML = '<div style="padding:20px 16px;color:var(--text-muted);font-size:13px;text-align:center;">Aucun résultat calculé pour le moment 🏆</div>';
     return;
   }
-  container.innerHTML = data.map((p,i) => {
+  container.innerHTML = rows.map((p,i) => {
     const isMe = currentProfile && p.pseudo === currentProfile.pseudo;
     const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
     return `<div class="full-rank-row ${isMe?'me':''}">
@@ -1898,49 +1902,61 @@ function renderRankList(data, container) {
 
 async function loadRankings(sport) {
   const list = document.getElementById('full-rank-list');
-  list.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>';
-
-  if (!sport) {
-    // Général : depuis profiles.points
-    const {data} = await sb.from('profiles').select('pseudo,points,pronos_count').order('points',{ascending:false}).limit(50);
-    renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:p.pronos_count||0})), list);
-  } else {
-    const ranked = await computeSportRanking(sport);
-    renderRankList(ranked, list);
+  if (!list) return;
+  list.innerHTML = '<div style="padding:20px 16px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+  try {
+    if (!sport) {
+      // Général : profiles.points (déjà cumulé par calculatePoints)
+      const {data, error} = await sb.from('profiles').select('pseudo,points,pronos_count').order('points',{ascending:false}).limit(50);
+      if (error) throw error;
+      renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:p.pronos_count||0})), list);
+    } else {
+      const ranked = await computeSportRanking(sport);
+      renderRankList(ranked, list);
+    }
+  } catch(e) {
+    list.innerHTML = `<div style="padding:20px 16px;color:#c62828;font-size:13px;">❌ Erreur: ${e.message}</div>`;
   }
 }
 
 async function loadRankingsHome() {
-  const {data}=await sb.from('profiles').select('pseudo,points').order('points',{ascending:false}).limit(3);
-  if (!data) return;
-  const myRank=data.findIndex(p=>currentProfile&&p.pseudo===currentProfile.pseudo)+1;
-  document.getElementById('stat-rank').textContent=myRank>0?'#'+myRank:'#–';
+  try {
+    const {data, error}=await sb.from('profiles').select('pseudo,points').order('points',{ascending:false}).limit(3);
+    if (error || !data) return;
 
-  const rankRow = (p,i) => {
-    const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
-    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-    return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${medal||i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo||'Joueur'}</span><span class="rank-pts">${p.points||0}</span></div>`;
-  };
+    // Rang de l'utilisateur courant (parmi tous)
+    const {data:allData}=await sb.from('profiles').select('pseudo,points').order('points',{ascending:false});
+    const myRank=(allData||[]).findIndex(p=>currentProfile&&p.pseudo===currentProfile.pseudo)+1;
+    document.getElementById('stat-rank').textContent=myRank>0?'#'+myRank:'#–';
 
-  // Top3 foot (calculé)
-  const footRanked = await computeSportRanking('football');
-  const footHtml = footRanked.length
-    ? footRanked.slice(0,3).map((p,i)=>{
-        const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
-        const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-        return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${medal||i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo||'Joueur'}</span><span class="rank-pts">${p.pts||0}</span></div>`;
-      }).join('')
-    : '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">En attente de résultats</div>';
+    const rankRow = (p,i) => {
+      const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${medal||i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo||'Joueur'}</span><span class="rank-pts">${p.points||0} pts</span></div>`;
+    };
 
-  document.getElementById('home-rankings').innerHTML=`
-    <div class="rank-card">
-      <div class="rank-title">🌍 Général</div>
-      ${data.length===0?'<div style="font-size:12px;color:var(--text-muted);">Sois le premier !</div>':data.map(rankRow).join('')}
-    </div>
-    <div class="rank-card">
-      <div class="rank-title">⚽ Football</div>
-      ${footHtml}
-    </div>`;
+    // Football calculé
+    const footRanked = await computeSportRanking('football');
+    const footHtml = footRanked.length
+      ? footRanked.slice(0,3).map((p,i)=>{
+          const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
+          const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+          return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${medal||i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo}</span><span class="rank-pts">${p.pts} pts</span></div>`;
+        }).join('')
+      : '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">En attente de résultats ⏳</div>';
+
+    document.getElementById('home-rankings').innerHTML=`
+      <div class="rank-card">
+        <div class="rank-title">🌍 Général</div>
+        ${data.length===0?'<div style="font-size:12px;color:var(--text-muted);">Sois le premier !</div>':data.map(rankRow).join('')}
+      </div>
+      <div class="rank-card">
+        <div class="rank-title">⚽ Football</div>
+        ${footHtml}
+      </div>`;
+  } catch(e) {
+    console.error('loadRankingsHome:', e);
+  }
 }
 
 function switchRankTab(el) {
