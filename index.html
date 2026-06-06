@@ -204,6 +204,9 @@
     .rd-select-val.correct { background: #e8f5e9; border-color: var(--green); color: var(--green); }
     .rd-select-val.wrong { background: #ffebee; border-color: #ef9a9a; color: #c62828; }
     .rd-total { margin-top: 16px; border-radius: 12px; padding: 16px; text-align: center; }
+    .group-event-card { background:white;border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer; }
+    .group-event-card:active { opacity:0.7; }
+    .group-manage-row { background:white;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px; }
     .rd-total.good { background: var(--green-bg); }
     .rd-total.bad { background: #fce4ec; }
     .rd-total-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; line-height: 1; }
@@ -405,7 +408,39 @@
   </div>
 
   <!-- GROUPES -->
-  <div class="page" id="page-groupes">
+  <!-- PAGE GROUPE DETAIL -->
+  <div class="page" id="page-group">
+    <div style="display:flex;align-items:center;gap:10px;margin:8px 0 14px;">
+      <button onclick="showPage(_prevPage||'groupes')" style="background:none;border:none;font-size:20px;cursor:pointer;padding:0;color:var(--text-muted);">←</button>
+      <div>
+        <div class="section-title" id="group-page-title" style="margin:0;"></div>
+        <div style="font-size:11px;color:var(--text-muted);" id="group-page-sub"></div>
+      </div>
+      <button id="group-share-btn" onclick="" style="margin-left:auto;font-size:12px;padding:5px 12px;background:var(--orange-bg);color:var(--orange-dark);border:none;border-radius:8px;cursor:pointer;font-weight:600;">📤 Inviter</button>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:14px;" id="group-tabs">
+      <div class="rank-tab active" data-tab="classement" onclick="switchGroupTab(this)">🏆 Classement</div>
+      <div class="rank-tab" data-tab="pronos" onclick="switchGroupTab(this)">⚽ Pronos</div>
+      <div class="rank-tab" id="group-tab-manage" data-tab="manage" onclick="switchGroupTab(this)" style="display:none;">⚙️ Gérer</div>
+    </div>
+
+    <div id="group-tab-classement">
+      <div id="group-ranking-list" class="full-rank-list"></div>
+    </div>
+
+    <div id="group-tab-pronos" style="display:none;">
+      <div id="group-events-list"></div>
+    </div>
+
+    <div id="group-tab-manage" style="display:none;">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Sélectionne les compétitions actives pour ce groupe :</div>
+      <div id="group-manage-list"></div>
+    </div>
+  </div>
+
+    <div class="page" id="page-groupes">
     <div class="section-title" style="margin-top:8px;">Mes groupes</div>
     <div id="group-cards"></div>
 
@@ -935,7 +970,7 @@ async function renderHomeGroups() {
   if (!groups || !groups.length) return;
 
   const pills = groups.map(g =>
-    `<div class="group-pill" onclick="filterByGroup('${g.id}',this)"><div class="group-dot"></div>${g.name}</div>`
+    `<div class="group-pill" onclick="showGroupPage('${g.id}','home')"><div class="group-dot"></div>${g.name}</div>`
   ).join('');
   row.innerHTML = `<div class="group-pill active" onclick="filterByGroup(null,this)"><div class="group-dot"></div>Tous</div>` + pills;
 }
@@ -2197,10 +2232,10 @@ async function renderGroupes() {
     html += `<div class="group-card" style="margin-bottom:10px;">
       <div class="group-card-header">
         <div>
-          <div class="group-card-name">👥 ${g.name}</div>
+          <div class="group-card-name" onclick="showGroupPage('${g.id}','groupes')" style="cursor:pointer;">👥 ${g.name}</div>
           <div class="group-card-members">${memberIds.length} membre(s) · Ton rang : #${myRank||'?'}</div>
         </div>
-        <button onclick="openGroupDetail('${g.id}','${g.name.replace(/'/g,"\'")}')" style="font-size:12px;padding:5px 12px;background:var(--orange-bg);color:var(--orange-dark);border:none;border-radius:6px;cursor:pointer;font-weight:600;">Voir tout</button>
+        <button onclick="showGroupPage('${g.id}','groupes')" style="font-size:12px;padding:5px 12px;background:var(--orange-bg);color:var(--orange-dark);border:none;border-radius:6px;cursor:pointer;font-weight:600;">Voir tout</button>
       </div>
       <div style="margin:8px 0;">${top3 || '<div style="font-size:12px;color:var(--text-muted);">Pas encore de points</div>'}</div>
       <div class="group-card-code">
@@ -2287,6 +2322,185 @@ async function deleteGroup(groupId) {
   await sb.from('groups').delete().eq('id', groupId);
   showToast('Groupe supprimé');
   renderGroupes();
+}
+
+// =====================
+// PAGE GROUPE DETAIL
+// =====================
+let _currentGroup = null;
+let _prevPage = 'groupes';
+
+async function showGroupPage(groupId, fromPage) {
+  _prevPage = fromPage || 'groupes';
+  // Charger les infos du groupe
+  const {data:g} = await sb.from('groups').select('*').eq('id', groupId).maybeSingle();
+  if (!g) return;
+  _currentGroup = g;
+
+  document.getElementById('group-page-title').textContent = '👥 ' + g.name;
+  document.getElementById('group-page-sub').textContent = (g.members_count||1) + ' membre(s) · Code : ' + g.code;
+  document.getElementById('group-share-btn').onclick = () => copyGroupInvite(g.code, g.name);
+
+  // Afficher tab gérer si admin
+  const isAdmin = g.created_by === currentUser?.id;
+  document.getElementById('group-tab-manage').style.display = isAdmin ? '' : 'none';
+
+  // Reset tabs
+  document.querySelectorAll('#group-tabs .rank-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('#group-tabs [data-tab="classement"]').classList.add('active');
+  document.getElementById('group-tab-classement').style.display = '';
+  document.getElementById('group-tab-pronos').style.display = 'none';
+  document.querySelectorAll('#group-tab-manage').forEach(el => el.style.display = 'none');
+
+  showPage('group');
+  renderGroupClassement(groupId);
+}
+
+function switchGroupTab(el) {
+  document.querySelectorAll('#group-tabs .rank-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const tab = el.dataset.tab;
+  document.getElementById('group-tab-classement').style.display = tab === 'classement' ? '' : 'none';
+  document.getElementById('group-tab-pronos').style.display = tab === 'pronos' ? '' : 'none';
+  document.querySelectorAll('#group-tab-manage').forEach(el2 => el2.style.display = tab === 'manage' ? '' : 'none');
+
+  if (tab === 'classement') renderGroupClassement(_currentGroup?.id);
+  if (tab === 'pronos') renderGroupPronos(_currentGroup?.id);
+  if (tab === 'manage') renderGroupManage(_currentGroup?.id);
+}
+
+async function renderGroupClassement(groupId) {
+  const list = document.getElementById('group-ranking-list');
+  list.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:13px;">⏳ Calcul en cours…</div>';
+
+  // Membres du groupe
+  const {data:members} = await sb.from('group_members').select('user_id').eq('group_id', groupId);
+  const memberIds = (members||[]).map(m => m.user_id);
+  if (!memberIds.length) { list.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:13px;">Aucun membre</div>'; return; }
+
+  // Events du groupe
+  const {data:gevents} = await sb.from('group_events').select('event_id').eq('group_id', groupId);
+  const groupEventIds = (gevents||[]).map(e => e.event_id);
+
+  // Résultats officiels pour ces events
+  const {data:results} = groupEventIds.length
+    ? await sb.from('results').select('event_id,result_data').in('event_id', groupEventIds)
+    : {data:[]};
+  const officialMap = {};
+  (results||[]).forEach(r => { officialMap[r.event_id] = r.result_data; });
+  const scoredIds = Object.keys(officialMap).map(Number);
+
+  // Profils des membres
+  const {data:profiles} = await sb.from('profiles').select('id,pseudo,points,pronos_count').in('id', memberIds);
+
+  // Calculer les points GROUPE pour chaque membre
+  let memberStats = [];
+  for (const prof of (profiles||[])) {
+    let groupPts = 0, groupMax = 0;
+    if (scoredIds.length) {
+      const {data:pronos} = await sb.from('pronos').select('event_id,data').eq('user_id', prof.id).in('event_id', scoredIds);
+      (pronos||[]).forEach(prono => {
+        const ev = EVENTS.find(e => e.id === prono.event_id);
+        const official = officialMap[prono.event_id];
+        if (!ev || !official) return;
+        groupPts += computeUserPoints(ev, prono.data, official);
+      });
+      scoredIds.forEach(eid => {
+        const ev = EVENTS.find(e => e.id === eid);
+        if (ev) groupMax += getMaxPts(ev);
+      });
+    }
+    const perf = groupMax > 0 ? Math.round(groupPts / groupMax * 100) : null;
+    memberStats.push({ pseudo: prof.pseudo, groupPts, groupMax, perf, id: prof.id });
+  }
+  memberStats.sort((a,b) => b.groupPts - a.groupPts);
+
+  if (!memberStats.length) { list.innerHTML = '<div style="padding:16px;color:var(--text-muted);">Aucun membre</div>'; return; }
+
+  list.innerHTML = memberStats.map((m,i) => {
+    const isMe = m.pseudo === currentProfile?.pseudo;
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    const perfColor = m.perf >= 60 ? 'var(--green)' : m.perf >= 30 ? '#ff9800' : '#e53935';
+    return `<div class="full-rank-row ${isMe?'me':''}">
+      <div class="full-rank-num ${isMe?'me':''}">${medal||i+1}</div>
+      <div class="full-rank-avatar ${isMe?'me':''}">${m.pseudo?m.pseudo[0].toUpperCase():'?'}</div>
+      <div class="full-rank-info">
+        <div class="full-rank-name ${isMe?'me':''}">${m.pseudo}</div>
+        <div class="full-rank-country" style="display:flex;gap:6px;align-items:center;">
+          ${m.perf!==null ? `<span style="font-size:11px;color:${perfColor};font-weight:600;">${m.perf}%</span>` : '<span style="font-size:11px;color:var(--text-muted);">–%</span>'}
+          <span style="font-size:11px;color:var(--text-muted);">${m.groupPts} pts groupe</span>
+        </div>
+      </div>
+      <div class="full-rank-pts ${isMe?'me':''}">${m.groupPts}</div>
+    </div>`;
+  }).join('') + (scoredIds.length === 0 ? '<div style="padding:12px 16px;font-size:12px;color:var(--text-muted);">⏳ En attente des premiers résultats officiels</div>' : '');
+}
+
+async function renderGroupPronos(groupId) {
+  const list = document.getElementById('group-events-list');
+  list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+
+  const {data:gevents} = await sb.from('group_events').select('event_id').eq('group_id', groupId);
+  if (!gevents || !gevents.length) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">Aucune compétition sélectionnée pour ce groupe.<br>' +
+      ((_currentGroup?.created_by === currentUser?.id) ? 'Va dans ⚙️ Gérer pour en ajouter !' : 'Le créateur du groupe doit en ajouter.') + '</div>';
+    return;
+  }
+
+  const groupEventIds = gevents.map(e => e.event_id);
+  const events = EVENTS.filter(e => groupEventIds.includes(e.id));
+
+  list.innerHTML = events.map(ev => {
+    const done = isDone(ev.id);
+    const closed = isTrulyClosed(ev);
+    return `<div class="group-event-card" onclick="${!closed ? `openPronoModal(${ev.id})` : ''}">
+      <div style="font-size:26px;">${ev.emoji}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${ev.comp}</div>
+      </div>
+      <span class="prono-tag ${done?'done-tag':closed?'closed-tag':'todo'}">${done?'✓ Fait':closed?'🔒 Fermé':'Pronostiquer →'}</span>
+    </div>`;
+  }).join('');
+}
+
+async function renderGroupManage(groupId) {
+  const lists = document.querySelectorAll('#group-tab-manage');
+  const list = lists[lists.length - 1]; // le div, pas le tab button
+  list.innerHTML = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Sélectionne les compétitions actives pour ce groupe :</div>';
+
+  const {data:gevents} = await sb.from('group_events').select('event_id').eq('group_id', groupId);
+  const activeIds = new Set((gevents||[]).map(e => e.event_id));
+
+  // Grouper les events par sport
+  const byComp = {};
+  EVENTS.filter(ev => ev.status !== 'upcoming' && ev.type !== 'upcoming').forEach(ev => {
+    const key = ev.comp;
+    (byComp[key] = byComp[key]||[]).push(ev);
+  });
+
+  let html = '';
+  for (const [comp, evs] of Object.entries(byComp)) {
+    html += `<div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px;">${evs[0].emoji} ${comp}</div>`;
+    html += evs.map(ev => {
+      const on = activeIds.has(ev.id);
+      return `<div class="group-manage-row">
+        <div style="flex:1;font-size:13px;font-weight:500;">${ev.name}</div>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox" ${on?'checked':''} onchange="toggleGroupEvent('${groupId}',${ev.id},this.checked)" style="width:16px;height:16px;accent-color:var(--orange);cursor:pointer;">
+        </label>
+      </div>`;
+    }).join('');
+  }
+  list.innerHTML += html;
+}
+
+async function toggleGroupEvent(groupId, eventId, add) {
+  if (add) {
+    await sb.from('group_events').upsert({group_id:groupId, event_id:eventId, added_by:currentUser?.id}, {onConflict:'group_id,event_id'});
+  } else {
+    await sb.from('group_events').delete().eq('group_id', groupId).eq('event_id', eventId);
+  }
 }
 
 // =====================
