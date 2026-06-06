@@ -441,6 +441,24 @@ const EVENTS = [
     topScorer:['🇧🇪 Belgique','🇹🇳 Tunisie','🇺🇸 États-Unis','🇩🇪 Allemagne','🇨🇭 Suisse','🇦🇺 Australie'],
     status:'open', urgency:true, cutoff:'Avant le coup d\u0027envoi' },
 
+  // J1 League 6 juin
+  { id:51, sport:'football', comp:'Amicaux', phase:'6 juin 2026', emoji:'⚽',
+    name:'J1 League · 6 juin', sub:'10 matchs · D1 Japon',
+    type:'multi_match',
+    matches:[
+      { key:'j1', team1:'Kashima Antlers', team2:'Vissel Kobe' },
+      { key:'j2', team1:'Chiba', team2:'Avispa Fukuoka' },
+      { key:'j3', team1:'FC Tokyo', team2:'Cerezo Osaka' },
+      { key:'j4', team1:'Mito', team2:'V-Varen Nagasaki' },
+      { key:'j5', team1:'Machida Zelvia', team2:'Nagoya Grampus' },
+      { key:'j6', team1:'Urawa Reds', team2:'Okayama' },
+      { key:'j7', team1:'Verdy', team2:'Gamba Osaka' },
+      { key:'j8', team1:'Yokohama F. Marinos', team2:'Shimizu S-Pulse' },
+      { key:'j9', team1:'Kashiwa Reysol', team2:'Kyoto' },
+      { key:'j10', team1:'Kawasaki Frontale', team2:'Sanfrecce Hiroshima' },
+    ],
+    status:'open', urgency:true, cutoff:'6 juin 13h JST', deadline:'2026-06-06T04:00:00Z' },
+
   // ===== TENNIS - Roland Garros =====
   // Demi-finales Hommes
 
@@ -941,13 +959,15 @@ function openPronoModal(eventId) {
           <div class="modal-1x2-btn ${sel==='2'?'selected':''}" onclick="selectMulti('${m.key}','2',this)">2<br><small>${m.team2.split(' ').pop()}</small></div>
         </div>`;
     }).join('');
-    const topOpts = currentEvent.topScorer.map(t=>`<option value="${t}" ${ex.topScorer===t?'selected':''}>${t}</option>`).join('');
-    content.innerHTML = matchHtml + `
-      <div class="modal-section">🥇 Quelle équipe marquera le plus de buts ? <span style="font-size:10px;color:var(--text-muted);">3 pts</span></div>
+    const topScorerHtml = currentEvent.topScorer ? (() => {
+      const topOpts = currentEvent.topScorer.map(t=>`<option value="${t}" ${ex.topScorer===t?'selected':''}>${t}</option>`).join('');
+      return `<div class="modal-section">🥇 Quelle équipe marquera le plus de buts ? <span style="font-size:10px;color:var(--text-muted);">3 pts</span></div>
       <select class="question-select" id="q-topscorer" style="width:100%;margin-bottom:4px;">
         <option value="">— Choisir une équipe —</option>${topOpts}
       </select>
       <div class="points-info">🎯 3 bons résultats + top buteur = <strong>18 pts max</strong></div>`;
+    })() : `<div class="points-info">🎯 ${currentEvent.matches.length} bons résultats = <strong>${currentEvent.matches.length*5} pts max</strong></div>`;
+    content.innerHTML = matchHtml + topScorerHtml;
 
   } else if (currentEvent.type === 'f1_race') {
     const cands = currentEvent.candidates;
@@ -1040,9 +1060,12 @@ async function submitProno() {
       else { missing = true; }
     });
     if (missing) { showToast('⚠️ Pronostique tous les matchs !'); return; }
-    const topScorer = document.getElementById('q-topscorer').value;
-    if (!topScorer) { showToast('⚠️ Choisis le top buteur !'); return; }
-    pronoObj.topScorer = topScorer;
+    const topScorerEl = document.getElementById('q-topscorer');
+    if (topScorerEl) {
+      const topScorer = topScorerEl.value;
+      if (!topScorer) { showToast('⚠️ Choisis le top buteur !'); return; }
+      pronoObj.topScorer = topScorer;
+    }
     pronoData = pronoObj;
 
   } else if (currentEvent.type==='1x2') {
