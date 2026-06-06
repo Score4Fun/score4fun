@@ -238,7 +238,7 @@
     .group-cards { display: flex; flex-direction: column; gap: 10px; }
     .group-card { background: white; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
     .group-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .group-card-name { font-size: 15px; font-weight: 500; }
+    .group-card-name { font-size: 15px; font-weight: 600; color: var(--orange-dark); text-decoration: underline; cursor: pointer; }
     .group-card-members { font-size: 12px; color: var(--text-muted); }
     .group-card-code { background: var(--orange-bg); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; color: var(--orange-dark); display: flex; align-items: center; justify-content: space-between; }
     .copy-btn { background: var(--orange); color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
@@ -419,24 +419,27 @@
       <button id="group-share-btn" onclick="" style="margin-left:auto;font-size:12px;padding:5px 12px;background:var(--orange-bg);color:var(--orange-dark);border:none;border-radius:8px;cursor:pointer;font-weight:600;">📤 Inviter</button>
     </div>
 
-    <!-- Tabs -->
-    <div style="display:flex;gap:6px;margin-bottom:14px;" id="group-tabs">
-      <div class="rank-tab active" data-tab="classement" onclick="switchGroupTab(this)">🏆 Classement</div>
-      <div class="rank-tab" data-tab="pronos" onclick="switchGroupTab(this)">⚽ Pronos</div>
-      <div class="rank-tab" id="group-tab-manage" data-tab="manage" onclick="switchGroupTab(this)" style="display:none;">⚙️ Gérer</div>
+    <!-- Admin manage tab (hidden by default) -->
+    <div id="group-tabs" style="display:none;">
+      <div class="rank-tab" id="group-tab-manage" data-tab="manage" onclick="switchGroupTab(this)" style="display:none;">⚙️ Gérer les compétitions</div>
     </div>
 
-    <div id="group-tab-classement">
-      <div id="group-ranking-list" class="full-rank-list"></div>
-    </div>
-
-    <div id="group-tab-pronos" style="display:none;">
-      <div id="group-events-list"></div>
-    </div>
-
-    <div id="group-tab-manage" style="display:none;">
+    <!-- Admin manage panel -->
+    <div id="group-tab-manage-panel" style="display:none;">
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Sélectionne les compétitions actives pour ce groupe :</div>
       <div id="group-manage-list"></div>
+    </div>
+
+    <!-- 2-column layout: Pronos left, Classement right -->
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">⚽ Pronos</div>
+        <div id="group-events-list"></div>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🏆 Classement</div>
+        <div id="group-ranking-list" class="full-rank-list"></div>
+      </div>
     </div>
   </div>
 
@@ -2341,32 +2344,23 @@ async function showGroupPage(groupId, fromPage) {
   document.getElementById('group-page-sub').textContent = (g.members_count||1) + ' membre(s) · Code : ' + g.code;
   document.getElementById('group-share-btn').onclick = () => copyGroupInvite(g.code, g.name);
 
-  // Afficher tab gérer si admin
+  // Show admin manage button if needed
   const isAdmin = g.created_by === currentUser?.id;
-  document.getElementById('group-tab-manage').style.display = isAdmin ? '' : 'none';
-
-  // Reset tabs
-  document.querySelectorAll('#group-tabs .rank-tab').forEach(t => t.classList.remove('active'));
-  document.querySelector('#group-tabs [data-tab="classement"]').classList.add('active');
-  document.getElementById('group-tab-classement').style.display = '';
-  document.getElementById('group-tab-pronos').style.display = 'none';
-  document.querySelectorAll('#group-tab-manage').forEach(el => el.style.display = 'none');
+  const manageBtn = document.getElementById('group-tab-manage');
+  if (manageBtn) manageBtn.style.display = isAdmin ? '' : 'none';
+  const managePanel = document.getElementById('group-tab-manage-panel');
+  if (managePanel) managePanel.style.display = 'none';
 
   showPage('group');
   renderGroupClassement(groupId);
+  renderGroupPronos(groupId);
 }
 
 function switchGroupTab(el) {
-  document.querySelectorAll('#group-tabs .rank-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  const tab = el.dataset.tab;
-  document.getElementById('group-tab-classement').style.display = tab === 'classement' ? '' : 'none';
-  document.getElementById('group-tab-pronos').style.display = tab === 'pronos' ? '' : 'none';
-  document.querySelectorAll('#group-tab-manage').forEach(el2 => el2.style.display = tab === 'manage' ? '' : 'none');
-
-  if (tab === 'classement') renderGroupClassement(_currentGroup?.id);
-  if (tab === 'pronos') renderGroupPronos(_currentGroup?.id);
-  if (tab === 'manage') renderGroupManage(_currentGroup?.id);
+  const panel = document.getElementById('group-tab-manage-panel');
+  const isOpen = panel && panel.style.display !== 'none';
+  if (panel) panel.style.display = isOpen ? 'none' : '';
+  if (!isOpen) renderGroupManage(_currentGroup?.id);
 }
 
 async function renderGroupClassement(groupId) {
@@ -2465,9 +2459,8 @@ async function renderGroupPronos(groupId) {
 }
 
 async function renderGroupManage(groupId) {
-  const lists = document.querySelectorAll('#group-tab-manage');
-  const list = lists[lists.length - 1]; // le div, pas le tab button
-  list.innerHTML = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Sélectionne les compétitions actives pour ce groupe :</div>';
+  const list = document.getElementById('group-manage-list');
+  list.innerHTML = '';
 
   const {data:gevents} = await sb.from('group_events').select('event_id').eq('group_id', groupId);
   const activeIds = new Set((gevents||[]).map(e => e.event_id));
