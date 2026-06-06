@@ -80,6 +80,7 @@
     .sport-tag { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 20px; background: var(--orange-bg); color: var(--orange-dark); }
     .countdown { font-size: 11px; color: var(--text-muted); }
     .countdown.urgent { color: var(--orange); font-weight: 500; }
+    .countdown.closed-time { color: #e24b4a; font-weight: 500; }
     .event-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; padding-right: 52px; }
     .event-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
     .event-status { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
@@ -457,14 +458,14 @@ const EVENTS = [
     name:'Finale Dames', sub:'Roland Garros 2026',
     type:'tennis_final_f',
     candidates:['Mirra Andreeva','Maja Chwalinska'],
-    status:'open', urgency:true, cutoff:'Samedi' },
+    status:'open', urgency:true, cutoff:'Sam. 15h', deadline:'2026-06-07T11:00:00Z' },
 
   // ===== F1 =====
   { id:30, sport:'f1', comp:'Saison F1 2026', phase:'Juin 2026', emoji:'🏎️',
     name:'GP Monaco 2026', sub:'Circuit de Monaco · Monte Carlo',
     type:'f1_race',
     candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
-    status:'open', urgency:true, cutoff:'Dimanche 15h' },
+    status:'open', urgency:true, cutoff:'Dimanche 15h', deadline:'2026-06-08T13:00:00Z' },
 
   // ===== CYCLISME =====
   { id:40, sport:'cyclisme', comp:'Tour de France 2026', phase:'Classement général', emoji:'🚴',
@@ -484,6 +485,21 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 function isDone(id) { return !!userPronos[id]; }
+function isClosed(ev) {
+  if (ev.status !== 'open') return true;
+  if (ev.deadline) return new Date() > new Date(ev.deadline);
+  return false;
+}
+function getCountdown(ev) {
+  if (!ev.deadline) return ev.cutoff;
+  const diff = new Date(ev.deadline) - new Date();
+  if (diff <= 0) return '🔒 Fermé';
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  if (h > 24) return ev.cutoff;
+  if (h > 0) return `⏱ ${h}h${String(m).padStart(2,'0')}`;
+  return `⏱ ${m} min`;
+}
 
 // =====================
 // AUTH
@@ -592,6 +608,7 @@ function launchApp() {
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   loadUserPronos().then(() => {
+    showPage('home');
     updateTopBar(); renderSportTabs(); renderHomeEvents();
     loadRankingsHome(); renderPronos(); renderGroupes(); renderProfil();
   });
@@ -726,7 +743,7 @@ function renderEventCard(ev) {
           ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
           : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
         : `<button class="prono-btn view">Fermé 🔒</button>`}`;
-  } else if (ev.type === '1x2' && ev.status === 'open') {
+  } else if (ev.type === '1x2' && !isClosed(ev)) {
     const sel = userPronos[ev.id]?.result || '';
     inner = `
       <div class="match-teams">
@@ -766,6 +783,8 @@ function renderEventCard(ev) {
 
 async function quickSelect(eventId, result, el, e) {
   e.stopPropagation();
+  const ev0 = EVENTS.find(x=>x.id===eventId);
+  if (isClosed(ev0)) { showToast('⏰ Délai dépassé !'); return; }
   const card = el.closest('.event-card');
   card.querySelectorAll('.btn-1x2').forEach(b=>b.classList.remove('selected'));
   el.classList.add('selected');
@@ -1010,6 +1029,7 @@ function closeModal() { document.getElementById('prono-modal').classList.remove(
 
 async function submitProno() {
   if (!currentEvent||!currentUser) return;
+  if (isClosed(currentEvent)) { closeModal(); showToast('⏰ Délai dépassé !'); return; }
   let pronoData={};
 
   if (currentEvent.type==='multi_match') {
