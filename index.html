@@ -449,9 +449,10 @@ const EVENTS = [
 
   // ===== F1 =====
   { id:30, sport:'f1', comp:'Saison F1 2026', phase:'Juin 2026', emoji:'🏎️',
-    name:'GP Canada 2026', sub:'Circuit Gilles Villeneuve · Top 4', type:'top4',
-    candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','George Russell','Fernando Alonso','Carlos Sainz','Oscar Piastri'],
-    status:'open', urgency:false, cutoff:'Dans 3 jours' },
+    name:'GP Canada 2026', sub:'Circuit Gilles Villeneuve · Montréal',
+    type:'f1_race',
+    candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
+    status:'open', urgency:true, cutoff:'Dimanche 18h' },
 
   // ===== CYCLISME =====
   { id:40, sport:'cyclisme', comp:'Tour de France 2026', phase:'Classement général', emoji:'🚴',
@@ -882,8 +883,40 @@ function openPronoModal(eventId) {
       </div>
       <div class="points-info">🎯 Total max : <strong>23 pts</strong></div>`;
 
+  } else if (currentEvent.type === 'f1_race') {
+    const cands = currentEvent.candidates;
+    const ex4 = ex.top4||[];
+    const makeOpts = (sel) => cands.map(c=>`<option value="${c}" ${c===sel?'selected':''}>${c}</option>`).join('');
+    content.innerHTML = `
+      <div class="modal-section">🏆 Top 4 — Ordre d'arrivée</div>
+      <div class="top4-inputs">
+        ${[0,1,2,3].map(i=>`
+          <div class="top4-row">
+            <div class="top4-pos">${i+1}</div>
+            <select class="top4-select" id="top4-${i}" onchange="updateSelects()">
+              <option value="">— Choisir —</option>
+              ${cands.map(c=>`<option value="${c}" ${c===ex4[i]?'selected':''}>${c}</option>`).join('')}
+            </select>
+            <div class="top4-pts">${POINTS_MAP[i]} pts</div>
+          </div>`).join('')}
+      </div>
+      <div class="modal-section">⚡ Meilleur tour en course</div>
+      <div class="question-row">
+        <select class="question-select" id="q-fastest" style="width:100%">
+          <option value="">— Choisir un pilote —</option>
+          ${makeOpts(ex.fastest)}
+        </select>
+        <div class="question-pts">4 pts</div>
+      </div>
+      <div class="modal-section">🚨 Y aura-t-il une Safety Car ?</div>
+      <div class="modal-1x2" style="gap:10px;margin:8px 0;">
+        <div class="modal-1x2-btn ${ex.safety==='oui'?'selected':''}" onclick="select1x2('oui',this)" style="flex:1;padding:12px;text-align:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:white;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s;">🟡 Oui</div>
+        <div class="modal-1x2-btn ${ex.safety==='non'?'selected':''}" onclick="select1x2('non',this)" style="flex:1;padding:12px;text-align:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:white;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s;">🟢 Non</div>
+      </div>
+      <div class="points-info">🎯 Top 4 : 10-8-6-4 pts · Meilleur tour : 4 pts · Safety Car : 3 pts · Total max : <strong>29 pts</strong></div>`;
+    setTimeout(updateSelects,50);
   } else {
-    // TOP 4
+    // TOP 4 générique
     const cands = currentEvent.candidates;
     const ex4 = ex.top4||[];
     content.innerHTML = `
@@ -948,6 +981,16 @@ async function submitProno() {
     if (!winner||!sets||!first_set||!aces) { showToast('⚠️ Réponds à toutes les questions !'); return; }
     pronoData={winner,sets,first_set,aces};
 
+  } else if (currentEvent.type==='f1_race') {
+    const top4=[0,1,2,3].map(i=>document.getElementById('top4-'+i)?.value?.trim());
+    if (top4.some(v=>!v)) { showToast('⚠️ Sélectionne le Top 4 !'); return; }
+    if (new Set(top4).size<4) { showToast('⚠️ Pas de doublon !'); return; }
+    const fastest=document.getElementById('q-fastest').value;
+    if (!fastest) { showToast('⚠️ Choisis le meilleur tour !'); return; }
+    const safetySel=document.querySelector('.modal-1x2-btn.selected');
+    if (!safetySel) { showToast('⚠️ Safety Car : Oui ou Non ?'); return; }
+    const safety=safetySel.textContent.trim().includes('Oui')?'oui':'non';
+    pronoData={top4,fastest,safety};
   } else {
     const top4=[0,1,2,3].map(i=>document.getElementById('top4-'+i)?.value?.trim());
     if (top4.some(v=>!v)) { showToast('⚠️ Sélectionne les 4 positions !'); return; }
