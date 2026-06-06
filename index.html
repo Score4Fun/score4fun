@@ -1143,7 +1143,7 @@ function openPronoModal(eventId) {
   } else if (currentEvent.type === 'tournament_bonus') {
     const ex = userPronos[currentEvent.id] || {};
     const teamOpts = k => TEAMS_CDM2026.map(n=>`<option value="${n}" ${ex[k]===n?'selected':''}>${n}</option>`).join('');
-    const goalsOpts = ['1-6 buts','7-9 buts','10-12 buts','13+ buts 😢 Just Fontaine...']
+    const goalsOpts = ['Moins de 6 buts','6-8 buts','9-11 buts','12-13 buts','Plus que Just Fontaine :(']
       .map(v=>`<option value="${v}" ${ex.topGoals===v?'selected':''}>${v}</option>`).join('');
     const podium = [['champion','🥇 Champion du monde'],['finaliste','🥈 Finaliste'],['third','🥉 3ème place'],['fourth','4ème place']];
     content.innerHTML = `
