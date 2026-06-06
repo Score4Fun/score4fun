@@ -727,23 +727,19 @@ function renderEventCard(ev) {
 
   if (ev.type === 'multi_match') {
     const ex = userPronos[ev.id] || {};
-    const allDone = ev.matches.every(m => ex[m.key]);
+    const nbDone = ev.matches.filter(m => ex[m.key]).length;
+    const closed = isClosed(ev);
     inner = `
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">
-        ${ev.matches.map(m=>{
-          const r=ex[m.key];
-          return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:0.5px solid var(--border);">
-            <span>${m.team1} vs ${m.team2}</span>
-            <span style="font-weight:500;color:${r?'var(--green)':'var(--text-muted)'}">${r?r==='1'?'1':r==='2'?'2':'X':'—'}</span>
-          </div>`;
-        }).join('')}
+      <div class="event-status">
+        <div class="status-dot ${done?'done-dot':closed?'closed':''}"></div>
+        <span class="status-text">${done?'🎯 Prono enregistré !':nbDone>0?`${nbDone}/${ev.matches.length} matchs joués`:`${ev.matches.length} matchs à pronostiquer`}</span>
       </div>
-      ${ev.status==='open'
+      ${!closed
         ? done
           ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
           : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
         : `<button class="prono-btn view">Fermé 🔒</button>`}`;
-  } else if (ev.type === '1x2' && !isClosed(ev)) {
+    } else if (ev.type === '1x2' && !isClosed(ev)) {
     const sel = userPronos[ev.id]?.result || '';
     inner = `
       <div class="match-teams">
