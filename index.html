@@ -320,7 +320,7 @@
 
   <!-- PRONOS -->
   <div class="page" id="page-pronos">
-    <div class="section-title" style="margin-top:8px;">Mes pronostics</div>
+    <div class="section-title" style="margin-top:8px;">Résultats & pronos clôturés</div>
     <div class="prono-list" id="prono-list"></div>
   </div>
 
@@ -380,7 +380,7 @@
 
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="showPage('home')" id="nav-home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></div>
-    <div class="nav-item" onclick="showPage('pronos')" id="nav-pronos"><span class="nav-icon">🎯</span><span class="nav-label">Pronos</span></div>
+    <div class="nav-item" onclick="showPage('pronos')" id="nav-pronos"><span class="nav-icon">✅</span><span class="nav-label">Résultats</span></div>
     <div class="nav-item" onclick="showPage('classements')" id="nav-classements"><span class="nav-icon">🏆</span><span class="nav-label">Classements</span></div>
     <div class="nav-item" onclick="showPage('groupes')" id="nav-groupes"><span class="nav-icon">👥</span><span class="nav-label">Groupes</span></div>
     <div class="nav-item" onclick="showPage('profil')" id="nav-profil"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></div>
@@ -856,10 +856,31 @@ function renderHomeEvents() {
     const db = b.deadline ? new Date(b.deadline) : new Date('9999-12-31');
     return da - db;
   });
-  const out = sorted.length
-    ? '<div class="events-grid">' + sorted.map(ev=>renderEventCard(ev)).join('') + '</div>'
-    : '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">Aucun pronostic disponible.</p>';
-  container.innerHTML = out;
+  if (!sorted.length) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">Aucun pronostic disponible.</p>';
+    return;
+  }
+  if (!_activeSport) {
+    // Vue "Tous" : style compact liste
+    container.innerHTML = '<div class="prono-list">' + sorted.map(ev => {
+      const done = isDone(ev.id);
+      const closed = isClosed(ev);
+      const countdown = getCountdown(ev);
+      return `<div class="prono-item ${done?'done':ev.urgency&&!closed?'urgent':''}" style="cursor:${closed||ev.status==='soon'?'default':'pointer'}" onclick="${!closed&&ev.status==='open'?`openPronoModal(${ev.id})`:''}">
+        <div class="prono-sport">${ev.emoji}</div>
+        <div class="prono-info" style="flex:1;min-width:0;">
+          <div class="prono-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
+          <div class="prono-sub">${ev.comp} · <span style="color:${closed?'var(--text-muted)':'var(--orange-dark)'};">${countdown}</span></div>
+        </div>
+        <span class="prono-tag ${done?'done-tag':closed?'closed-tag':ev.status==='soon'?'closed-tag':'todo'}">
+          ${done?'✓ Fait':closed?'Fermé':ev.status==='soon'?'Bientôt':'À faire'}
+        </span>
+      </div>`;
+    }).join('') + '</div>';
+  } else {
+    // Vue sport spécifique : style tuiles
+    container.innerHTML = '<div class="events-grid">' + sorted.map(ev=>renderEventCard(ev)).join('') + '</div>';
+  }
 }
 
 function renderEventsBySport(sportKey) {
@@ -1375,27 +1396,45 @@ async function submitProno() {
 // =====================
 function renderPronos() {
   const list = document.getElementById('prono-list');
-  const sorted = [...EVENTS].sort((a,b)=>{
-    if (a.urgency&&!b.urgency) return -1;
-    if (!a.urgency&&b.urgency) return 1;
-    if (a.status==='open'&&b.status!=='open') return -1;
-    return 0;
-  });
-  list.innerHTML = sorted.map(ev=>{
-    const done=isDone(ev.id);
-    return `<div class="prono-item ${done?'done':ev.urgency?'urgent':''}">
+  // Clôturés = isClosed, triés du plus récent au plus ancien
+  const closed = [...EVENTS]
+    .filter(ev => isClosed(ev))
+    .sort((a,b) => {
+      const da = a.deadline ? new Date(a.deadline) : new Date(0);
+      const db = b.deadline ? new Date(b.deadline) : new Date(0);
+      return db - da; // plus récent en haut
+    });
+  if (!closed.length) {
+    list.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">Aucun pronostic clôturé pour l\'instant.</p>';
+    return;
+  }
+  list.innerHTML = closed.map(ev => {
+    const done = isDone(ev.id);
+    const ex = userPronos[ev.id] || {};
+    let pronoSummary = '';
+    if (done) {
+      if (ev.type==='multi_match') {
+        const nb = ev.matches ? ev.matches.filter(m=>ex[m.key]).length : 0;
+        pronoSummary = `${nb}/${ev.matches?.length||0} matchs pronostiqués`;
+      } else if (ev.type==='opening_match') {
+        pronoSummary = `Final: ${ex.result||'?'} · MT: ${ex.halftime||'?'} · 1er: ${ex.firstScorer||'?'}`;
+      } else if (ev.type==='tournament_bonus') {
+        pronoSummary = `🥇 ${ex.champion||'?'}`;
+      } else if (ev.type==='f1_race'||ev.type==='top4') {
+        pronoSummary = ex.top4 ? ex.top4.filter(Boolean).join(' · ') : '';
+      } else if (ex.winner) {
+        pronoSummary = ex.winner;
+      } else if (ex.result) {
+        pronoSummary = `Résultat: ${ex.result}`;
+      }
+    }
+    return `<div class="prono-item ${done?'done':''}">
       <div class="prono-sport">${ev.emoji}</div>
-      <div class="prono-info">
-        <div class="prono-name">${ev.name}${ev.urgency&&!done?'<span class="urgent-badge">URGENT</span>':''}</div>
-        <div class="prono-sub">${ev.comp} · ${ev.cutoff}</div>
+      <div class="prono-info" style="flex:1;min-width:0;">
+        <div class="prono-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
+        <div class="prono-sub">${ev.comp} · ${done&&pronoSummary ? pronoSummary : 'Pas de prono'}</div>
       </div>
-      <div>
-        ${ev.status==='open'
-          ? done
-            ? `<span class="prono-tag done-tag" onclick="openPronoModal(${ev.id})">✏️ Modifier</span>`
-            : `<span class="prono-tag todo" onclick="openPronoModal(${ev.id})">À faire</span>`
-          : `<span class="prono-tag closed-tag">Bientôt</span>`}
-      </div>
+      <span class="prono-tag ${done?'done-tag':'closed-tag'}">${done?'✓ Fait':'—'}</span>
     </div>`;
   }).join('');
 }
