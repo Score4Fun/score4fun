@@ -296,6 +296,10 @@
     </div>
     <div class="section-title">Sports</div>
     <div class="sport-tabs" id="sport-tabs-home"></div>
+    <div id="comp-tabs-container" style="display:none;">
+      <div class="section-title">Compétition</div>
+      <div class="phase-tabs" id="comp-tabs"></div>
+    </div>
     <div id="home-events-container"></div>
     <div class="section-title">Classements</div>
     <div class="rankings" id="home-rankings"></div>
@@ -426,16 +430,8 @@ const EVENTS = [
 
   // ===== TENNIS - Roland Garros =====
   // Demi-finales Hommes
-  { id:20, sport:'tennis', comp:'Roland Garros 2026', phase:'Demi-finales Hommes', emoji:'🎾',
-    name:'1ère demi-finale H', sub:'Mensik vs Zverev',
-    type:'tennis_sf',
-    player1:'Jakub Mensik', player2:'Alexander Zverev',
-    status:'open', urgency:true, cutoff:'Demain 11h' },
-  { id:21, sport:'tennis', comp:'Roland Garros 2026', phase:'Demi-finales Hommes', emoji:'🎾',
-    name:'2ème demi-finale H', sub:'Arnaldi vs Cobolli',
-    type:'tennis_sf',
-    player1:'Matteo Arnaldi', player2:'Flavio Cobolli',
-    status:'open', urgency:true, cutoff:'Demain 14h' },
+
+
 
   // Finale Hommes
   { id:22, sport:'tennis', comp:'Roland Garros 2026', phase:'Finale Hommes', emoji:'🎾',
@@ -583,7 +579,7 @@ function launchApp() {
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   loadUserPronos().then(() => {
-    updateTopBar(); renderSportTabs(); renderEventsBySport('football');
+    updateTopBar(); renderSportTabs(); renderHomeEvents();
     loadRankingsHome(); renderPronos(); renderGroupes(); renderProfil();
   });
 }
@@ -604,42 +600,86 @@ function updateTopBar() {
 // =====================
 function renderSportTabs() {
   const tabs = document.getElementById('sport-tabs-home');
-  tabs.innerHTML = SPORTS.map((s,i) =>
-    `<div class="sport-tab ${i===0?'active':''}" onclick="filterSport('${s.key}',this)">${s.label}</div>`
+  const all = [{key:null, label:'🌍 Tous'}, ...SPORTS];
+  tabs.innerHTML = all.map(s =>
+    `<div class="sport-tab ${s.key===null?'active':''}" onclick="toggleSport(${s.key===null?'null':`'${s.key}'`},this)">${s.label}</div>`
   ).join('');
 }
 
-function filterSport(key, el) {
+let _activeSport = null;
+let _activeComp  = null;
+
+function toggleSport(key, el) {
+  if (_activeSport === key && key !== null) key = null;
+  _activeSport = key;
+  _activeComp  = null;
   document.querySelectorAll('#sport-tabs-home .sport-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  renderEventsBySport(key);
+  if (key === null) document.querySelector('#sport-tabs-home .sport-tab').classList.add('active');
+  renderCompTabs();
+  renderHomeEvents();
+}
+
+function filterSport(key, el) { toggleSport(key, el); }
+
+function renderCompTabs() {
+  const container = document.getElementById('comp-tabs-container');
+  const tabsEl = document.getElementById('comp-tabs');
+  if (!_activeSport) { container.style.display='none'; return; }
+  const comps = [...new Set(EVENTS.filter(e=>e.sport===_activeSport).map(e=>e.comp))];
+  if (comps.length <= 1) { container.style.display='none'; return; }
+  container.style.display='block';
+  tabsEl.innerHTML = [{name:'Toutes',val:null},...comps.map(c=>({name:c,val:c}))]
+    .map(c=>`<div class="phase-tab ${c.val===_activeComp?'active':''}" onclick="toggleComp(${c.val===null?'null':`'${c.val}'`},this)">${c.name}</div>`)
+    .join('');
+}
+
+function toggleComp(comp, el) {
+  _activeComp = (_activeComp === comp) ? null : comp;
+  document.querySelectorAll('#comp-tabs .phase-tab').forEach(t=>t.classList.remove('active'));
+  if (_activeComp === null) document.querySelector('#comp-tabs .phase-tab')?.classList.add('active');
+  else el.classList.add('active');
+  renderHomeEvents();
+}
+
+function renderHomeEvents() {
+  const container = document.getElementById('home-events-container');
+  let evs = EVENTS;
+  if (_activeSport) evs = evs.filter(e=>e.sport===_activeSport);
+  if (_activeComp)  evs = evs.filter(e=>e.comp===_activeComp);
+  const sports = _activeSport ? [_activeSport] : [...new Set(EVENTS.map(e=>e.sport))];
+  let out = '';
+  sports.forEach(sport => {
+    const sEvs = evs.filter(e=>e.sport===sport);
+    if (!sEvs.length) return;
+    const comps = [...new Set(sEvs.map(e=>e.comp))];
+    comps.forEach(comp => {
+      const cEvs = sEvs.filter(e=>e.comp===comp);
+      const phases = [...new Set(cEvs.map(e=>e.phase))];
+      out += `<div class="competition-header">
+        <div class="competition-name">${comp}</div>
+        <div class="competition-sub">${cEvs.length} pronostic(s)</div>
+      </div>`;
+      if (phases.length > 1) {
+        out += `<div class="phase-tabs" id="phase-tabs-${sport}">`;
+        phases.forEach((ph,i) => {
+          out += `<div class="phase-tab ${i===0?'active':''}" onclick="filterPhase('${sport}','${comp}','${ph}',this)">${ph}</div>`;
+        });
+        out += `</div>`;
+      }
+      const showEvs = phases.length > 1 ? cEvs.filter(e=>e.phase===phases[0]) : cEvs;
+      out += `<div class="events-grid" id="egrid-${sport}">`;
+      showEvs.forEach(ev => { out += renderEventCard(ev); });
+      out += `</div>`;
+    });
+  });
+  container.innerHTML = out || '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">Aucun pronostic disponible.</p>';
 }
 
 function renderEventsBySport(sportKey) {
-  const container = document.getElementById('home-events-container');
-  const comps = [...new Set(EVENTS.filter(e=>e.sport===sportKey).map(e=>e.comp))];
-  let html = '';
-  comps.forEach(comp => {
-    const evs = EVENTS.filter(e=>e.sport===sportKey && e.comp===comp);
-    const phases = [...new Set(evs.map(e=>e.phase))];
-    const activePhase = phases[0];
-    html += `<div class="competition-header">
-      <div class="competition-name">${comp}</div>
-      <div class="competition-sub">${phases.length} phase(s) · ${evs.length} pronostic(s)</div>
-    </div>`;
-    if (phases.length > 1) {
-      html += `<div class="phase-tabs" id="phase-tabs-${sportKey}">`;
-      phases.forEach((ph, i) => {
-        html += `<div class="phase-tab ${i===0?'active':''}" onclick="filterPhase('${sportKey}','${comp}','${ph}',this)">${ph}</div>`;
-      });
-      html += `</div>`;
-    }
-    const initEvs = evs.filter(e=>e.phase===activePhase);
-    html += `<div class="events-grid" id="egrid-${sportKey}">`;
-    initEvs.forEach(ev => { html += renderEventCard(ev); });
-    html += `</div>`;
-  });
-  container.innerHTML = html;
+  _activeSport = sportKey || null;
+  renderCompTabs();
+  renderHomeEvents();
 }
 
 function filterPhase(sportKey, comp, phase, el) {
@@ -650,71 +690,6 @@ function filterPhase(sportKey, comp, phase, el) {
   grid.innerHTML = evs.map(ev=>renderEventCard(ev)).join('');
 }
 
-function renderEventCard(ev) {
-  const done = isDone(ev.id);
-  let inner = '';
-
-  if (ev.type === '1x2' && ev.status === 'open') {
-    const sel = userPronos[ev.id]?.result || '';
-    inner = `
-      <div class="match-teams">
-        <span>${ev.team1}</span>
-        <span class="match-vs">vs</span>
-        <span>${ev.team2}</span>
-      </div>
-      <div class="match-1x2">
-        <div class="btn-1x2 ${sel==='1'?'selected':''}" onclick="quickSelect(${ev.id},'1',this,event)">1<br><small style="font-size:10px;opacity:0.8;">${ev.team1.split(' ').pop()}</small></div>
-        <div class="btn-1x2 ${sel==='X'?'selected':''}" onclick="quickSelect(${ev.id},'X',this,event)">X<br><small style="font-size:10px;opacity:0.8;">Nul</small></div>
-        <div class="btn-1x2 ${sel==='2'?'selected':''}" onclick="quickSelect(${ev.id},'2',this,event)">2<br><small style="font-size:10px;opacity:0.8;">${ev.team2.split(' ').pop()}</small></div>
-      </div>`;
-  } else {
-    inner = `
-      <div class="event-status">
-        <div class="status-dot ${done?'done-dot':ev.status==='soon'?'closed':''}"></div>
-        <span class="status-text">${done?'🎯 Prono enregistré !':ev.status==='open'?'Ouvert !':'Bientôt'}</span>
-      </div>
-      ${ev.status==='open'
-        ? done
-          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
-          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
-        : `<button class="prono-btn view">Bientôt 🔒</button>`}`;
-  }
-
-  return `<div class="event-card ${done?'done':ev.urgency?'urgent':''}">
-    ${done?'<div class="done-badge">✓ Fait</div>':''}
-    <div class="event-header">
-      <span class="sport-tag">${ev.emoji} ${ev.sport==='f1'?'F1':ev.sport.charAt(0).toUpperCase()+ev.sport.slice(1)}</span>
-      <span class="countdown ${ev.urgency&&!done?'urgent':''}">⏱ ${ev.cutoff}</span>
-    </div>
-    <div class="event-name">${ev.name}</div>
-    <div class="event-sub">${ev.sub}</div>
-    ${inner}
-  </div>`;
-}
-
-async function quickSelect(eventId, result, el, e) {
-  e.stopPropagation();
-  const card = el.closest('.event-card');
-  card.querySelectorAll('.btn-1x2').forEach(b=>b.classList.remove('selected'));
-  el.classList.add('selected');
-  const ev = EVENTS.find(x=>x.id===eventId);
-  const isNew = !userPronos[eventId];
-  // Mise à jour UI immédiate (optimiste)
-  userPronos[eventId] = {result};
-  const badge = card.querySelector('.done-badge');
-  if (!badge) { const b=document.createElement('div'); b.className='done-badge'; b.textContent='✓ Fait'; card.appendChild(b); }
-  card.classList.add('done'); card.classList.remove('urgent');
-  showToast('✅ Pronostic enregistré !');
-  if (isNew) { currentProfile.pronos_count=(currentProfile.pronos_count||0)+1; updateTopBar(); }
-  renderPronos();
-  // Sauvegarde en arrière-plan
-  sb.from('pronos').upsert({
-    user_id:currentUser.id, event_id:eventId,
-    event_name:ev.name, sport:ev.sport,
-    data:{result}, created_at:new Date().toISOString()
-  },{onConflict:'user_id,event_id'});
-  if (isNew) sb.from('profiles').update({pronos_count:currentProfile.pronos_count}).eq('id',currentUser.id);
-}
 
 // =====================
 // MODAL PRONOSTIC
