@@ -410,13 +410,13 @@
   <!-- GROUPES -->
   <!-- PAGE GROUPE DETAIL -->
   <div class="page" id="page-group">
-    <div style="display:flex;align-items:center;gap:10px;margin:8px 0 14px;">
+    <div style="display:flex;align-items:center;gap:10px;margin:8px 0 6px;">
       <button onclick="showPage(_prevPage||'groupes')" style="background:none;border:none;font-size:20px;cursor:pointer;padding:0;color:var(--text-muted);">←</button>
-      <div>
-        <div class="section-title" id="group-page-title" style="margin:0;"></div>
-        <div style="font-size:11px;color:var(--text-muted);" id="group-page-sub"></div>
-      </div>
       <button id="group-share-btn" onclick="" style="margin-left:auto;font-size:12px;padding:5px 12px;background:var(--orange-bg);color:var(--orange-dark);border:none;border-radius:8px;cursor:pointer;font-weight:600;">📤 Inviter</button>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div id="group-page-title" style="font-size:22px;font-weight:800;color:var(--text);line-height:1.2;"></div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:3px;" id="group-page-sub"></div>
     </div>
 
     <!-- 2-column layout: Pronos left, Classement right -->
@@ -2343,7 +2343,7 @@ async function showGroupPage(groupId, fromPage) {
   if (!g) return;
   _currentGroup = g;
 
-  document.getElementById('group-page-title').textContent = '👥 ' + g.name;
+  document.getElementById('group-page-title').textContent = g.name;
   document.getElementById('group-share-btn').onclick = () => copyGroupInvite(g.code, g.name);
 
   // Vrai compte membres depuis la table
@@ -2376,15 +2376,18 @@ async function renderGroupClassement(groupId) {
   list.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:13px;">⏳ Calcul en cours…</div>';
 
   // Membres du groupe
-  const {data:members} = await sb.from('group_members').select('user_id').eq('group_id', groupId);
+  const {data:members, error:membErr} = await sb.from('group_members').select('user_id').eq('group_id', groupId);
   const memberIds = (members||[]).map(m => m.user_id);
-  if (!memberIds.length) { list.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:13px;">Aucun membre</div>'; return; }
+  if (!memberIds.length) {
+    list.innerHTML = '<div style="padding:12px 4px;font-size:13px;color:var(--text-muted);">Aucun membre encore</div>';
+    return;
+  }
 
-  // Events du groupe
+  // Events du groupe (pronos de gauche seulement)
   const {data:gevents} = await sb.from('group_events').select('event_id').eq('group_id', groupId);
   const groupEventIds = (gevents||[]).map(e => e.event_id);
 
-  // Résultats officiels pour ces events
+  // Résultats officiels pour ces events uniquement
   const {data:results} = groupEventIds.length
     ? await sb.from('results').select('event_id,result_data').in('event_id', groupEventIds)
     : {data:[]};
@@ -2392,12 +2395,23 @@ async function renderGroupClassement(groupId) {
   (results||[]).forEach(r => { officialMap[r.event_id] = r.result_data; });
   const scoredIds = Object.keys(officialMap).map(Number);
 
-  // Profils des membres
-  const {data:profiles} = await sb.from('profiles').select('id,pseudo,points,pronos_count').in('id', memberIds);
+  // Profils des membres — fallback: lire un par un si le IN échoue
+  let profiles = [];
+  const {data:pAll, error:pErr} = await sb.from('profiles').select('id,pseudo,points').in('id', memberIds);
+  if (pAll && pAll.length) {
+    profiles = pAll;
+  } else {
+    // Fallback: lire chaque profil individuellement
+    for (const uid of memberIds) {
+      const {data:p} = await sb.from('profiles').select('id,pseudo,points').eq('id', uid).maybeSingle();
+      if (p) profiles.push(p);
+      else profiles.push({id: uid, pseudo: uid.slice(0,8)+'…', points: 0});
+    }
+  }
 
-  // Calculer les points GROUPE pour chaque membre
+  // Calculer les points GROUPE pour chaque membre (uniquement events du groupe)
   let memberStats = [];
-  for (const prof of (profiles||[])) {
+  for (const prof of profiles) {
     let groupPts = 0, groupMax = 0;
     if (scoredIds.length) {
       const {data:pronos} = await sb.from('pronos').select('event_id,data').eq('user_id', prof.id).in('event_id', scoredIds);
