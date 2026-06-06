@@ -227,6 +227,18 @@
       .question-row { flex-direction: column; align-items: flex-start; }
       .question-label { min-width: unset; }
     }
+  
+    .match-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:0.5px solid var(--border); gap:8px; }
+    .match-row:last-child { border-bottom:none; }
+    .match-row-teams { flex:1; min-width:0; display:flex; align-items:center; gap:5px; }
+    .match-row-t1 { font-size:12px; font-weight:600; color:var(--text); text-align:right; flex:1; }
+    .match-row-vs { font-size:10px; color:var(--text-muted); font-weight:700; flex-shrink:0; padding:0 2px; }
+    .match-row-t2 { font-size:12px; font-weight:600; color:var(--text); flex:1; }
+    .match-row-btns { display:flex; gap:4px; flex-shrink:0; }
+    .btn-sm-1x2 { width:32px; height:28px; border:1.5px solid var(--border); border-radius:5px; font-size:12px; font-weight:700; cursor:pointer; background:white; display:flex; align-items:center; justify-content:center; transition:all 0.15s; color:var(--text); }
+    .btn-sm-1x2:hover { border-color:var(--orange); color:var(--orange); }
+    .btn-sm-1x2.selected { background:var(--orange); color:white; border-color:var(--orange); }
+    .match-pts { font-size:10px; color:var(--text-muted); margin-left:4px; flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -953,12 +965,18 @@ function openPronoModal(eventId) {
     const ex = userPronos[currentEvent.id] || {};
     const matchHtml = currentEvent.matches.map(m => {
       const sel = ex[m.key] || '';
-      return `<div class="modal-section">${m.team1} vs ${m.team2} <span style="font-size:10px;color:var(--text-muted);">5 pts</span></div>
-        <div class="modal-1x2">
-          <div class="modal-1x2-btn ${sel==='1'?'selected':''}" onclick="selectMulti('${m.key}','1',this)">1<br><small>${m.team1.split(' ').pop()}</small></div>
-          <div class="modal-1x2-btn ${sel==='X'?'selected':''}" onclick="selectMulti('${m.key}','X',this)">X<br><small>Nul</small></div>
-          <div class="modal-1x2-btn ${sel==='2'?'selected':''}" onclick="selectMulti('${m.key}','2',this)">2<br><small>${m.team2.split(' ').pop()}</small></div>
-        </div>`;
+      return `<div class="match-row">
+        <div class="match-row-teams">
+          <span class="match-row-t1">${m.team1}</span>
+          <span class="match-row-vs">vs</span>
+          <span class="match-row-t2">${m.team2}</span>
+        </div>
+        <div class="match-row-btns">
+          <div class="btn-sm-1x2 ${sel==='1'?'selected':''}" onclick="selectMulti('${m.key}','1',this)">1</div>
+          <div class="btn-sm-1x2 ${sel==='X'?'selected':''}" onclick="selectMulti('${m.key}','X',this)">X</div>
+          <div class="btn-sm-1x2 ${sel==='2'?'selected':''}" onclick="selectMulti('${m.key}','2',this)">2</div>
+        </div>
+      </div>`;
     }).join('');
     const topScorerHtml = currentEvent.topScorer ? (() => {
       const topOpts = currentEvent.topScorer.map(t=>`<option value="${t}" ${ex.topScorer===t?'selected':''}>${t}</option>`).join('');
@@ -1022,7 +1040,7 @@ function openPronoModal(eventId) {
 }
 
 function select1x2(val, el) {
-  el.parentElement.querySelectorAll('.modal-1x2-btn').forEach(b=>b.classList.remove('selected'));
+  el.parentElement.querySelectorAll('.btn-sm-1x2').forEach(b=>b.classList.remove('selected'));
   el.classList.add('selected');
 }
 
@@ -1055,7 +1073,7 @@ async function submitProno() {
     const pronoObj = {};
     let missing = false;
     currentEvent.matches.forEach(m => {
-      const sel = document.querySelector(`.modal-1x2-btn[data-match-key="${m.key}"].selected`);
+      const sel = document.querySelector(`.btn-sm-1x2[data-match-key="${m.key}"].selected`);
       // fallback: cherche par position dans le parent
       if (sel) { pronoObj[m.key] = sel.textContent.trim().split('\n')[0].trim(); }
       else { missing = true; }
