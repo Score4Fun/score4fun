@@ -381,7 +381,10 @@
 
   <!-- ADMIN -->
   <div class="page" id="page-admin">
-    <div class="section-title" style="margin-top:8px;">⚙️ Admin — Résultats officiels</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 4px;">
+      <div class="section-title" style="margin:0;">⚙️ Admin — Résultats officiels</div>
+      <button onclick="recalculateAllPoints('manual')" style="font-size:12px;padding:6px 14px;background:var(--green);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔄 Recalculer tout</button>
+    </div>
     <div id="admin-list"></div>
   </div>
 
@@ -1778,58 +1781,55 @@ async function saveResult(eventId, type) {
   renderAdmin();
 }
 
-async function calculatePoints(eventId, ev, official) {
-  // Récupérer tous les pronos pour cet event
-  const {data:pronos} = await sb.from('pronos').select('user_id, prono_data').eq('event_id', eventId);
-  if (!pronos||!pronos.length) { showToast('✅ Aucun prono à calculer'); return; }
+// Recalcule TOUS les points de TOUS les joueurs depuis zéro (idempotent)
+async function recalculateAllPoints(triggerLabel) {
+  showToast('⏳ Recalcul en cours…');
+  try {
+    // 1. Charger tous les résultats officiels
+    const {data:results, error:re} = await sb.from('results').select('event_id, result_data');
+    if (re) throw re;
+    if (!results || !results.length) { showToast('⚠️ Aucun résultat officiel saisi'); return; }
 
-  const sc = ev.scoring || {};
-  const updates = [];
+    const officialMap = {};
+    results.forEach(r => { officialMap[r.event_id] = r.result_data; });
 
-  for (const prono of pronos) {
-    const p = prono.prono_data;
-    let pts = 0;
+    // 2. Charger tous les pronos pour ces events
+    const eventIds = Object.keys(officialMap).map(Number);
+    const {data:pronos, error:pe} = await sb.from('pronos').select('user_id, event_id, prono_data').in('event_id', eventIds);
+    if (pe) throw pe;
 
-    if (ev.type === 'multi_match') {
-      (ev.matches||[]).forEach(m => {
-        if (p[m.key] && p[m.key] === official[m.key]) pts += (sc.perMatch||2);
-      });
-      // Bonus
-      const correct = (ev.matches||[]).filter(m=>p[m.key]===official[m.key]).length;
-      if (sc.bonus) {
-        const bonusPts = sc.bonus[correct];
-        if (bonusPts) pts += bonusPts;
-      }
-    } else if (ev.type === 'opening_match') {
-      if (p.result && p.result === official.result) pts += 5;
-      if (p.halftime && p.halftime === official.halftime) pts += 3;
-      if (p.firstScorer && p.firstScorer === official.firstScorer) pts += 3;
-    } else if (ev.type === 'tournament_bonus') {
-      ['champion','finaliste','third','fourth'].forEach(k => {
-        if (p[k] && p[k] === official[k]) pts += (sc.podium||5);
-      });
-      if (p.topScorer && p.topScorer === official.topScorer) pts += (sc.topScorer||5);
-      if (p.topGoals && p.topGoals === official.topGoals) pts += (sc.topGoals||3);
-    } else {
-      // Types tennis/f1 : comparer champ par champ, 3pts chacun
-      Object.keys(official).forEach(k => {
-        if (p[k] && p[k] === official[k]) pts += 3;
-      });
+    // 3. Calculer les points totaux par user (reset à 0)
+    const userTotals = {}; // user_id → total pts
+    for (const prono of (pronos||[])) {
+      const ev = EVENTS.find(e => e.id === prono.event_id);
+      const official = officialMap[prono.event_id];
+      if (!ev || !official) continue;
+      const pts = computeUserPoints(ev, prono.prono_data, official);
+      userTotals[prono.user_id] = (userTotals[prono.user_id] || 0) + pts;
     }
 
-    if (pts > 0) updates.push({user_id: prono.user_id, pts});
-  }
+    // 4. Mettre à jour chaque profil (SET, pas increment)
+    let updated = 0, errors = 0;
+    for (const [uid, pts] of Object.entries(userTotals)) {
+      const {error} = await sb.from('profiles').update({points: pts}).eq('id', uid);
+      if (error) { console.error('update points error:', error); errors++; }
+      else updated++;
+    }
+    // Remettre à 0 les joueurs sans prono sur aucun event corrigé
+    // (optionnel — on laisse leur score inchangé)
 
-  // Mettre à jour les points (fetch → increment → update)
-  let updated = 0;
-  for (const u of updates) {
-    const {data:prof} = await sb.from('profiles').select('points').eq('id', u.user_id).maybeSingle();
-    if (!prof) continue;
-    const newPts = (prof.points||0) + u.pts;
-    await sb.from('profiles').update({points: newPts}).eq('id', u.user_id);
-    updated++;
+    const msg = errors ? `⚠️ ${updated} ok, ${errors} erreurs` : `✅ ${updated} joueur(s) mis à jour`;
+    showToast(msg);
+    if (triggerLabel) console.log(triggerLabel, userTotals);
+  } catch(e) {
+    showToast('❌ Erreur: ' + e.message);
+    console.error(e);
   }
-  showToast(`✅ Points calculés : ${updated} joueur(s) mis à jour`);
+}
+
+// Appelé après saveResult — recalcule tout
+async function calculatePoints(eventId, ev, official) {
+  await recalculateAllPoints('calculatePoints event=' + eventId);
 }
 
 // =====================
