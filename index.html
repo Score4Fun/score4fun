@@ -921,7 +921,32 @@ function launchApp() {
     showPage('home');
     updateTopBar(); renderSportTabs(); renderHomeEvents(); updateRating(); updatePodiums();
     loadRankingsHome(); renderPronos(); renderGroupes(); renderProfil();
+    renderHomeGroups();
   });
+}
+
+async function renderHomeGroups() {
+  const row = document.getElementById('home-groups-row');
+  const {data} = await sb.from('group_members').select('group_id').eq('user_id', currentUser.id);
+  if (!data || !data.length) return; // garder juste "Tous"
+
+  const groupIds = data.map(d => d.group_id);
+  const {data:groups} = await sb.from('groups').select('id,name').in('id', groupIds);
+  if (!groups || !groups.length) return;
+
+  const pills = groups.map(g =>
+    `<div class="group-pill" onclick="filterByGroup('${g.id}',this)"><div class="group-dot"></div>${g.name}</div>`
+  ).join('');
+  row.innerHTML = `<div class="group-pill active" onclick="filterByGroup(null,this)"><div class="group-dot"></div>Tous</div>` + pills;
+}
+
+let _activeGroup = null;
+function filterByGroup(groupId, el) {
+  _activeGroup = groupId;
+  document.querySelectorAll('#home-groups-row .group-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  // Pour l'instant, filtre visuel seulement — les classements pourraient filtrer aussi
+  renderHomeEvents();
 }
 
 function updateTopBar() {
