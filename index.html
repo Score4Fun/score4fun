@@ -1812,6 +1812,25 @@ function openResultDetail(eventId) {
     html += `<div class="rd-section">Buteur & buts</div>`;
     html += selectRow('Meilleur buteur', p.topScorer, official.topScorer, sc.topScorer||5);
     html += selectRow('Fourchette buts', p.topGoals, official.topGoals, sc.topGoals||3);
+  } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
+    html += `<div class="rd-section">Finale ${ev.type==='tennis_final_h'?'Hommes':'Dames'} Roland Garros</div>`;
+    html += selectRow('🏆 Vainqueur', p.winner, official.winner, 10);
+    html += selectRow('📊 Nombre de sets', String(p.sets), String(official.sets), 6);
+    html += selectRow('1️⃣ Gagnant 1er set', p.first_set, official.first_set, 4);
+    html += selectRow('⚡ Aces total', p.aces, official.aces, 3);
+  } else if (ev.type === 'f1_race') {
+    html += `<div class="rd-section">Top 4 · 4 pts chacun</div>`;
+    (official.top4||[]).forEach((v,i) => {
+      html += selectRow(`#${i+1}`, (p.top4||[])[i], v, 4);
+    });
+    html += `<div class="rd-section">Meilleur tour · 4 pts</div>`;
+    html += selectRow('Pilote', p.fastest, official.fastest, 4);
+  } else if (ev.type === 'top4') {
+    html += `<div class="rd-section">Top 4</div>`;
+    const pts4 = Object.values(POINTS_MAP);
+    (official.top4||[]).forEach((v,i) => {
+      html += selectRow(`#${i+1} (${pts4[i]||2} pts)`, (p.top4||[])[i], v, pts4[i]||2);
+    });
   } else {
     Object.keys(official).forEach(k => {
       html += selectRow(k, p[k], official[k], 3);
