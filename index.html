@@ -356,11 +356,11 @@
   <div class="page" id="page-classements">
     <div class="section-title" style="margin-top:8px;">Classements</div>
     <div class="rank-tabs">
-      <div class="rank-tab active" onclick="switchRankTab(this)">🌍 Général</div>
-      <div class="rank-tab" onclick="switchRankTab(this)">⚽ Football</div>
-      <div class="rank-tab" onclick="switchRankTab(this)">🎾 Tennis</div>
-      <div class="rank-tab" onclick="switchRankTab(this)">🏎️ F1</div>
-      <div class="rank-tab" onclick="switchRankTab(this)">🚴 Cyclisme</div>
+      <div class="rank-tab active" data-sport="" onclick="switchRankTab(this)">🌍 Général</div>
+      <div class="rank-tab" data-sport="football" onclick="switchRankTab(this)">⚽ Football</div>
+      <div class="rank-tab" data-sport="tennis" onclick="switchRankTab(this)">🎾 Tennis</div>
+      <div class="rank-tab" data-sport="f1" onclick="switchRankTab(this)">🏎️ F1</div>
+      <div class="rank-tab" data-sport="cyclisme" onclick="switchRankTab(this)">🚴 Cyclisme</div>
     </div>
     <div class="full-rank-list" id="full-rank-list"></div>
   </div>
@@ -1835,22 +1835,79 @@ async function calculatePoints(eventId, ev, official) {
 // =====================
 // CLASSEMENTS
 // =====================
-async function loadRankings() {
-  const list=document.getElementById('full-rank-list');
-  const {data}=await sb.from('profiles').select('pseudo,points,pronos_count').order('points',{ascending:false}).limit(20);
-  if (!data||data.length===0) { list.innerHTML='<div style="padding:20px;color:var(--text-muted);font-size:13px;">Sois le premier ! 🏆</div>'; return; }
-  list.innerHTML=data.map((p,i)=>{
-    const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
+// Calcule les points d'un sport depuis pronos+results (client-side)
+async function computeSportRanking(sport) {
+  // Events du sport ayant un résultat officiel
+  const sportEvents = EVENTS.filter(ev => ev.sport === sport);
+  const sportIds = sportEvents.map(ev => ev.id);
+  if (!sportIds.length) return [];
+
+  // Charger résultats officiels pour ce sport
+  const {data:resultsData} = await sb.from('results').select('event_id,result_data').in('event_id', sportIds);
+  if (!resultsData || !resultsData.length) return [];
+  const officialMap = {};
+  resultsData.forEach(r => { officialMap[r.event_id] = r.result_data; });
+
+  // Charger tous les pronos pour ces events
+  const eventIdsWithResults = Object.keys(officialMap).map(Number);
+  const {data:pronosData} = await sb.from('pronos').select('user_id,event_id,prono_data').in('event_id', eventIdsWithResults);
+  if (!pronosData || !pronosData.length) return [];
+
+  // Charger tous les profils (pour le pseudo)
+  const {data:profiles} = await sb.from('profiles').select('id,pseudo,pronos_count');
+  const profileMap = {};
+  if (profiles) profiles.forEach(p => { profileMap[p.id] = p; });
+
+  // Calculer les points par user
+  const userPts = {};
+  for (const prono of pronosData) {
+    const ev = EVENTS.find(e => e.id === prono.event_id);
+    if (!ev) continue;
+    const official = officialMap[prono.event_id];
+    if (!official) continue;
+    const pts = computeUserPoints(ev, prono.prono_data, official);
+    if (!userPts[prono.user_id]) userPts[prono.user_id] = 0;
+    userPts[prono.user_id] += pts;
+  }
+
+  // Trier et retourner
+  return Object.entries(userPts)
+    .map(([uid, pts]) => ({ pseudo: profileMap[uid]?.pseudo || '?', pts, pronos_count: profileMap[uid]?.pronos_count || 0, id: uid }))
+    .sort((a,b) => b.pts - a.pts);
+}
+
+function renderRankList(data, container) {
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:13px;">Aucun résultat calculé pour le moment 🏆</div>';
+    return;
+  }
+  container.innerHTML = data.map((p,i) => {
+    const isMe = currentProfile && p.pseudo === currentProfile.pseudo;
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
     return `<div class="full-rank-row ${isMe?'me':''}">
-      <div class="full-rank-num ${isMe?'me':''}">${i+1}</div>
+      <div class="full-rank-num ${isMe?'me':''}">${medal||i+1}</div>
       <div class="full-rank-avatar ${isMe?'me':''}">${p.pseudo?p.pseudo[0].toUpperCase():'?'}</div>
       <div class="full-rank-info">
         <div class="full-rank-name ${isMe?'me':''}">${p.pseudo||'Joueur'}</div>
         <div class="full-rank-country">${p.pronos_count||0} pronostics</div>
       </div>
-      <div class="full-rank-pts ${isMe?'me':''}">${p.points||0}</div>
+      <div class="full-rank-pts ${isMe?'me':''}">${p.pts||0} pts</div>
     </div>`;
   }).join('');
+}
+
+async function loadRankings(sport) {
+  const list = document.getElementById('full-rank-list');
+  list.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:13px;">Chargement…</div>';
+
+  if (!sport) {
+    // Général : depuis profiles.points
+    const {data} = await sb.from('profiles').select('pseudo,points,pronos_count').order('points',{ascending:false}).limit(50);
+    renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:p.pronos_count||0})), list);
+  } else {
+    const ranked = await computeSportRanking(sport);
+    renderRankList(ranked, list);
+  }
 }
 
 async function loadRankingsHome() {
@@ -1858,22 +1915,38 @@ async function loadRankingsHome() {
   if (!data) return;
   const myRank=data.findIndex(p=>currentProfile&&p.pseudo===currentProfile.pseudo)+1;
   document.getElementById('stat-rank').textContent=myRank>0?'#'+myRank:'#–';
+
+  const rankRow = (p,i) => {
+    const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${medal||i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo||'Joueur'}</span><span class="rank-pts">${p.points||0}</span></div>`;
+  };
+
+  // Top3 foot (calculé)
+  const footRanked = await computeSportRanking('football');
+  const footHtml = footRanked.length
+    ? footRanked.slice(0,3).map((p,i)=>{
+        const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
+        const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${medal||i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo||'Joueur'}</span><span class="rank-pts">${p.pts||0}</span></div>`;
+      }).join('')
+    : '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">En attente de résultats</div>';
+
   document.getElementById('home-rankings').innerHTML=`
     <div class="rank-card">
       <div class="rank-title">🌍 Général</div>
-      ${data.length===0?'<div style="font-size:12px;color:var(--text-muted);">Pas encore de joueurs</div>':
-        data.map((p,i)=>{const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
-          return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo||'Joueur'}</span><span class="rank-pts">${p.points||0}</span></div>`;
-        }).join('')}
+      ${data.length===0?'<div style="font-size:12px;color:var(--text-muted);">Sois le premier !</div>':data.map(rankRow).join('')}
     </div>
-    <div class="rank-card"><div class="rank-title">⚽ Football</div><div style="font-size:12px;color:var(--text-muted);padding:8px 0;">Bientôt</div></div>
-    <div class="rank-card"><div class="rank-title">🎾 Tennis</div><div style="font-size:12px;color:var(--text-muted);padding:8px 0;">Bientôt</div></div>`;
+    <div class="rank-card">
+      <div class="rank-title">⚽ Football</div>
+      ${footHtml}
+    </div>`;
 }
 
 function switchRankTab(el) {
   document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  loadRankings();
+  loadRankings(el.dataset.sport || '');
 }
 
 // =====================
@@ -1943,7 +2016,7 @@ function showPage(name) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
-  if (name==='classements') loadRankings();
+  if (name==='classements') { document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active')); const first=document.querySelector('.rank-tab'); if(first){first.classList.add('active');} loadRankings(''); }
   if (name==='groupes') renderGroupes();
   if (name==='admin') renderAdmin();
 }
