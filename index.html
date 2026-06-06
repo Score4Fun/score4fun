@@ -2142,7 +2142,7 @@ async function renderGroupes() {
 
   const {data, error} = await sb.from('group_members').select('group_id').eq('user_id', currentUser.id);
   if (error || !data || !data.length) {
-    cards.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:12px 0;text-align:center;">Tu n'es dans aucun groupe encore.<br>Crée-en un ou rejoins celui d'un ami ! 👇</div>';
+        cards.innerHTML = `<div style="color:var(--text-muted);font-size:13px;padding:12px 0;text-align:center;">Tu n'es dans aucun groupe encore.<br>Crée-en un ou rejoins celui d'un ami ! 👇</div>`;
     return;
   }
 
