@@ -1237,16 +1237,19 @@ function renderEventCard(ev) {
         <div class="btn-1x2 ${sel==='2'?'selected':''}" onclick="quickSelect(${ev.id},'2',this,event)">2<br><small style="font-size:10px;opacity:0.8;">${ev.team2.split(' ').pop()}</small></div>
       </div>`;
   } else {
+    const evClosed = isTrulyClosed(ev);
     inner = `
       <div class="event-status">
-        <div class="status-dot ${done?'done-dot':ev.status==='soon'?'closed':''}"></div>
-        <span class="status-text">${done?'🎯 Prono enregistré !':ev.status==='open'?'Ouvert !':'Bientôt'}</span>
+        <div class="status-dot ${done?'done-dot':evClosed||ev.status==='soon'?'closed':''}"></div>
+        <span class="status-text">${done?'🎯 Prono enregistré !':evClosed?'Fermé 🔒':ev.status==='open'?'Ouvert !':'Bientôt'}</span>
       </div>
-      ${ev.status==='open'
-        ? done
-          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
-          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
-        : `<button class="prono-btn view">Bientôt 🔒</button>`}`;
+      ${evClosed
+        ? `<button class="prono-btn view">Fermé 🔒</button>`
+        : ev.status==='open'
+          ? done
+            ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
+            : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
+          : `<button class="prono-btn view">Bientôt 🔒</button>`}`;
   }
 
   return `<div class="event-card ${done?'done':ev.urgency?'urgent':''}">
@@ -1292,6 +1295,8 @@ async function quickSelect(eventId, result, el, e) {
 // MODAL PRONOSTIC
 // =====================
 function openPronoModal(eventId) {
+  const evCheck = EVENTS.find(e => e.id === eventId);
+  if (evCheck && isTrulyClosed(evCheck)) { showToast('🔒 Ce pronostic est clôturé !'); return; }
   currentEvent = EVENTS.find(e=>e.id===eventId);
   if (!currentEvent) return;
   document.getElementById('modal-title').textContent = currentEvent.name;
