@@ -2264,9 +2264,15 @@ async function loadRankings(sport) {
   try {
     if (!sport) {
       // Général : profiles.points (déjà cumulé par calculatePoints)
-      const {data, error} = await sb.from('profiles').select('pseudo,points,pronos_count').order('points',{ascending:false}).limit(50);
+      const [{data, error}, {data:pronosRaw}] = await Promise.all([
+        sb.from('profiles').select('id,pseudo,points').order('points',{ascending:false}).limit(50),
+        sb.from('pronos').select('user_id')
+      ]);
       if (error) throw error;
-      renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:p.pronos_count||0})), list);
+      // Compter le vrai nombre de pronos par user (pas le compteur incrémental)
+      const countMap = {};
+      if (pronosRaw) pronosRaw.forEach(p => { countMap[p.user_id] = (countMap[p.user_id]||0)+1; });
+      renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:countMap[p.id]||0})), list);
     } else {
       const ranked = await computeSportRanking(sport);
       renderRankList(ranked, list);
