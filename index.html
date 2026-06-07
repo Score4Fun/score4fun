@@ -81,11 +81,11 @@
     .section-title { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; margin-top: 20px; }
 
     /* METRICS */
-    .metrics { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 5px; margin-bottom: 4px; }
-    .metric-card { background: white; border-radius: var(--radius-sm); padding: 6px 4px 5px; text-align: center; border: 0.5px solid var(--border); }
-    .metric-value { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--orange); line-height: 1; }
-    .metric-label { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
-    .perf-bar-track { height: 4px; background: #f0eeeb; border-radius: 2px; margin: 3px 4px 0; overflow: hidden; }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-bottom: 4px; }
+    .metric-card { background: white; border-radius: var(--radius); padding: 12px 10px 10px; text-align: center; border: 0.5px solid var(--border); }
+    .metric-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--orange); line-height: 1; }
+    .metric-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .perf-bar-track { height: 4px; background: #f0eeeb; border-radius: 2px; margin: 6px 4px 0; overflow: hidden; }
     .perf-bar-fill { height: 4px; border-radius: 2px; transition: width 0.6s ease; }
 
     /* SPORT TABS */
@@ -299,7 +299,7 @@
     @media (max-width: 480px) {
       .events-grid { grid-template-columns: 1fr; }
       .rankings { grid-template-columns: 1fr; }
-      .metrics { grid-template-columns: repeat(5, 1fr); }
+      .metrics { grid-template-columns: repeat(3, 1fr); }
       .auth-box { padding: 32px 24px; }
       .question-row { flex-direction: column; align-items: flex-start; }
       .question-label { min-width: unset; }
@@ -381,15 +381,19 @@
   <div class="page active" id="page-home">
     <div class="section-title">Mes stats</div>
     <div class="metrics">
-      <div class="metric-card"><div class="metric-value" id="stat-pts">0</div><div class="metric-label">Points</div></div>
-      <div class="metric-card"><div class="metric-value" id="stat-rank">#–</div><div class="metric-label">Classement</div></div>
-      <div class="metric-card"><div class="metric-value" id="stat-podiums">–</div><div class="metric-label">Podiums 🥉</div></div>
+      <div class="metric-card">
+        <div class="metric-value" id="stat-pts">0</div>
+        <div class="metric-label">Points</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="stat-rank">#–</div>
+        <div class="metric-label">Classement</div>
+      </div>
       <div class="metric-card" id="stat-perf-card">
         <div id="stat-pct" class="metric-value">–%</div>
         <div class="perf-bar-track"><div class="perf-bar-fill" id="stat-gauge" style="width:0%;background:var(--text-muted);"></div></div>
-        <div class="metric-label">Perf.</div>
+        <div class="metric-label">Précision</div>
       </div>
-      <div class="metric-card"><div class="metric-value" id="stat-badges">0 🎖️</div><div class="metric-label">Badges</div></div>
     </div>
     <div class="section-title">Mes groupes</div>
     <div class="groups-row" id="home-groups-row">
