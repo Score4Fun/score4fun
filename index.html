@@ -238,7 +238,7 @@
     .group-cards { display: flex; flex-direction: column; gap: 10px; }
     .group-card { background: white; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
     .group-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .group-card-name { font-size: 15px; font-weight: 600; color: var(--orange-dark); text-decoration: underline; cursor: pointer; }
+    .group-card-name { font-size: 18px; font-weight: 700; color: var(--orange-dark); text-decoration: underline; cursor: pointer; letter-spacing: -0.3px; }
     .group-card-members { font-size: 12px; color: var(--text-muted); }
     .group-card-code { background: var(--orange-bg); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; color: var(--orange-dark); display: flex; align-items: center; justify-content: space-between; }
     .copy-btn { background: var(--orange); color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
@@ -2710,16 +2710,38 @@ async function renderGroupPronos(groupId) {
   const groupEventIds = gevents.map(e => Number(e.event_id));
   const events = EVENTS.filter(e => groupEventIds.includes(e.id));
 
+  // Charger résultats officiels et prono de l'utilisateur pour les events fermés
+  const closedIds = events.filter(ev => isTrulyClosed(ev)).map(ev => ev.id);
+  const officialMap = {};
+  const myPronoMap = {};
+  if (closedIds.length && currentUser) {
+    const [{data:resData}, {data:pronoData}] = await Promise.all([
+      sb.from('results').select('event_id,result_data').in('event_id', closedIds),
+      sb.from('pronos').select('event_id,data').eq('user_id', currentUser.id).in('event_id', closedIds)
+    ]);
+    if (resData) resData.forEach(r => { officialMap[r.event_id] = r.result_data; });
+    if (pronoData) pronoData.forEach(p => { myPronoMap[p.event_id] = p.data; });
+  }
+
   list.innerHTML = events.map(ev => {
     const done = isDone(ev.id);
     const closed = isTrulyClosed(ev);
-    return `<div class="group-event-card" onclick="${!closed ? `openPronoModal(${ev.id})` : ''}">
+    const official = officialMap[ev.id];
+    const myProno = myPronoMap[ev.id];
+    let ptsHtml = '';
+    if (closed && official && myProno) {
+      const pts = computeUserPoints(ev, myProno, official);
+      const max = getMaxPts(ev);
+      ptsHtml = `<span style="font-size:11px;font-weight:700;color:var(--orange-dark);margin-right:4px;">${pts}/${max} pts</span>`;
+    }
+    const clickAction = closed ? `openResultDetail(${ev.id})` : `openPronoModal(${ev.id})`;
+    return `<div class="group-event-card" onclick="${clickAction}" style="cursor:pointer;">
       <div style="font-size:26px;">${ev.emoji}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
         <div style="font-size:11px;color:var(--text-muted);">${ev.comp}</div>
       </div>
-      <span class="prono-tag ${done?'done-tag':closed?'closed-tag':'todo'}">${done?'✓ Fait':closed?'🔒 Fermé':'Pronostiquer →'}</span>
+      ${ptsHtml}<span class="prono-tag ${done?'done-tag':closed?'closed-tag':'todo'}">${done?'✓ Fait':closed?'🔒 Fermé':'Pronostiquer →'}</span>
     </div>`;
   }).join('');
 }
