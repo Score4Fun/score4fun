@@ -1185,17 +1185,21 @@ function unlockBadge(icon) {
 // =====================
 // SPORT TABS + EVENTS
 // =====================
+const ADMIN_ONLY_SPORTS = ['cyclisme', 'athletisme'];
+
 function renderSportTabs() {
+  const isAdmin = currentProfile?.email === 'mervin.anthony@yahoo.com';
+  const visibleSports = SPORTS.filter(s => isAdmin || !ADMIN_ONLY_SPORTS.includes(s.key));
   // Home tabs
   const tabs = document.getElementById('sport-tabs-home');
-  const all = [{key:null, label:'🌍 Tous'}, ...SPORTS];
+  const all = [{key:null, label:'🌍 Tous'}, ...visibleSports];
   tabs.innerHTML = all.map(s =>
     `<div class="sport-tab ${s.key===null?'active':''}" onclick="toggleSport(${s.key===null?'null':`'${s.key}'`},this)">${s.label}</div>`
   ).join('');
   // Rank tabs (Classement) — dynamic
   const rankTabs = document.getElementById('rank-tabs-inner');
   if (rankTabs) {
-    const rankAll = [{key:'', label:'🌍 Général'}, ...SPORTS];
+    const rankAll = [{key:'', label:'🌍 Général'}, ...visibleSports];
     rankTabs.innerHTML = rankAll.map((s,i) =>
       `<div class="rank-tab ${i===0?'active':''}" data-sport="${s.key}" onclick="switchRankTab(this)">${s.label}</div>`
     ).join('');
