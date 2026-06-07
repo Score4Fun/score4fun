@@ -2985,16 +2985,27 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
   modal.classList.add('open');
 
-  const closedEventIds = EVENTS.filter(ev => {
-    if (!isTrulyClosed(ev)) return false;
-    if (sport && ev.sport !== sport) return false;
-    if (comp && ev.comp !== comp) return false;
-    return true;
-  }).map(ev => ev.id);
-  const [profRes, pronosRes, resultsRes] = await Promise.all([
+  // Référence réelle : events qui ont un résultat officiel en DB
+  const [profRes, allResultsRes] = await Promise.all([
     sb.from('profiles').select('pseudo,points').eq('id', uid).maybeSingle(),
+    sb.from('results').select('event_id,result_data')
+  ]);
+  const allResults = allResultsRes.data || [];
+  let scoredEventIds = allResults.map(r => Number(r.event_id));
+  // Filtrer par sport/comp si demandé
+  if (sport || comp) {
+    scoredEventIds = scoredEventIds.filter(eid => {
+      const ev = EVENTS.find(e => e.id === eid);
+      if (!ev) return false;
+      if (sport && ev.sport !== sport) return false;
+      if (comp && ev.comp !== comp) return false;
+      return true;
+    });
+  }
+  const closedEventIds = scoredEventIds;
+  const [pronosRes, resultsRes] = await Promise.all([
     closedEventIds.length ? sb.from('pronos').select('event_id,data').eq('user_id', uid).in('event_id', closedEventIds) : Promise.resolve({data:[]}),
-    closedEventIds.length ? sb.from('results').select('event_id,result_data').in('event_id', closedEventIds) : Promise.resolve({data:[]})
+    Promise.resolve({data: allResults.filter(r => closedEventIds.includes(Number(r.event_id)))})
   ]);
 
   const prof    = profRes.data || {pseudo, points:0};
