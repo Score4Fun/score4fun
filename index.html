@@ -248,6 +248,11 @@
 
     /* GROUPES */
     .group-cards { display: flex; flex-direction: column; gap: 10px; }
+    .group-page-cols { display: flex; gap: 12px; align-items: flex-start; }
+    .group-page-cols > div { flex: 1; min-width: 0; }
+    @media (max-width: 600px) {
+      .group-page-cols { flex-direction: column; gap: 16px; }
+    }
     .group-card { background: white; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
     .group-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .group-card-name { font-size: 18px; font-weight: 700; color: var(--orange-dark); text-decoration: underline; cursor: pointer; letter-spacing: -0.3px; }
@@ -434,8 +439,8 @@
     </div>
 
     <!-- 2-column layout: Pronos left, Classement right -->
-    <div style="display:flex;gap:12px;align-items:flex-start;">
-      <div style="flex:1;min-width:0;">
+    <div class="group-page-cols">
+      <div>
         <!-- Pronos header + admin + button -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">⚽ Pronos</div>
@@ -448,7 +453,7 @@
         </div>
         <div id="group-events-list"></div>
       </div>
-      <div style="flex:1;min-width:0;">
+      <div>
         <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🏆 Classement</div>
         <div id="group-ranking-list"></div>
       </div>
