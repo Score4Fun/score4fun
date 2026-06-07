@@ -1209,7 +1209,7 @@ function updateTopBar() {
   document.getElementById('top-pts').textContent = (p.points||0)+' pts';
   document.getElementById('stat-pts').textContent = p.points||0;
   // Rating calculé async séparément
-  document.getElementById('stat-badges').textContent = (p.badges_count||0)+' 🏅';
+  const _sb = document.getElementById('stat-badges'); if (_sb) _sb.textContent = (p.badges_count||0)+' 🏅';
 }
 
 async function updateRating() {
@@ -1241,11 +1241,11 @@ async function updateRating() {
 
 async function updatePodiums() {
   const {data:results} = await sb.from('results').select('event_id,result_data');
-  if (!results || !results.length) { document.getElementById('stat-podiums').textContent = '0'; return; }
+  if (!results || !results.length) { const _sp=document.getElementById('stat-podiums'); if(_sp)_sp.textContent='0'; return; }
 
   const eventIds = results.map(r => r.event_id);
   const {data:allPronos} = await sb.from('pronos').select('user_id,event_id,data').in('event_id', eventIds);
-  if (!allPronos) { document.getElementById('stat-podiums').textContent = '0'; return; }
+  if (!allPronos) { const _sp=document.getElementById('stat-podiums'); if(_sp)_sp.textContent='0'; return; }
 
   const officialMap = {};
   results.forEach(r => { officialMap[r.event_id] = r.result_data; });
@@ -1268,7 +1268,7 @@ async function updatePodiums() {
     if (myRank >= 1 && myRank <= 3) podiums++;
   }
 
-  document.getElementById('stat-podiums').textContent = podiums;
+  const _sp=document.getElementById('stat-podiums'); if(_sp)_sp.textContent=podiums;
   if (podiums > 0) unlockBadge('🏆');
 }
 
@@ -1286,7 +1286,7 @@ function unlockBadge(icon) {
     const cur = parseInt(currentProfile?.badges_count||0);
     if (currentProfile) {
       currentProfile.badges_count = cur + 1;
-      document.getElementById('stat-badges').textContent = (cur+1) + ' 🎖️';
+      const _sbU=document.getElementById('stat-badges'); if(_sbU)_sbU.textContent=(cur+1)+' 🎖️';
       sb.from('profiles').update({badges_count: cur+1}).eq('id', currentUser.id);
     }
   }
