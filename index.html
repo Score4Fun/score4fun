@@ -506,12 +506,13 @@
   <!-- ADMIN -->
   <div class="page" id="page-admin">
     <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 4px;">
-      <div class="section-title" style="margin:0;">⚙️ Admin — Résultats officiels</div>
+      <div class="section-title" style="margin:0;">⚙️ ADMIN</div>
       <button onclick="recalculateAllPoints('manual')" style="font-size:12px;padding:6px 14px;background:var(--green);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔄 Recalculer tout</button>
     </div>
     <div style="display:flex;gap:6px;margin:6px 0 10px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:8px;">
       <button id="admin-tab-results" onclick="setAdminTab('results')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">📋 Résultats</button>
       <button id="admin-tab-users" onclick="setAdminTab('users')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">👥 Utilisateurs</button>
+      <button id="admin-tab-groups" onclick="setAdminTab('groups')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">🏆 Groupes</button>
     </div>
     <div id="admin-results-section">
       <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
@@ -522,6 +523,9 @@
     </div>
     <div id="admin-users-section" style="display:none;">
       <div id="admin-users-list"></div>
+    </div>
+    <div id="admin-groups-section" style="display:none;">
+      <div id="admin-groups-list"></div>
     </div>
   </div>
 
@@ -2203,13 +2207,65 @@ let _adminTab = 'results';
 
 function setAdminTab(tab) {
   _adminTab = tab;
-  document.getElementById('admin-tab-results').style.background = tab==='results' ? 'var(--orange)' : 'white';
-  document.getElementById('admin-tab-results').style.color = tab==='results' ? 'white' : 'var(--text)';
-  document.getElementById('admin-tab-users').style.background = tab==='users' ? 'var(--orange)' : 'white';
-  document.getElementById('admin-tab-users').style.color = tab==='users' ? 'white' : 'var(--text)';
-  document.getElementById('admin-results-section').style.display = tab==='results' ? '' : 'none';
-  document.getElementById('admin-users-section').style.display = tab==='users' ? '' : 'none';
+  ['results','users','groups'].forEach(t => {
+    const btn = document.getElementById('admin-tab-'+t);
+    if (btn) { btn.style.background = tab===t ? 'var(--orange)' : 'white'; btn.style.color = tab===t ? 'white' : 'var(--text)'; }
+    const sec = document.getElementById('admin-'+t+'-section');
+    if (sec) sec.style.display = tab===t ? '' : 'none';
+  });
   if (tab === 'users') renderAdminUsers();
+  if (tab === 'groups') renderAdminGroups();
+}
+
+async function renderAdminGroups() {
+  const el = document.getElementById('admin-groups-list');
+  el.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+
+  const {data:groups} = await sb.from('groups').select('id,name,code,created_by,members_count,created_at').order('created_at', {ascending:false});
+  if (!groups || !groups.length) {
+    el.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:13px;">Aucun groupe</div>';
+    return;
+  }
+
+  // Récupérer les pseudos des créateurs
+  const creatorIds = [...new Set(groups.map(g => g.created_by).filter(Boolean))];
+  const {data:profiles} = creatorIds.length
+    ? await sb.from('profiles').select('id,pseudo').in('id', creatorIds)
+    : {data:[]};
+  const pseudoMap = {};
+  (profiles||[]).forEach(p => { pseudoMap[p.id] = p.pseudo; });
+
+  const total = groups.length;
+  const totalMembers = groups.reduce((acc, g) => acc + (g.members_count || 0), 0);
+
+  el.innerHTML = `
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;background:var(--orange-bg);border-radius:10px;padding:10px 12px;text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:var(--orange-dark);">${total}</div>
+        <div style="font-size:11px;color:var(--text-muted);">groupe${total>1?'s':''}</div>
+      </div>
+      <div style="flex:1;background:var(--orange-bg);border-radius:10px;padding:10px 12px;text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:var(--orange-dark);">${totalMembers}</div>
+        <div style="font-size:11px;color:var(--text-muted);">membre${totalMembers>1?'s':''} au total</div>
+      </div>
+    </div>
+    ${groups.map(g => {
+      const creator = pseudoMap[g.created_by] || '?';
+      const date = g.created_at ? new Date(g.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}) : '';
+      return `<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${g.name}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Créé par <b>${creator}</b> · ${date}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:15px;font-weight:700;color:var(--orange-dark);">${g.members_count||0}</div>
+            <div style="font-size:10px;color:var(--text-muted);">membre${(g.members_count||0)>1?'s':''}</div>
+          </div>
+        </div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted);">Code : <span style="font-family:monospace;font-weight:600;color:var(--text);">${g.code}</span></div>
+      </div>`;
+    }).join('')}`;
 }
 
 async function renderAdminUsers() {
