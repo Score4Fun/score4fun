@@ -2309,7 +2309,7 @@ async function computeSportRanking(sport, comp) {
     });
 
     return Object.entries(userPts)
-      .map(([uid, pts]) => ({ pseudo: profileMap[uid]?.pseudo || '?', pts, pronos_count: userPronosCount[uid] || 0 }))
+      .map(([uid, pts]) => ({ pseudo: profileMap[uid]?.pseudo || '?', pts, pronos_count: userPronosCount[uid] || 0, uid }))
       .sort((a,b) => b.pts - a.pts);
   } catch(e) {
     console.error('computeSportRanking error:', e);
@@ -2325,11 +2325,13 @@ function renderRankList(rows, container) {
   container.innerHTML = rows.map((p,i) => {
     const isMe = currentProfile && p.pseudo === currentProfile.pseudo;
     const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-    return `<div class="full-rank-row ${isMe?'me':''}">
+    const clickable = !isMe && p.uid;
+    const pseudo_esc = (p.pseudo||'').replace(/'/g,"\\'");
+    return `<div class="full-rank-row ${isMe?'me':''}" ${clickable?`onclick="openMemberProfile('${p.uid}','${pseudo_esc}')" style="cursor:pointer;"`:''}>
       <div class="full-rank-num ${isMe?'me':''}">${medal||i+1}</div>
       <div class="full-rank-avatar ${isMe?'me':''}">${p.pseudo?p.pseudo[0].toUpperCase():'?'}</div>
       <div class="full-rank-info">
-        <div class="full-rank-name ${isMe?'me':''}">${p.pseudo||'Joueur'}</div>
+        <div class="full-rank-name ${isMe?'me':''}" ${clickable?'style="text-decoration:underline;text-underline-offset:2px;"':''}>${p.pseudo||'Joueur'}</div>
         <div class="full-rank-country">${p.pronos_count||0} pronostics</div>
       </div>
       <div class="full-rank-pts ${isMe?'me':''}">${p.pts||0} pts</div>
@@ -2356,7 +2358,7 @@ async function loadRankings(sport, comp) {
         const {data:pronosRaw} = await sb.from('pronos').select('user_id').in('event_id', closedIds);
         if (pronosRaw) pronosRaw.forEach(p => { countMap[p.user_id] = (countMap[p.user_id]||0)+1; });
       }
-      renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:countMap[p.id]||0})), list);
+      renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:countMap[p.id]||0,uid:p.id})), list);
     } else {
       const ranked = await computeSportRanking(sport, comp);
       renderRankList(ranked, list);
@@ -2688,7 +2690,7 @@ async function renderGroupClassement(groupId) {
       <div style="font-size:14px;font-weight:700;width:22px;text-align:center;${isMe?'color:var(--orange)':''}">${medal||i+1}</div>
       <div style="width:30px;height:30px;border-radius:50%;background:${isMe?'var(--orange)':'var(--orange-bg)'};color:${isMe?'white':'var(--orange-dark)'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">${(m.pseudo||'?')[0].toUpperCase()}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:${isMe?700:500};${isMe?'color:var(--orange)':''};">${m.pseudo||'–'}</div>
+        <div style="font-size:13px;font-weight:${isMe?700:500};${isMe?'color:var(--orange)':''};${!isMe?'text-decoration:underline;text-underline-offset:2px;cursor:pointer;':''}" ${!isMe?`onclick="openMemberProfile('${m.id}','${(m.pseudo||'').replace(/'/g,"\\'")}')"`:''}>${m.pseudo||'–'}</div>
         <div style="font-size:11px;color:${perfColor};font-weight:600;">${perfStr}</div>
       </div>
       <div style="font-size:14px;font-weight:700;${isMe?'color:var(--orange)':''}">${m.groupPts}<span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:2px;">pts</span></div>
@@ -2850,5 +2852,110 @@ function showPage(name) {
   showForm('login');
 })();
 </script>
-</body>
+
+<div class="modal-overlay" id="member-modal" onclick="if(event.target===this)closeMemberModal()">
+  <div class="modal-box" style="max-width:520px;width:100%;max-height:88vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-weight:700;font-size:15px;" id="member-modal-title">Pronos du membre</div>
+      <button onclick="closeMemberModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);">&#x2715;</button>
+    </div>
+    <div id="member-modal-body"></div>
+  </div>
+</div>
+<script>
+function closeMemberModal() {
+  document.getElementById('member-modal').classList.remove('open');
+}
+
+async function openMemberProfile(uid, pseudo) {
+  if (!uid || uid === currentUser?.id) return;
+  const modal = document.getElementById('member-modal');
+  const body  = document.getElementById('member-modal-body');
+  document.getElementById('member-modal-title').textContent = 'Pronos de ' + pseudo;
+  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+  modal.classList.add('open');
+
+  const closedEventIds = EVENTS.filter(ev => isTrulyClosed(ev)).map(ev => ev.id);
+  const [profRes, pronosRes, resultsRes] = await Promise.all([
+    sb.from('profiles').select('pseudo,points,pronos_count').eq('id', uid).maybeSingle(),
+    closedEventIds.length ? sb.from('pronos').select('event_id,data').eq('user_id', uid).in('event_id', closedEventIds) : Promise.resolve({data:[]}),
+    closedEventIds.length ? sb.from('results').select('event_id,result_data').in('event_id', closedEventIds) : Promise.resolve({data:[]})
+  ]);
+
+  const prof    = profRes.data || {pseudo, points:0, pronos_count:0};
+  const pronos  = pronosRes.data || [];
+  const results = resultsRes.data || [];
+
+  const officialMap = {};
+  results.forEach(r => { officialMap[Number(r.event_id)] = r.result_data; });
+
+  let totalPts = 0, scoredCount = 0;
+  const pronoCards = pronos.map(pr => {
+    const ev = EVENTS.find(e => e.id === Number(pr.event_id));
+    if (!ev) return null;
+    const official = officialMap[Number(pr.event_id)];
+    let pts = null, max = null;
+    if (official) {
+      pts = computeUserPoints(ev, pr.data, official);
+      max = getMaxPts(ev);
+      totalPts += pts;
+      scoredCount++;
+    }
+    return { ev, data: pr.data, official, pts, max };
+  }).filter(Boolean).sort((a,b) => (b.pts??-1) - (a.pts??-1));
+
+  const avatar = '<div style="width:52px;height:52px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0;">' + (pseudo||'?')[0].toUpperCase() + '</div>';
+  const statsHtml = '<div style="display:flex;align-items:center;gap:14px;background:var(--orange-bg);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;">'
+    + avatar
+    + '<div style="flex:1;"><div style="font-size:17px;font-weight:700;">' + pseudo + '</div>'
+    + '<div style="font-size:12px;color:var(--text-muted);margin-top:2px;">' + (prof.points||0) + ' pts total · ' + scoredCount + ' pronos scorés</div></div>'
+    + '<div style="text-align:right;"><div style="font-size:22px;font-weight:800;color:var(--orange-dark);">' + totalPts + '</div><div style="font-size:10px;color:var(--text-muted);">pts (fermés)</div></div>'
+    + '</div>';
+
+  if (!pronoCards.length) {
+    body.innerHTML = statsHtml + '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px;">Aucun pronostic fermé pour l'instant.</div>';
+    return;
+  }
+
+  const gridCards = pronoCards.map(({ev, data, official, pts, max}) => {
+    const ptsColor = pts === null ? 'var(--text-muted)' : pts >= max*0.6 ? 'var(--green)' : pts >= max*0.3 ? '#ff9800' : '#e53935';
+    const ptsLabel = pts !== null
+      ? '<span style="font-weight:800;font-size:15px;color:' + ptsColor + ';">' + pts + '</span><span style="font-size:10px;color:var(--text-muted);">/' + max + ' pts</span>'
+      : '<span style="font-size:11px;color:var(--text-muted);">–</span>';
+    let answersHtml = '';
+    if (ev.type === 'multi_match') {
+      answersHtml = (ev.matches||[]).slice(0,4).map(m => {
+        const correct = official && data[m.key] === official[m.key];
+        const icon = official ? (correct ? '✅' : '❌') : '·';
+        return '<div style="font-size:10px;color:var(--text-muted);">' + icon + ' ' + (m.label||m.key) + ': <b>' + (data[m.key]||'–') + '</b>' + (official && !correct ? ' → ' + official[m.key] : '') + '</div>';
+      }).join('') + ((ev.matches||[]).length > 4 ? '<div style="font-size:10px;color:var(--text-muted);">…+' + ((ev.matches||[]).length-4) + ' matchs</div>' : '');
+    } else if (ev.type === 'f1_race' || ev.type === 'top4') {
+      (data.top4||[]).slice(0,4).forEach((v,i) => {
+        if (!v) return;
+        const correct = official && (official.top4||[])[i] === v;
+        answersHtml += '<div style="font-size:10px;color:var(--text-muted);">' + (correct?'✅':'·') + ' ' + (i+1) + '. ' + v + '</div>';
+      });
+    } else if (ev.type === 'tournament_bonus') {
+      ['champion','finaliste','third','fourth'].forEach((k,i) => {
+        if (!data[k]) return;
+        const correct = official && data[k] === official[k];
+        answersHtml += '<div style="font-size:10px;color:var(--text-muted);">' + (correct?'✅':'·') + ' ' + ['🥇','🥈','🥉','4️⃣'][i] + ' ' + data[k] + '</div>';
+      });
+    } else {
+      Object.entries(data).slice(0,4).forEach(([k,v]) => {
+        const correct = official && v === official[k];
+        answersHtml += '<div style="font-size:10px;color:var(--text-muted);">' + (correct?'✅':'·') + ' ' + k + ': <b>' + v + '</b></div>';
+      });
+    }
+    return '<div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;display:flex;flex-direction:column;gap:4px;">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:20px;">' + ev.emoji + '</span><div>' + ptsLabel + '</div></div>'
+      + '<div style="font-size:11px;font-weight:600;line-height:1.3;">' + ev.name + '</div>'
+      + '<div style="font-size:10px;color:var(--text-muted);">' + ev.comp + '</div>'
+      + '<div style="margin-top:4px;border-top:0.5px solid var(--border);padding-top:4px;">' + (answersHtml||'<span style="font-size:10px;color:var(--text-muted);">–</span>') + '</div>'
+      + '</div>';
+  }).join('');
+
+  body.innerHTML = statsHtml + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' + gridCards + '</div>';
+}
+</script></body>
 </html>
