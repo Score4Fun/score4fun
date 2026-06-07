@@ -716,6 +716,19 @@ function renderMemberPronoCards(body, pronoCards) {
           + '<div class="rd-pts ' + (pPts===0?'zero':'') + '">' + (pPts>0?'+'+pPts+' pt':'') + '</div>'
           + '</div>';
       });
+      // Fastest lap
+      if (ev.type === 'f1_race') {
+        const myFL = p.fastest || '';
+        const offFL = official ? (official.fastest || '') : '';
+        const flMatch = myFL && myFL === offFL;
+        const flCls = !myFL ? '' : flMatch ? 'correct' : 'wrong';
+        inner += '<div class="rd-select-row">'
+          + '<div class="rd-select-label">⚡ Fastest Lap · 4pts</div>'
+          + '<div class="rd-select-val ' + flCls + '">' + (myFL||'—') + '</div>'
+          + (myFL !== offFL && offFL ? '<div style="font-size:11px;color:var(--text-muted);">✓ ' + offFL + '</div>' : '')
+          + '<div class="rd-pts ' + (flMatch?'':'zero') + '">' + (flMatch?'+4 pt':'') + '</div>'
+          + '</div>';
+      }
     }
 
     return '<div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;">'
@@ -2703,7 +2716,7 @@ function renderRankList(rows, container, sport, comp) {
       <div class="full-rank-num ${isMe?'me':''}">${medal||i+1}</div>
       <div class="full-rank-avatar ${isMe?'me':''}">${p.pseudo?p.pseudo[0].toUpperCase():'?'}</div>
       <div class="full-rank-info" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
-        <div class="full-rank-name ${isMe?'me':''}" style="flex-shrink:0;">${p.pseudo||'–'}</div>
+        <div class="full-rank-name ${isMe?'me':''}" style="flex-shrink:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;">${p.pseudo||'–'}</div>
         <div style="display:flex;align-items:center;gap:4px;margin-left:auto;">
           <span style="font-size:11px;font-weight:700;color:${accColor};">${accStr}</span>
           ${trendHtml}
@@ -3531,6 +3544,19 @@ async function openGroupMemberProfile(uid, pseudo) {
           + '<div class="rd-pts ' + (pPts===0?'zero':'') + '">' + (pPts>0?'+'+pPts+' pt':'') + '</div>'
           + '</div>';
       });
+      // Fastest lap
+      if (ev.type === 'f1_race') {
+        const myFL = p.fastest || '';
+        const offFL = official ? (official.fastest || '') : '';
+        const flMatch = myFL && myFL === offFL;
+        const flCls = !myFL ? '' : flMatch ? 'correct' : 'wrong';
+        inner += '<div class="rd-select-row">'
+          + '<div class="rd-select-label">⚡ Fastest Lap · 4pts</div>'
+          + '<div class="rd-select-val ' + flCls + '">' + (myFL||'—') + '</div>'
+          + (myFL !== offFL && offFL ? '<div style="font-size:11px;color:var(--text-muted);">✓ ' + offFL + '</div>' : '')
+          + '<div class="rd-pts ' + (flMatch?'':'zero') + '">' + (flMatch?'+4 pt':'') + '</div>'
+          + '</div>';
+      }
     }
 
     return '<div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;">'
