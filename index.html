@@ -532,7 +532,7 @@
 
     <!-- PROFIL -->
   <div class="page" id="page-profil">
-    <div class="section-title" style="margin-top:8px;">My profile</div>
+    <div class="section-title">My profile</div>
     <div class="profil-header">
       <div class="profil-avatar" id="profil-avatar">?</div>
       <div class="profil-pseudo" id="profil-pseudo">...</div>
@@ -675,14 +675,14 @@ function renderMemberPronoCards(body, pronoCards) {
     } else if (ev.type === 'opening_match') {
       inner += match1x2('Résultat', p.result, official ? official.result : null, 5);
       inner += match1x2('Mi-temps', p.halftime, official ? official.halftime : null, 3);
-      inner += selectRow('1er buteur', p.firstScorer, official ? official.firstScorer : null, 3);
+      inner += selectRow('First scorer', p.firstScorer, official ? official.firstScorer : null, 3);
     } else if (ev.type === 'tournament_bonus') {
       const sc = ev.scoring || {};
       inner += selectRow('🥇 Champion', p.champion, official ? official.champion : null, POINTS_MAP[0]);
       inner += selectRow('🥈 Finaliste', p.finaliste, official ? official.finaliste : null, POINTS_MAP[1]);
       inner += selectRow('🥉 3ème', p.third, official ? official.third : null, POINTS_MAP[2]);
       inner += selectRow('4ème', p.fourth, official ? official.fourth : null, POINTS_MAP[3]);
-      inner += selectRow('Meilleur buteur', p.topScorer, official ? official.topScorer : null, sc.topScorer||7);
+      inner += selectRow('Top scorer', p.topScorer, official ? official.topScorer : null, sc.topScorer||7);
       inner += selectRow('Fourchette buts', p.topGoals, official ? official.topGoals : null, sc.topGoals||4);
     } else if (ev.type === 'tennis_sf') {
       inner += selectRow('Vainqueur', p.winner, official ? official.winner : null, 10);
@@ -740,23 +740,23 @@ const SPORTS = [
   { key: 'football',   label: '⚽ Football' },
   { key: 'tennis',     label: '🎾 Tennis' },
   { key: 'f1',         label: '🏎️ F1' },
-  { key: 'hippisme',   label: '🏇 Hippisme' },
-  { key: 'cyclisme',   label: '🚴 Cyclisme' },
-  { key: 'athletisme', label: '🏃 Athlétisme' },
+  { key: 'hippisme',   label: '🏇 Horse Racing' },
+  { key: 'cyclisme',   label: '🚴 Cycling' },
+  { key: 'athletisme', label: '🏃 Athletics' },
 ];
 
 const TEAMS_CDM2026 = [
   '🇲🇽 Mexique','🇿🇦 Afrique du Sud','🇰🇷 Corée du Sud','🇨🇿 Tchéquie',
   '🇨🇦 Canada','🇧🇦 Bosnie','🇶🇦 Qatar','🇨🇭 Suisse',
-  '🇧🇷 Brésil','🇲🇦 Maroc','🇭🇹 Haïti','🏴󠁧󠁢󠁳󠁣󠁴󠁿 Écosse',
+  '🇧🇷 Brazil','🇲🇦 Morocco','🇭🇹 Haiti','🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland',
   '🇺🇸 États-Unis','🇵🇾 Paraguay','🇦🇺 Australie','🇹🇷 Turquie',
   '🇩🇪 Allemagne','🇨🇼 Curaçao','🇨🇮 Côte d\'Ivoire','🇪🇨 Équateur',
   '🇳🇱 Pays-Bas','🇯🇵 Japon','🇸🇪 Suède','🇹🇳 Tunisie',
-  '🇧🇪 Belgique','🇪🇬 Égypte','🇮🇷 Iran','🇳🇿 Nouvelle-Zélande',
+  '🇧🇪 Belgium','🇪🇬 Egypt','🇮🇷 Iran','🇳🇿 New Zealand',
   '🇪🇸 Espagne','🇸🇦 Arabie Saoudite','🇺🇾 Uruguay','🇨🇻 Cap-Vert',
-  '🇫🇷 France','🇸🇳 Sénégal','🇳🇴 Norvège','🇮🇶 Irak',
-  '🇦🇷 Argentine','🇩🇿 Algérie','🇦🇹 Autriche','🇯🇴 Jordanie',
-  '🇵🇹 Portugal','🇨🇩 RD Congo','🇺🇿 Ouzbékistan','🇨🇴 Colombie',
+  '🇫🇷 France','🇸🇳 Senegal','🇳🇴 Norway','🇮🇶 Iraq',
+  '🇦🇷 Argentina','🇩🇿 Algeria','🇦🇹 Austria','🇯🇴 Jordan',
+  '🇵🇹 Portugal','🇨🇩 DR Congo','🇺🇿 Uzbekistan','🇨🇴 Colombia',
   '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre','🇭🇷 Croatie','🇬🇭 Ghana','🇵🇦 Panama'
 ];
 
@@ -764,163 +764,163 @@ const TEAMS_CDM2026 = [
 const EVENTS = [
   // ===== FOOTBALL - CdM 2026 =====
   // ── Bonus pré-tournoi
-  { id:100, sport:'football', comp:'CdM 2026', phase:'Pronostics tournoi', emoji:'🌍',
-    name:'Pronostics CdM 2026', sub:'Top 4 · Meilleur buteur · Avant le coup d\'envoi',
+  { id:100, sport:'football', comp:'CdM 2026', phase:'Tournament Picks', emoji:'🌍',
+    name:'World Cup 2026 Picks', sub:'Top 4 · Top Scorer · Before kick-off',
     type:'tournament_bonus',
     scoring:{ topScorer:7, topGoals:4 },
-    status:'open', urgency:true, cutoff:'Avant 19h', deadline:'2026-06-11T17:00:00Z' },
+    status:'open', urgency:true, cutoff:'Before 7pm', deadline:'2026-06-11T17:00:00Z' },
 
   // ── Ouverture
-  { id:101, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
-    name:'Match d\'ouverture · 11 juin', sub:'🇲🇽 Mexique vs 🇿🇦 Afrique du Sud',
+  { id:101, sport:'football', comp:'CdM 2026', phase:'Group Stage', emoji:'⚽',
+    name:'Opening Match · June 11', sub:'🇲🇽 Mexico vs 🇿🇦 South Africa',
     type:'opening_match',
-    team1:'🇲🇽 Mexique', team2:'🇿🇦 Afrique du Sud',
+    team1:'🇲🇽 Mexico', team2:'🇿🇦 South Africa',
     scoring:{ result:5, halftime:3, firstScorer:3 },
-    status:'open', urgency:true, cutoff:'11 juin 21h', deadline:'2026-06-11T19:00:00Z' },
+    status:'open', urgency:true, cutoff:'June 11, 9pm', deadline:'2026-06-11T19:00:00Z' },
 
   // ── 12-14 juin
-  { id:102, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
-    name:'Matchday · 12–14 juin', sub:'6 matchs · Pays organisateurs, Brésil, Allemagne',
+  { id:102, sport:'football', comp:'CdM 2026', phase:'Group Stage', emoji:'⚽',
+    name:'Matchday · Jun 12–14', sub:'6 games · Host nations, Brazil, Germany',
     type:'multi_match',
     matches:[
-      { key:'m1', team1:'🇨🇦 Canada', team2:'🇧🇦 Bosnie' },
+      { key:'m1', team1:'🇨🇦 Canada', team2:'🇧🇦 Bosnia' },
       { key:'m2', team1:'🇺🇸 États-Unis', team2:'🇵🇾 Paraguay' },
-      { key:'m3', team1:'🇧🇷 Brésil', team2:'🇲🇦 Maroc' },
-      { key:'m4', team1:'🇦🇺 Australie', team2:'🇹🇷 Turquie' },
+      { key:'m3', team1:'🇧🇷 Brazil', team2:'🇲🇦 Morocco' },
+      { key:'m4', team1:'🇦🇺 Australie', team2:'🇹🇷 Turkey' },
       { key:'m5', team1:'🇩🇪 Allemagne', team2:'🇨🇼 Curaçao' },
-      { key:'m6', team1:'🇳🇱 Pays-Bas', team2:'🇯🇵 Japon' },
+      { key:'m6', team1:'🇳🇱 Pays-Bas', team2:'🇯🇵 Japan' },
     ],
     scoring:{ perMatch:4 },
-    status:'open', urgency:false, cutoff:'12 juin 21h', deadline:'2026-06-12T19:00:00Z' },
+    status:'open', urgency:false, cutoff:'June 12, 9pm', deadline:'2026-06-12T19:00:00Z' },
 
   // ── 15-16 juin
-  { id:103, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
-    name:'Matchday · 15–16 juin', sub:'6 matchs · Espagne, Belgique, France',
+  { id:103, sport:'football', comp:'CdM 2026', phase:'Group Stage', emoji:'⚽',
+    name:'Matchday · Jun 15–16', sub:'6 games · Spain, Belgium, France',
     type:'multi_match',
     matches:[
-      { key:'m1', team1:'🇪🇸 Espagne', team2:'🇨🇻 Cap-Vert' },
-      { key:'m2', team1:'🇧🇪 Belgique', team2:'🇪🇬 Égypte' },
-      { key:'m3', team1:'🇸🇦 Arabie Saoudite', team2:'🇺🇾 Uruguay' },
-      { key:'m4', team1:'🇫🇷 France', team2:'🇸🇳 Sénégal' },
-      { key:'m5', team1:'🇦🇷 Argentine', team2:'🇩🇿 Algérie' },
-      { key:'m6', team1:'🇳🇴 Norvège', team2:'🇮🇶 Irak' },
+      { key:'m1', team1:'🇪🇸 Espagne', team2:'🇨🇻 Cape Verde' },
+      { key:'m2', team1:'🇧🇪 Belgium', team2:'🇪🇬 Egypt' },
+      { key:'m3', team1:'🇸🇦 Saudi Arabia', team2:'🇺🇾 Uruguay' },
+      { key:'m4', team1:'🇫🇷 France', team2:'🇸🇳 Senegal' },
+      { key:'m5', team1:'🇦🇷 Argentina', team2:'🇩🇿 Algeria' },
+      { key:'m6', team1:'🇳🇴 Norway', team2:'🇮🇶 Iraq' },
     ],
     scoring:{ perMatch:4 },
-    status:'open', urgency:false, cutoff:'15 juin 19h', deadline:'2026-06-15T17:00:00Z' },
+    status:'open', urgency:false, cutoff:'June 15, 7pm', deadline:'2026-06-15T17:00:00Z' },
 
   // ── 17-18 juin
-  { id:104, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
-    name:'Matchday · 17–18 juin', sub:'5 matchs · Argentine, Portugal, Angleterre, Ghana',
+  { id:104, sport:'football', comp:'CdM 2026', phase:'Group Stage', emoji:'⚽',
+    name:'Matchday · Jun 17–18', sub:'5 games · Argentina, Portugal, England, Ghana',
     type:'multi_match',
     matches:[
-      { key:'m1', team1:'🇵🇹 Portugal', team2:'🇨🇩 RD Congo' },
-      { key:'m2', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre', team2:'🇭🇷 Croatie' },
+      { key:'m1', team1:'🇵🇹 Portugal', team2:'🇨🇩 DR Congo' },
+      { key:'m2', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England', team2:'🇭🇷 Croatia' },
       { key:'m3', team1:'🇬🇭 Ghana', team2:'🇵🇦 Panama' },
-      { key:'m4', team1:'🇨🇴 Colombie', team2:'🇺🇿 Ouzbékistan' },
-      { key:'m5', team1:'🇲🇽 Mexique', team2:'🇰🇷 Corée du Sud' },
+      { key:'m4', team1:'🇨🇴 Colombia', team2:'🇺🇿 Uzbekistan' },
+      { key:'m5', team1:'🇲🇽 Mexico', team2:'🇰🇷 South Korea' },
     ],
     scoring:{ perMatch:4 },
-    status:'open', urgency:false, cutoff:'17 juin 19h', deadline:'2026-06-17T17:00:00Z' },
+    status:'open', urgency:false, cutoff:'June 17, 7pm', deadline:'2026-06-17T17:00:00Z' },
 
   // ── 19-21 juin
-  { id:105, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
-    name:'Matchday · 19–21 juin', sub:'6 matchs · Maroc, Brésil, Allemagne, Espagne, Belgique',
+  { id:105, sport:'football', comp:'CdM 2026', phase:'Group Stage', emoji:'⚽',
+    name:'Matchday · Jun 19–21', sub:'6 games · Morocco, Brazil, Germany, Spain, Belgium',
     type:'multi_match',
     matches:[
-      { key:'m1', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Écosse', team2:'🇲🇦 Maroc' },
-      { key:'m2', team1:'🇧🇷 Brésil', team2:'🇭🇹 Haïti' },
-      { key:'m3', team1:'🇩🇪 Allemagne', team2:'🇨🇮 Côte d\'Ivoire' },
-      { key:'m4', team1:'🇹🇳 Tunisie', team2:'🇯🇵 Japon' },
-      { key:'m5', team1:'🇪🇸 Espagne', team2:'🇸🇦 Arabie Saoudite' },
-      { key:'m6', team1:'🇧🇪 Belgique', team2:'🇮🇷 Iran' },
+      { key:'m1', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland', team2:'🇲🇦 Morocco' },
+      { key:'m2', team1:'🇧🇷 Brazil', team2:'🇭🇹 Haiti' },
+      { key:'m3', team1:'🇩🇪 Allemagne', team2:'🇨🇮 Ivory Coast' },
+      { key:'m4', team1:'🇹🇳 Tunisia', team2:'🇯🇵 Japan' },
+      { key:'m5', team1:'🇪🇸 Espagne', team2:'🇸🇦 Saudi Arabia' },
+      { key:'m6', team1:'🇧🇪 Belgium', team2:'🇮🇷 Iran' },
     ],
     scoring:{ perMatch:4 },
-    status:'open', urgency:false, cutoff:'19 juin 21h', deadline:'2026-06-19T19:00:00Z' },
+    status:'open', urgency:false, cutoff:'June 19, 9pm', deadline:'2026-06-19T19:00:00Z' },
 
   // ── 22-23 juin
-  { id:106, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
-    name:'Matchday · 22–23 juin', sub:'6 matchs · Argentine, France, Norvège, Portugal, Angleterre',
+  { id:106, sport:'football', comp:'CdM 2026', phase:'Group Stage', emoji:'⚽',
+    name:'Matchday · Jun 22–23', sub:'6 games · Argentina, France, Norway, Portugal, England',
     type:'multi_match',
     matches:[
-      { key:'m1', team1:'🇦🇷 Argentine', team2:'🇦🇹 Autriche' },
-      { key:'m2', team1:'🇫🇷 France', team2:'🇮🇶 Irak' },
-      { key:'m3', team1:'🇳🇴 Norvège', team2:'🇸🇳 Sénégal' },
-      { key:'m4', team1:'🇵🇹 Portugal', team2:'🇺🇿 Ouzbékistan' },
-      { key:'m5', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre', team2:'🇬🇭 Ghana' },
-      { key:'m6', team1:'🇨🇴 Colombie', team2:'🇨🇩 RD Congo' },
+      { key:'m1', team1:'🇦🇷 Argentina', team2:'🇦🇹 Austria' },
+      { key:'m2', team1:'🇫🇷 France', team2:'🇮🇶 Iraq' },
+      { key:'m3', team1:'🇳🇴 Norway', team2:'🇸🇳 Senegal' },
+      { key:'m4', team1:'🇵🇹 Portugal', team2:'🇺🇿 Uzbekistan' },
+      { key:'m5', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England', team2:'🇬🇭 Ghana' },
+      { key:'m6', team1:'🇨🇴 Colombia', team2:'🇨🇩 DR Congo' },
     ],
     scoring:{ perMatch:4 },
-    status:'open', urgency:false, cutoff:'22 juin 19h', deadline:'2026-06-22T17:00:00Z' },
+    status:'open', urgency:false, cutoff:'June 22, 7pm', deadline:'2026-06-22T17:00:00Z' },
 
   // ── 24-25 juin
-  { id:107, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
-    name:'Matchday · 24–25 juin', sub:'6 matchs · Suisse, Bosnie, Brésil, Allemagne',
+  { id:107, sport:'football', comp:'CdM 2026', phase:'Group Stage', emoji:'⚽',
+    name:'Matchday · Jun 24–25', sub:'6 games · Switzerland, Bosnia, Brazil, Germany',
     type:'multi_match',
     matches:[
-      { key:'m1', team1:'🇨🇭 Suisse', team2:'🇨🇦 Canada' },
-      { key:'m2', team1:'🇧🇦 Bosnie', team2:'🇶🇦 Qatar' },
-      { key:'m3', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Écosse', team2:'🇧🇷 Brésil' },
-      { key:'m4', team1:'🇲🇦 Maroc', team2:'🇭🇹 Haïti' },
-      { key:'m5', team1:'🇪🇨 Équateur', team2:'🇩🇪 Allemagne' },
-      { key:'m6', team1:'🇹🇳 Tunisie', team2:'🇳🇱 Pays-Bas' },
+      { key:'m1', team1:'🇨🇭 Switzerland', team2:'🇨🇦 Canada' },
+      { key:'m2', team1:'🇧🇦 Bosnia', team2:'🇶🇦 Qatar' },
+      { key:'m3', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland', team2:'🇧🇷 Brazil' },
+      { key:'m4', team1:'🇲🇦 Morocco', team2:'🇭🇹 Haiti' },
+      { key:'m5', team1:'🇪🇨 Ecuador', team2:'🇩🇪 Allemagne' },
+      { key:'m6', team1:'🇹🇳 Tunisia', team2:'🇳🇱 Pays-Bas' },
     ],
     scoring:{ perMatch:4 },
-    status:'open', urgency:false, cutoff:'24 juin 21h', deadline:'2026-06-24T19:00:00Z' },
+    status:'open', urgency:false, cutoff:'June 24, 9pm', deadline:'2026-06-24T19:00:00Z' },
 
   // ── 26-27 juin
-  { id:108, sport:'football', comp:'CdM 2026', phase:'Phase de groupes', emoji:'⚽',
-    name:'Matchday · 26–27 juin', sub:'6 matchs · France, Espagne, Angleterre, Colombie, Argentine',
+  { id:108, sport:'football', comp:'CdM 2026', phase:'Group Stage', emoji:'⚽',
+    name:'Matchday · Jun 26–27', sub:'6 games · France, Spain, England, Colombia, Argentina',
     type:'multi_match',
     matches:[
-      { key:'m1', team1:'🇳🇴 Norvège', team2:'🇫🇷 France' },
+      { key:'m1', team1:'🇳🇴 Norway', team2:'🇫🇷 France' },
       { key:'m2', team1:'🇺🇾 Uruguay', team2:'🇪🇸 Espagne' },
-      { key:'m3', team1:'🇧🇪 Belgique', team2:'🇳🇿 Nouvelle-Zélande' },
-      { key:'m4', team1:'🇵🇦 Panama', team2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre' },
-      { key:'m5', team1:'🇨🇴 Colombie', team2:'🇵🇹 Portugal' },
-      { key:'m6', team1:'🇯🇴 Jordanie', team2:'🇦🇷 Argentine' },
+      { key:'m3', team1:'🇧🇪 Belgium', team2:'🇳🇿 New Zealand' },
+      { key:'m4', team1:'🇵🇦 Panama', team2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' },
+      { key:'m5', team1:'🇨🇴 Colombia', team2:'🇵🇹 Portugal' },
+      { key:'m6', team1:'🇯🇴 Jordan', team2:'🇦🇷 Argentina' },
     ],
     scoring:{ perMatch:4 },
-    status:'open', urgency:false, cutoff:'26 juin 21h', deadline:'2026-06-26T19:00:00Z' },
+    status:'open', urgency:false, cutoff:'June 26, 9pm', deadline:'2026-06-26T19:00:00Z' },
 
   // ── Phase finale (placeholders)
-  { id:109, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
-    name:'Round of 32 · Partie 1', sub:'29 juin – 1 juillet',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'29 juin', deadline:'2026-06-29T13:00:00Z' },
-  { id:110, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
-    name:'Round of 32 · Partie 2', sub:'1 – 4 juillet',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'1 juillet', deadline:'2026-07-01T13:00:00Z' },
-  { id:111, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
-    name:'Round of 16', sub:'4 – 7 juillet',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'4 juillet', deadline:'2026-07-04T13:00:00Z' },
-  { id:112, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
-    name:'Quarts de finale', sub:'9 – 12 juillet',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'9 juillet', deadline:'2026-07-09T13:00:00Z' },
-  { id:113, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
-    name:'Demi-finales', sub:'14 – 15 juillet',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'14 juillet', deadline:'2026-07-14T13:00:00Z' },
-  { id:114, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
-    name:'Match 3e place', sub:'18 juillet',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'18 juillet', deadline:'2026-07-18T13:00:00Z' },
-  { id:115, sport:'football', comp:'CdM 2026', phase:'Phase finale', emoji:'⚽',
-    name:'⭐ Finale CdM 2026', sub:'19 juillet',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'19 juillet', deadline:'2026-07-19T13:00:00Z' },
+  { id:109, sport:'football', comp:'CdM 2026', phase:'Knockout Stage', emoji:'⚽',
+    name:'Round of 32 · Part 1', sub:'June 29 – July 1',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'June 29', deadline:'2026-06-29T13:00:00Z' },
+  { id:110, sport:'football', comp:'CdM 2026', phase:'Knockout Stage', emoji:'⚽',
+    name:'Round of 32 · Part 2', sub:'July 1–4',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'July 1', deadline:'2026-07-01T13:00:00Z' },
+  { id:111, sport:'football', comp:'CdM 2026', phase:'Knockout Stage', emoji:'⚽',
+    name:'Round of 16', sub:'July 4–7',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'July 4', deadline:'2026-07-04T13:00:00Z' },
+  { id:112, sport:'football', comp:'CdM 2026', phase:'Knockout Stage', emoji:'⚽',
+    name:'Quarter-finals', sub:'July 9–12',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'July 9', deadline:'2026-07-09T13:00:00Z' },
+  { id:113, sport:'football', comp:'CdM 2026', phase:'Knockout Stage', emoji:'⚽',
+    name:'Semi-finals', sub:'July 14–15',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'July 14', deadline:'2026-07-14T13:00:00Z' },
+  { id:114, sport:'football', comp:'CdM 2026', phase:'Knockout Stage', emoji:'⚽',
+    name:'3rd Place Match', sub:'July 18',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'July 18', deadline:'2026-07-18T13:00:00Z' },
+  { id:115, sport:'football', comp:'CdM 2026', phase:'Knockout Stage', emoji:'⚽',
+    name:'⭐ World Cup Final 2026', sub:'July 19',
+    type:'upcoming', status:'soon', urgency:false, cutoff:'July 19', deadline:'2026-07-19T13:00:00Z' },
 
   // ===== FOOTBALL - Amicaux =====
-  { id:50, sport:'football', comp:'Amicaux', phase:'Juin 2026', emoji:'⚽',
-    name:'Amicaux internationaux', sub:'3 matchs · Juin 2026',
+  { id:50, sport:'football', comp:'Friendlies', phase:'June 2026', emoji:'⚽',
+    name:'International Friendlies', sub:'3 games · June 2026',
     type:'multi_match',
     matches:[
-      { key:'m1', team1:'🇧🇪 Belgique', team2:'🇹🇳 Tunisie' },
+      { key:'m1', team1:'🇧🇪 Belgium', team2:'🇹🇳 Tunisia' },
       { key:'m2', team1:'🇺🇸 États-Unis', team2:'🇩🇪 Allemagne' },
-      { key:'m3', team1:'🇨🇭 Suisse', team2:'🇦🇺 Australie' },
+      { key:'m3', team1:'🇨🇭 Switzerland', team2:'🇦🇺 Australie' },
     ],
-    topScorer:['🇧🇪 Belgique','🇹🇳 Tunisie','🇺🇸 États-Unis','🇩🇪 Allemagne','🇨🇭 Suisse','🇦🇺 Australie'],
+    topScorer:['🇧🇪 Belgium','🇹🇳 Tunisia','🇺🇸 USA','🇩🇪 Germany','🇨🇭 Switzerland','🇦🇺 Australia'],
     scoring:{ perMatch:4 },
     status:'open', urgency:true, cutoff:'Avant le coup d\u0027envoi', deadline:'2026-06-06T13:00:00Z' },
 
   // J1 League 6 juin
-  { id:51, sport:'football', comp:'Amicaux', phase:'Juin 2026', emoji:'⚽',
-    name:'Matches D1 Japon · 6 juin', sub:'10 matchs · Pronostiquer avant 07h00',
+  { id:51, sport:'football', comp:'Friendlies', phase:'June 2026', emoji:'⚽',
+    name:'Japan D1 · June 6', sub:'10 games · Pick before 07:00',
     type:'multi_match',
     matches:[
       { key:'j1', team1:'JEF Utd Chiba', team2:'Avispa Fukuoka' },
@@ -935,7 +935,7 @@ const EVENTS = [
       { key:'j10', team1:'Kawasaki Frontale', team2:'Sanfrecce Hiroshima' },
     ],
     scoring:{ perMatch:1, bonus:{ 10:3, 9:2, 8:1 } },
-    status:'open', urgency:true, cutoff:'Avant 07h00', deadline:'2026-06-06T05:00:00Z' },
+    status:'open', urgency:true, cutoff:'Before 7am', deadline:'2026-06-06T05:00:00Z' },
 
   // ===== TENNIS - Roland Garros =====
   // Demi-finales Hommes
@@ -943,88 +943,88 @@ const EVENTS = [
 
 
   // Finale Hommes
-  { id:22, sport:'tennis', comp:'Roland Garros 2026', phase:'Finales', emoji:'🎾',
-    name:'Finale Hommes', sub:'Roland Garros 2026',
+  { id:22, sport:'tennis', comp:'Roland Garros 2026', phase:'Finals', emoji:'🎾',
+    name:'Men\'s Final', sub:'Roland Garros 2026',
     type:'tennis_final_h',
     finalists: ['Alexander Zverev', 'Flavio Cobolli'],
     status:'open', urgency:true, cutoff:'Dimanche', deadline:'2026-06-07T13:00:00Z' },
 
   // Finale Dames
-  { id:23, sport:'tennis', comp:'Roland Garros 2026', phase:'Finales', emoji:'🎾',
-    name:'Finale Dames', sub:'Roland Garros 2026',
+  { id:23, sport:'tennis', comp:'Roland Garros 2026', phase:'Finals', emoji:'🎾',
+    name:'Women\'s Final', sub:'Roland Garros 2026',
     type:'tennis_final_f',
     candidates:['Mirra Andreeva','Maja Chwalinska'],
     status:'open', urgency:true, cutoff:'Sam. 15h', deadline:'2026-06-06T13:00:00Z' },
 
   // ===== F1 =====
-  { id:30, sport:'f1', comp:'Saison 2026', phase:'Juin 2026', emoji:'🏎️',
-    name:'GP Monaco 2026', sub:'Circuit de Monaco · Monte Carlo',
+  { id:30, sport:'f1', comp:'Saison 2026', phase:'June 2026', emoji:'🏎️',
+    name:'Monaco GP 2026', sub:'Monaco Circuit · Monte Carlo',
     type:'f1_race',
     candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
     status:'open', urgency:true, cutoff:'Dimanche 15h', deadline:'2026-06-07T13:00:00Z' },
 
   // ===== TENNIS - Wimbledon 2026 =====
-  { id:24, adminOnly:true, sport:'tennis', comp:'Wimbledon 2026', phase:'Finales', emoji:'🎾',
-    name:'Finale Hommes Wimbledon', sub:'Wimbledon 2026 · Centre Court',
+  { id:24, adminOnly:true, sport:'tennis', comp:'Wimbledon 2026', phase:'Finals', emoji:'🎾',
+    name:'Wimbledon Men\'s Final', sub:'Wimbledon 2026 · Centre Court',
     type:'tennis_final_h',
     finalists: ['Carlos Alcaraz', 'Novak Djokovic'],
-    status:'soon', urgency:false, cutoff:'13 juillet', deadline:'2026-07-13T13:00:00Z' },
+    status:'soon', urgency:false, cutoff:'July 13', deadline:'2026-07-13T13:00:00Z' },
 
-  { id:25, adminOnly:true, sport:'tennis', comp:'Wimbledon 2026', phase:'Finales', emoji:'🎾',
-    name:'Finale Dames Wimbledon', sub:'Wimbledon 2026 · Centre Court',
+  { id:25, adminOnly:true, sport:'tennis', comp:'Wimbledon 2026', phase:'Finals', emoji:'🎾',
+    name:'Wimbledon Women\'s Final', sub:'Wimbledon 2026 · Centre Court',
     type:'tennis_final_f',
     candidates:['Aryna Sabalenka', 'Iga Swiatek'],
-    status:'soon', urgency:false, cutoff:'12 juillet', deadline:'2026-07-12T13:00:00Z' },
+    status:'soon', urgency:false, cutoff:'July 12', deadline:'2026-07-12T13:00:00Z' },
 
   // ===== F1 - Saison 2026 (prochaines courses) =====
 
   { id:32, sport:'f1', comp:'Saison 2026', phase:'Juillet 2026', emoji:'🏎️',
-    name:'GP Grande-Bretagne 2026', sub:'Silverstone · Northamptonshire',
+    name:'British GP 2026', sub:'Silverstone · Northamptonshire',
     type:'f1_race',
     candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
-    status:'soon', urgency:false, cutoff:'6 juillet', deadline:'2026-07-06T13:00:00Z' },
+    status:'soon', urgency:false, cutoff:'July 6', deadline:'2026-07-06T13:00:00Z' },
 
 
   // ===== CYCLISME =====
-  { id:40, sport:'cyclisme', comp:'Tour de France 2026', phase:'Classement général', emoji:'🚴',
+  { id:40, sport:'cyclisme', comp:'Tour de France 2026', phase:'General Classification', emoji:'🚴',
     name:'Vainqueur TDF 2026', sub:'Tour de France 2026 · Top 4', type:'top4',
     candidates:['Tadej Pogacar','Jonas Vingegaard','Remco Evenepoel','Primoz Roglic','Adam Yates','Egan Bernal'],
-    status:'soon', urgency:false, cutoff:'Fin juin', deadline:'2026-06-27T08:00:00Z' },
+    status:'soon', urgency:false, cutoff:'End of June', deadline:'2026-06-27T08:00:00Z' },
 
   // ===== ATHLÉTISME =====
-  { id:70, sport:'athletisme', comp:'Diamond League 2026', phase:'Finale sept.', emoji:'🏃',
-    name:'Diamond League Finale 2026', sub:'100m Hommes · Top 4',
+  { id:70, sport:'athletisme', comp:'Diamond League 2026', phase:'Final – Sept.', emoji:'🏃',
+    name:'Diamond League Final 2026', sub:'100m Men · Top 4',
     type:'top4',
     candidates:['Noah Lyles','Marcell Jacobs','Fred Kerley','Kishane Thompson','Letsile Tebogo','Oblique Seville','Akani Simbine','Ferdinand Omanyala'],
     status:'soon', urgency:false, cutoff:'Fin août 2026', deadline:'2026-09-12T18:00:00Z' },
 
-  { id:71, sport:'athletisme', comp:'Championnats Europe 2026', phase:'Finales', emoji:'🏃',
-    name:'CE 2026 · 100m H', sub:'Finale · Top 4',
+  { id:71, sport:'athletisme', comp:'Championnats Europe 2026', phase:'Finals', emoji:'🏃',
+    name:'EC 2026 · 100m Men', sub:'Final · Top 4',
     type:'top4',
     candidates:['Marcell Jacobs','Zharnel Hughes','Chituru Ali','Reece Prescod','Jak Ali Harvey','Joshua Hartmann','Mouhamadou Fall','Silvan Wicki'],
     status:'soon', urgency:false, cutoff:'Été 2026', deadline:'2026-08-08T19:00:00Z' },
 
-  { id:72, sport:'athletisme', comp:'Championnats Europe 2026', phase:'Finales', emoji:'🏃',
-    name:'CE 2026 · 100m F', sub:'Finale · Top 4',
+  { id:72, sport:'athletisme', comp:'Championnats Europe 2026', phase:'Finals', emoji:'🏃',
+    name:'EC 2026 · 100m Women', sub:'Final · Top 4',
     type:'top4',
     candidates:['Dafne Schippers','Daryll Neita','Imani Lansiquot','Ewa Swoboda','Mujinga Kambundji','Gina Lückenkemper','Daryll Neita','Kristal Awuah'],
     status:'soon', urgency:false, cutoff:'Été 2026', deadline:'2026-08-09T19:00:00Z' },
 
-  { id:73, sport:'athletisme', comp:'Mondiaux Athlétisme 2027', phase:'Finales', emoji:'🏃',
-    name:'Mondiaux 2027 · 100m H', sub:'Tokyo · Top 4',
+  { id:73, sport:'athletisme', comp:'Mondiaux Athlétisme 2027', phase:'Finals', emoji:'🏃',
+    name:'Worlds 2027 · 100m Men', sub:'Tokyo · Top 4',
     type:'top4',
     candidates:['Noah Lyles','Marcell Jacobs','Fred Kerley','Kishane Thompson','Letsile Tebogo','Oblique Seville','Akani Simbine','Ferdinand Omanyala'],
     status:'soon', urgency:false, cutoff:'Été 2027', deadline:'2027-09-13T19:00:00Z' },
 
   // ===== HIPPISME =====
-  { id:61, sport:'hippisme', comp:'Mauritius 2026', phase:'Juin 2026', emoji:'🏇',
-    name:'The Barbé Cup G1', sub:'Ile Maurice · 1600m · Top 4',
+  { id:61, sport:'hippisme', comp:'Mauritius 2026', phase:'June 2026', emoji:'🏇',
+    name:'The Barbé Cup G1', sub:'Mauritius · 1600m · Top 4',
     type:'top4',
     candidates:['Cheval A','Cheval B','Cheval C','Cheval D','Cheval E','Cheval F'],
-    status:'soon', urgency:false, cutoff:'27 juin', deadline:'2026-06-27T08:00:00Z' },
+    status:'soon', urgency:false, cutoff:'June 27', deadline:'2026-06-27T08:00:00Z' },
 
-  { id:62, sport:'hippisme', comp:'Mauritius 2026', phase:'Septembre 2026', emoji:'🏇',
-    name:'The Maiden Cup G1', sub:'Ile Maurice · 2400m · Top 4',
+  { id:62, sport:'hippisme', comp:'Mauritius 2026', phase:'September 2026', emoji:'🏇',
+    name:'The Maiden Cup G1', sub:'Mauritius · 2400m · Top 4',
     type:'top4',
     candidates:['Cheval A','Cheval B','Cheval C','Cheval D','Cheval E','Cheval F'],
     status:'soon', urgency:false, cutoff:'6 sept.', deadline:'2026-09-06T08:00:00Z' },
@@ -1361,7 +1361,7 @@ function renderCompTabs() {
   container.style.display='block';
   // Si 1 seule compétition : pas de "Toutes", juste la comp active
   const items = comps.length > 1
-    ? [{name:'Toutes',val:null},...comps.map(c=>({name:c,val:c}))]
+    ? [{name:'All',val:null},...comps.map(c=>({name:c,val:c}))]
     : comps.map(c=>({name:c,val:c}));
   if (comps.length === 1) _activeComp = comps[0]; // auto-sélectionner
   tabsEl.innerHTML = items
@@ -1603,7 +1603,7 @@ function openPronoModal(eventId) {
     const makeOpts = (v) => cands.map(c=>`<option value="${c}" ${c===v?'selected':''}>${c}</option>`).join('');
     const setsOpts = (v) => [3,4,5].map(n=>`<option value="${n}" ${n==v?'selected':''}>${n} sets</option>`).join('');
     content.innerHTML = `
-      <div class="modal-section">Finale Hommes Roland Garros</div>
+      <div class="modal-section">Men's Final Roland Garros</div>
       <div class="question-row">
         <div class="question-label">🏆 Qui gagne la finale ?</div>
         <select class="question-select" id="q-winner">
@@ -1643,7 +1643,7 @@ function openPronoModal(eventId) {
     const makeOpts = (v) => cands.map(c=>`<option value="${c}" ${c===v?'selected':''}>${c}</option>`).join('');
     const setsOpts = (v) => [2,3].map(n=>`<option value="${n}" ${n==v?'selected':''}>${n} sets</option>`).join('');
     content.innerHTML = `
-      <div class="modal-section">Finale Dames Roland Garros</div>
+      <div class="modal-section">Women's Final Roland Garros</div>
       <div class="question-row">
         <div class="question-label">🏆 Qui gagne la finale ?</div>
         <select class="question-select" id="q-winner">
@@ -1700,9 +1700,9 @@ function openPronoModal(eventId) {
       </div>
       ${qLabel('🥅','Quelle équipe scorera en premier ?',3)}
       <div style="display:flex;gap:6px;" data-q="firstScorer">
-        <div class="btn-sm-1x2 ${sel('firstScorer','Mexique')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Mexique" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🇲🇽</span><small style="font-size:10px;">Mexique</small></div>
-        <div class="btn-sm-1x2 ${sel('firstScorer','Afrique du Sud')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Afrique du Sud" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🇿🇦</span><small style="font-size:10px;">Afr. du Sud</small></div>
-        <div class="btn-sm-1x2 ${sel('firstScorer','Aucun but')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Aucun but" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🫙</span><small style="font-size:10px;">Aucun but</small></div>
+        <div class="btn-sm-1x2 ${sel('firstScorer','Mexico')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Mexique" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🇲🇽</span><small style="font-size:10px;">Mexique</small></div>
+        <div class="btn-sm-1x2 ${sel('firstScorer','South Africa')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Afrique du Sud" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🇿🇦</span><small style="font-size:10px;">Afr. du Sud</small></div>
+        <div class="btn-sm-1x2 ${sel('firstScorer','No goal')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Aucun but" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🫙</span><small style="font-size:10px;">Aucun but</small></div>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:14px;text-align:center;">🎯 Total max : <strong>11 pts</strong></div>`;
   } else if (currentEvent.type === 'tournament_bonus') {
@@ -1872,11 +1872,11 @@ async function submitProno() {
       if (sel) { pronoObj[m.key] = sel.dataset.val; }
       else { missing = true; }
     });
-    if (missing) { showToast('⚠️ Pronostique tous les matchs !'); return; }
+    if (missing) { showToast('⚠️ Pick all matches first!'); return; }
     const topScorerEl = document.getElementById('q-topscorer');
     if (topScorerEl) {
       const topScorer = topScorerEl.value;
-      if (!topScorer) { showToast('⚠️ Choisis le top buteur !'); return; }
+      if (!topScorer) { showToast('⚠️ Pick a top scorer!'); return; }
       pronoObj.topScorer = topScorer;
     }
     pronoData = pronoObj;
@@ -1969,7 +1969,7 @@ async function renderPronos() {
     if (done) {
       if (ev.type==='multi_match') {
         const nb = ev.matches ? ev.matches.filter(m=>ex[m.key]).length : 0;
-        pronoSummary = `${nb}/${ev.matches?.length||0} matchs pronostiqués`;
+        pronoSummary = `${nb}/${ev.matches?.length||0} games picked`;
       } else if (ev.type==='opening_match') {
         pronoSummary = `Final: ${ex.result||'?'} · MT: ${ex.halftime||'?'} · 1er: ${ex.firstScorer||'?'}`;
       } else if (ev.type==='tournament_bonus') {
@@ -2072,7 +2072,7 @@ function openResultDetail(eventId) {
     html += selectRow('🥉 3ème', p.third, official.third, POINTS_MAP[2]);
     html += selectRow('4ème', p.fourth, official.fourth, POINTS_MAP[3]);
     html += `<div class="rd-section">Buteur & buts</div>`;
-    html += selectRow('Nationalité buteur', p.topScorer, official.topScorer, sc.topScorer||7);
+    html += selectRow('Top scorer nationality', p.topScorer, official.topScorer, sc.topScorer||7);
     html += selectRow('Fourchette buts', p.topGoals, official.topGoals, sc.topGoals||4);
   } else if (ev.type === '1x2') {
     html += `<div class="rd-section">Résultat du match · 10 pts</div>`;
@@ -2082,7 +2082,7 @@ function openResultDetail(eventId) {
     html += selectRow('🏆 Vainqueur', p.winner, official.winner, 10);
     html += selectRow('📊 Nombre de sets', String(p.sets), String(official.sets), 6);
   } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
-    html += `<div class="rd-section">Finale ${ev.type==='tennis_final_h'?'Hommes':'Dames'} Roland Garros</div>`;
+    html += `<div class="rd-section">Finale ${ev.type==='tennis_final_h'?'Men':'Women'} Roland Garros</div>`;
     html += selectRow('🏆 Vainqueur', p.winner, official.winner, 10);
     html += selectRow('📊 Nombre de sets', String(p.sets), String(official.sets), 6);
     html += selectRow('1️⃣ Gagnant 1er set', p.first_set, official.first_set, 4);
@@ -2137,11 +2137,11 @@ function getRowPts(ev, label) {
   if (ev.type === 'opening_match') {
     if (label === 'Résultat final') return 5;
     if (label === 'Mi-temps') return 3;
-    if (label === '1er buteur (équipe)') return 3;
+    if (label === 'First scorer (team)') return 3;
   }
   if (ev.type === 'tournament_bonus') {
     if (['🥇 Champion','🥈 Finaliste','🥉 3ème place','4ème place'].includes(label)) return sc.podium||5;
-    if (label === 'Meilleur buteur (nat.)') return sc.topScorer||5;
+    if (label === 'Top scorer (nat.)') return sc.topScorer||5;
     if (label === 'Fourchette buts') return sc.topGoals||3;
   }
   return 3;
@@ -2386,7 +2386,7 @@ function renderAdminForm(ev, existing) {
         &nbsp;<b>1er scoreur :</b>
         <select id="admin-${ev.id}-firstScorer" style="margin-left:6px;font-size:12px;">
           <option value="">—</option>
-          ${['Mexique','Afrique du Sud','Aucun but'].map(v=>`<option value="${v}" ${ex.firstScorer===v?'selected':''}>${v}</option>`).join('')}
+          ${['Mexico','South Africa','No goal'].map(v=>`<option value="${v}" ${ex.firstScorer===v?'selected':''}>${v}</option>`).join('')}
         </select>
       </div>
       <button onclick="saveResult(${ev.id},'opening_match')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Sauvegarder</button>`;
@@ -2402,7 +2402,7 @@ function renderAdminForm(ev, existing) {
       `<button onclick="saveResult(${ev.id},'multi_match')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Sauvegarder & Calculer pts</button>`;
   }
   if (ev.type === 'tournament_bonus') {
-    const keys = [['champion','🥇 Champion'],['finaliste','🥈 Finaliste'],['third','🥉 3ème'],['fourth','4ème'],['topScorer','Meilleur buteur (nat.)'],['topGoals','Fourchette buts']];
+    const keys = [['champion','🥇 Champion'],['finaliste','🥈 Finaliste'],['third','🥉 3ème'],['fourth','4ème'],['topScorer','Top scorer (nat.)'],['topGoals','Fourchette buts']];
     const goalsOpts = ['Moins de 6 buts','6-8 buts','9-11 buts','12-13 buts','13+, plus que Just Fontaine 😢'];
     return keys.map(([k,label]) => `
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;">
@@ -2686,7 +2686,7 @@ async function loadRankingsHome() {
           const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
           return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${medal||i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo}</span><span class="rank-pts">${p.pts} pts</span></div>`;
         }).join('')
-      : '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">En attente de résultats ⏳</div>';
+      : '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">Awaiting results ⏳</div>';
 
     document.getElementById('home-rankings').innerHTML=`
       <div class="rank-card">
@@ -2718,7 +2718,7 @@ function switchRankTab(el) {
     if (comps.length > 0) {
       compTabsEl.style.display = 'flex';
       const items = comps.length > 1
-        ? [{label:'Toutes',val:null},...comps.map(c=>({label:c,val:c}))]
+        ? [{label:'All',val:null},...comps.map(c=>({label:c,val:c}))]
         : comps.map(c=>({label:c,val:c}));
       if (comps.length === 1) _rankComp = comps[0];
       compTabsEl.innerHTML = items
@@ -3030,7 +3030,7 @@ async function renderGroupClassement(groupId) {
       </div>
       <div style="font-size:13px;font-weight:700;${isMe?'color:var(--orange)':''};white-space:nowrap;">${m.groupPts}<span style="font-size:9px;font-weight:400;color:var(--text-muted);margin-left:1px;">pts</span></div>
     </div>`;
-  }).join('') + (scoredIds.length === 0 ? '<div style="padding:8px 4px;font-size:11px;color:var(--text-muted);">⏳ En attente des premiers résultats</div>' : '');
+  }).join('') + (scoredIds.length === 0 ? '<div style="padding:8px 4px;font-size:11px;color:var(--text-muted);">⏳ Waiting for the first results</div>' : '');
 }
 
 function toggleGroupClassement() {
@@ -3350,7 +3350,7 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
 </body>
 </html
 
-  { id:60, sport:'hippisme', comp:'Grandes courses 2026', phase:'Automne 2026', emoji:'🏇',
+  { id:60, sport:'hippisme', comp:'Big Races 2026', phase:'Autumn 2026', emoji:'🏇',
     name:'Prix de l\'Arc de Triomphe 2026', sub:'Longchamp · Top 4',
     type:'top4',
     candidates:['Équipage A','Équipage B','Équipage C','Équipage D','Équipage E','Équipage F'],
