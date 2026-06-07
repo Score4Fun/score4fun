@@ -81,11 +81,7 @@
     .section-title { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; margin-top: 20px; }
 
     /* METRICS */
-    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-bottom: 4px; }
-    .metric-card { background: white; border-radius: var(--radius); padding: 12px 10px 10px; text-align: center; border: 0.5px solid var(--border); }
-    .metric-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--orange); line-height: 1; }
-    .metric-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-    .perf-bar-track { height: 4px; background: #f0eeeb; border-radius: 2px; margin: 6px 4px 0; overflow: hidden; }
+    .perf-bar-track { height: 4px; background: #f0eeeb; border-radius: 2px; overflow: hidden; }
     .perf-bar-fill { height: 4px; border-radius: 2px; transition: width 0.6s ease; }
 
     /* SPORT TABS */
@@ -299,7 +295,7 @@
     @media (max-width: 480px) {
       .events-grid { grid-template-columns: 1fr; }
       .rankings { grid-template-columns: 1fr; }
-      .metrics { grid-template-columns: repeat(3, 1fr); }
+
       .auth-box { padding: 32px 24px; }
       .question-row { flex-direction: column; align-items: flex-start; }
       .question-label { min-width: unset; }
@@ -379,20 +375,21 @@
 
   <!-- HOME -->
   <div class="page active" id="page-home">
-    <div class="section-title">Mes stats</div>
-    <div class="metrics">
-      <div class="metric-card">
-        <div class="metric-value" id="stat-pts">0</div>
-        <div class="metric-label">Points</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:white;border-radius:var(--radius);border:0.5px solid var(--border);margin-bottom:4px;">
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--orange);line-height:1;" id="stat-pts">0</span>
+        <span style="font-size:13px;color:var(--text-muted);">pts</span>
       </div>
-      <div class="metric-card">
-        <div class="metric-value" id="stat-rank">#–</div>
-        <div class="metric-label">Classement</div>
+      <div style="width:1px;height:36px;background:var(--border);"></div>
+      <div style="text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--text);line-height:1;" id="stat-rank">#–</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Classement</div>
       </div>
-      <div class="metric-card" id="stat-perf-card">
-        <div id="stat-pct" class="metric-value">–%</div>
-        <div class="perf-bar-track"><div class="perf-bar-fill" id="stat-gauge" style="width:0%;background:var(--text-muted);"></div></div>
-        <div class="metric-label">Précision</div>
+      <div style="width:1px;height:36px;background:var(--border);"></div>
+      <div style="text-align:right;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;" id="stat-pct">–%</div>
+        <div class="perf-bar-track" style="margin:4px 0 0;width:72px;"><div class="perf-bar-fill" id="stat-gauge" style="width:0%;background:var(--text-muted);"></div></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Précision</div>
       </div>
     </div>
     <div class="section-title">Mes groupes</div>
@@ -540,10 +537,27 @@
       <div class="profil-avatar" id="profil-avatar">?</div>
       <div class="profil-pseudo" id="profil-pseudo">...</div>
       <div class="profil-country">🌍 Score4Fun</div>
-      <div class="profil-stats">
-        <div class="profil-stat"><div class="profil-stat-val" id="profil-pts">0</div><div class="profil-stat-label">Points</div></div>
-        <div class="profil-stat"><div class="profil-stat-val" id="profil-pronos">0</div><div class="profil-stat-label">Pronos</div></div>
-        <div class="profil-stat"><div class="profil-stat-val" id="profil-badges">0</div><div class="profil-stat-label">Badges</div></div>
+      <div class="profil-stats" style="gap:0;border-top:0.5px solid var(--border);margin-top:16px;padding-top:16px;display:grid;grid-template-columns:repeat(3,1fr);">
+        <div class="profil-stat" style="border-right:0.5px solid var(--border);padding:0 8px 8px;">
+          <div class="profil-stat-val" id="profil-pts">0</div><div class="profil-stat-label">Points</div>
+        </div>
+        <div class="profil-stat" style="border-right:0.5px solid var(--border);padding:0 8px 8px;">
+          <div class="profil-stat-val" id="profil-rank">#–</div><div class="profil-stat-label">Classement</div>
+        </div>
+        <div class="profil-stat" style="padding:0 8px 8px;">
+          <div class="profil-stat-val" id="profil-pct" style="font-size:18px;">–%</div><div class="profil-stat-label">Précision</div>
+        </div>
+      </div>
+      <div class="profil-stats" style="gap:0;border-top:0.5px solid var(--border);padding-top:14px;margin-top:4px;display:grid;grid-template-columns:repeat(3,1fr);">
+        <div class="profil-stat" style="border-right:0.5px solid var(--border);padding:0 8px;">
+          <div class="profil-stat-val" id="profil-pronos">0</div><div class="profil-stat-label">Pronos</div>
+        </div>
+        <div class="profil-stat" style="border-right:0.5px solid var(--border);padding:0 8px;">
+          <div class="profil-stat-val" id="profil-podiums">–</div><div class="profil-stat-label">Podiums 🥉</div>
+        </div>
+        <div class="profil-stat" style="padding:0 8px;">
+          <div class="profil-stat-val" id="profil-badges">0</div><div class="profil-stat-label">Badges 🎖️</div>
+        </div>
       </div>
     </div>
     <div class="section-title">Mes badges</div>
@@ -3156,6 +3170,15 @@ function renderProfil() {
   document.getElementById('profil-pts').textContent=p.points||0;
   document.getElementById('profil-pronos').textContent=p.pronos_count||0;
   document.getElementById('profil-badges').textContent=p.badges_count||0;
+  // Rang général
+  const _rEl=document.getElementById('profil-rank');
+  if(_rEl&&document.getElementById('stat-rank'))_rEl.textContent=document.getElementById('stat-rank').textContent;
+  // Précision
+  const _pEl=document.getElementById('profil-pct');
+  if(_pEl&&document.getElementById('stat-pct'))_pEl.textContent=document.getElementById('stat-pct').textContent;
+  // Podiums (repiqué de stat-podiums si dispo, sinon on relance)
+  const _podEl=document.getElementById('profil-podiums');
+  if(_podEl){ const _spv=document.getElementById('stat-podiums'); _podEl.textContent=_spv?_spv.textContent:'–'; }
 }
 
 // =====================
