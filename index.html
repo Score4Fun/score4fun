@@ -2993,16 +2993,17 @@ async function renderGroupPronos(groupId) {
       ptsHtml = `<span style="font-size:11px;font-weight:700;color:var(--orange-dark);margin-right:4px;">${pts}/${max} pts</span>`;
     }
     const clickAction = closed ? `openResultDetail(${ev.id})` : `openPronoModal(${ev.id})`;
-    return `<div class="group-event-card" onclick="${clickAction}" style="cursor:pointer;flex-wrap:wrap;gap:6px;">
-      <div style="font-size:22px;flex-shrink:0;">${ev.emoji}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
-        <div style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px;">
-          <span>${ev.comp}</span>
-          ${ptsHtml}
+    const ptsColor = hasResult && myProno ? ((() => { const pts2=computeUserPoints(ev,myProno,official),max2=getMaxPts(ev); return pts2>=max2*0.6?'var(--green)':pts2>=max2*0.3?'#ff9800':'#e53935'; })()) : 'var(--orange-dark)';
+    return `<div class="group-event-card" onclick="${clickAction}" style="cursor:pointer;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="font-size:22px;flex-shrink:0;">${ev.emoji}</div>
+        <div style="flex:1;min-width:0;overflow:hidden;">
+          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.comp}</div>
         </div>
+        <span class="prono-tag ${done?'done-tag':closed?'closed-tag':'todo'}" style="flex-shrink:0;">${done?'✓ Fait':closed?'🔒 Fermé':'À faire →'}</span>
       </div>
-      <span class="prono-tag ${done?'done-tag':closed?'closed-tag':'todo'}" style="flex-shrink:0;">${done?'✓ Fait':closed?'🔒 Fermé':'À faire →'}</span>
+      ${ptsHtml ? `<div style="margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border);font-size:12px;font-weight:700;color:${ptsColor};">🎯 ${ptsHtml}</div>` : ''}
     </div>`;
   }).join('');
 }
