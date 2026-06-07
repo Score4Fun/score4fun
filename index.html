@@ -910,11 +910,17 @@ const EVENTS = [
     candidates:['Équipage A','Équipage B','Équipage C','Équipage D','Équipage E','Équipage F'],
     status:'soon', urgency:false, cutoff:'Fin sept.', deadline:'2026-10-03T12:00:00Z' },
 
-  { id:61, sport:'hippisme', comp:'Mauritius 2026', phase:'2026', emoji:'🏇',
-    name:'Course Principale Mauritius 2026', sub:'Ile Maurice · Top 4',
+  { id:61, sport:'hippisme', comp:'Mauritius 2026', phase:'Juin 2026', emoji:'🏇',
+    name:'The Barbé Cup G1', sub:'Ile Maurice · 1600m · Top 4',
     type:'top4',
     candidates:['Cheval A','Cheval B','Cheval C','Cheval D','Cheval E','Cheval F'],
-    status:'soon', urgency:false, cutoff:'2026', deadline:'2026-12-31T12:00:00Z' },
+    status:'open', urgency:true, cutoff:'27 juin', deadline:'2026-06-27T08:00:00Z' },
+
+  { id:62, sport:'hippisme', comp:'Mauritius 2026', phase:'Septembre 2026', emoji:'🏇',
+    name:'The Maiden Cup G1', sub:'Ile Maurice · 2400m · Top 4',
+    type:'top4',
+    candidates:['Cheval A','Cheval B','Cheval C','Cheval D','Cheval E','Cheval F'],
+    status:'soon', urgency:false, cutoff:'6 sept.', deadline:'2026-09-06T08:00:00Z' },
 ];
 
 const POINTS_MAP = { 0:10, 1:8, 2:6, 3:4 };
