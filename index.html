@@ -500,7 +500,7 @@
       <div class="modal-title" id="group-modal-title"></div>
       <div class="modal-sub" id="group-modal-sub"></div>
       <div id="group-modal-content"></div>
-      <button class="modal-close" onclick="document.getElementById('group-modal').classList.remove('open')">Fermer</button>
+      <button class="modal-close" onclick="document.getElementById('group-modal').classList.remove('open')">Close</button>
     </div>
   </div>
 
@@ -603,7 +603,7 @@
     <div class="modal-title" id="result-modal-title"></div>
     <div class="modal-sub" id="result-modal-sub"></div>
     <div id="result-modal-content"></div>
-    <button class="modal-close" onclick="document.getElementById('result-modal').classList.remove('open')">Fermer</button>
+    <button class="modal-close" onclick="document.getElementById('result-modal').classList.remove('open')">Close</button>
   </div>
 </div>
 
@@ -746,18 +746,18 @@ const SPORTS = [
 ];
 
 const TEAMS_CDM2026 = [
-  '🇲🇽 Mexique','🇿🇦 Afrique du Sud','🇰🇷 Corée du Sud','🇨🇿 Tchéquie',
-  '🇨🇦 Canada','🇧🇦 Bosnie','🇶🇦 Qatar','🇨🇭 Suisse',
+  '🇲🇽 Mexico','🇿🇦 South Africa','🇰🇷 South Korea','🇨🇿 Czechia',
+  '🇨🇦 Canada','🇧🇦 Bosnia','🇶🇦 Qatar','🇨🇭 Suisse',
   '🇧🇷 Brazil','🇲🇦 Morocco','🇭🇹 Haiti','🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland',
   '🇺🇸 USA','🇵🇾 Paraguay','🇦🇺 Australia','🇹🇷 Turkey',
-  '🇩🇪 Germany','🇨🇼 Curaçao','🇨🇮 Côte d\'Ivoire','🇪🇨 Équateur',
-  '🇳🇱 Netherlands','🇯🇵 Japan','🇸🇪 Sweden','🇹🇳 Tunisie',
+  '🇩🇪 Germany','🇨🇼 Curaçao','🇨🇮 Côte d\'Ivoire','🇪🇨 Ecuador',
+  '🇳🇱 Netherlands','🇯🇵 Japan','🇸🇪 Sweden','🇹🇳 Tunisia',
   '🇧🇪 Belgium','🇪🇬 Egypt','🇮🇷 Iran','🇳🇿 New Zealand',
-  '🇪🇸 Espagne','🇸🇦 Arabie Saoudite','🇺🇾 Uruguay','🇨🇻 Cap-Vert',
+  '🇪🇸 Spain','🇸🇦 Saudi Arabia','🇺🇾 Uruguay','🇨🇻 Cape Verde',
   '🇫🇷 France','🇸🇳 Senegal','🇳🇴 Norway','🇮🇶 Iraq',
   '🇦🇷 Argentina','🇩🇿 Algeria','🇦🇹 Austria','🇯🇴 Jordan',
   '🇵🇹 Portugal','🇨🇩 DR Congo','🇺🇿 Uzbekistan','🇨🇴 Colombia',
-  '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Angleterre','🇭🇷 Croatie','🇬🇭 Ghana','🇵🇦 Panama'
+  '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England','🇭🇷 Croatia','🇬🇭 Ghana','🇵🇦 Panama'
 ];
 
 
@@ -798,7 +798,7 @@ const EVENTS = [
     name:'Matchday · Jun 15–16', sub:'6 games · Spain, Belgium, France',
     type:'multi_match',
     matches:[
-      { key:'m1', team1:'🇪🇸 Espagne', team2:'🇨🇻 Cape Verde' },
+      { key:'m1', team1:'🇪🇸 Spain', team2:'🇨🇻 Cape Verde' },
       { key:'m2', team1:'🇧🇪 Belgium', team2:'🇪🇬 Egypt' },
       { key:'m3', team1:'🇸🇦 Saudi Arabia', team2:'🇺🇾 Uruguay' },
       { key:'m4', team1:'🇫🇷 France', team2:'🇸🇳 Senegal' },
@@ -831,7 +831,7 @@ const EVENTS = [
       { key:'m2', team1:'🇧🇷 Brazil', team2:'🇭🇹 Haiti' },
       { key:'m3', team1:'🇩🇪 Germany', team2:'🇨🇮 Ivory Coast' },
       { key:'m4', team1:'🇹🇳 Tunisia', team2:'🇯🇵 Japan' },
-      { key:'m5', team1:'🇪🇸 Espagne', team2:'🇸🇦 Saudi Arabia' },
+      { key:'m5', team1:'🇪🇸 Spain', team2:'🇸🇦 Saudi Arabia' },
       { key:'m6', team1:'🇧🇪 Belgium', team2:'🇮🇷 Iran' },
     ],
     scoring:{ perMatch:4 },
@@ -873,7 +873,7 @@ const EVENTS = [
     type:'multi_match',
     matches:[
       { key:'m1', team1:'🇳🇴 Norway', team2:'🇫🇷 France' },
-      { key:'m2', team1:'🇺🇾 Uruguay', team2:'🇪🇸 Espagne' },
+      { key:'m2', team1:'🇺🇾 Uruguay', team2:'🇪🇸 Spain' },
       { key:'m3', team1:'🇧🇪 Belgium', team2:'🇳🇿 New Zealand' },
       { key:'m4', team1:'🇵🇦 Panama', team2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' },
       { key:'m5', team1:'🇨🇴 Colombia', team2:'🇵🇹 Portugal' },
@@ -1219,7 +1219,7 @@ function updateTopBar() {
   if (!currentProfile) return;
   const p = currentProfile;
   document.getElementById('top-avatar').textContent = p.pseudo?p.pseudo[0].toUpperCase():'?';
-  document.getElementById('top-pseudo').textContent = p.pseudo||'Joueur';
+  document.getElementById('top-pseudo').textContent = p.pseudo||'–';
   document.getElementById('top-pts').textContent = (p.points||0)+' pts';
   document.getElementById('stat-pts').textContent = p.points||0;
   // Rating calculé async séparément
@@ -1415,7 +1415,7 @@ function renderHomeEvents() {
     // Vue sport spécifique : style tuiles — exclure les fermés (dans Résultats)
     const visible = sorted.filter(ev => ev.status === 'soon' || !isTrulyClosed(ev));
     if (!visible.length) {
-      container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">Tous les pronostics sont fermés — retrouve-les dans Résultats !</p>';
+      container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0;">All picks are closed — check them in Results!</p>';
       return;
     }
     container.innerHTML = '<div class="events-grid">' + visible.map(ev=>renderEventCard(ev)).join('') + '</div>';
@@ -1452,8 +1452,8 @@ function renderEventCard(ev) {
       </div>
       ${!closed
         ? done
-          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
-          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
+          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Edit</button>`
+          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pick →</button>`
         : `<button class="prono-btn view">Fermé 🔒</button>`}`;
   } else if (ev.type === 'opening_match') {
     const ex = userPronos[ev.id] || {};
@@ -1466,8 +1466,8 @@ function renderEventCard(ev) {
       </div>
       ${!closed
         ? done
-          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
-          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
+          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Edit</button>`
+          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pick →</button>`
         : `<button class="prono-btn view">Fermé 🔒</button>`}`;
   } else if (ev.type === 'multi_match') {
     const ex = userPronos[ev.id] || {};
@@ -1480,8 +1480,8 @@ function renderEventCard(ev) {
       </div>
       ${!closed
         ? done
-          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
-          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
+          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Edit</button>`
+          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pick →</button>`
         : `<button class="prono-btn view">Fermé 🔒</button>`}`;
     } else if (ev.type === '1x2' && !isClosed(ev)) {
     const sel = userPronos[ev.id]?.result || '';
@@ -1507,8 +1507,8 @@ function renderEventCard(ev) {
         ? `<button class="prono-btn view">Fermé 🔒</button>`
         : ev.status==='open'
           ? done
-            ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
-            : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
+            ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Edit</button>`
+            : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pick →</button>`
           : `<button class="prono-btn view">Coming soon 🔜</button>`}`;
   }
 
@@ -1583,7 +1583,7 @@ function openPronoModal(eventId) {
       <div class="question-row">
         <div class="question-label">🏆 Qui gagne ?</div>
         <select class="question-select" id="q-winner">
-          <option value="">— Choisir —</option>
+          <option value="">— Select —</option>
           <option value="${currentEvent.player1}" ${ex.winner===currentEvent.player1?'selected':''}>${currentEvent.player1}</option>
           <option value="${currentEvent.player2}" ${ex.winner===currentEvent.player2?'selected':''}>${currentEvent.player2}</option>
         </select>
@@ -1592,7 +1592,7 @@ function openPronoModal(eventId) {
       <div class="question-row">
         <div class="question-label">📊 En combien de sets ?</div>
         <select class="question-select" id="q-sets">
-          <option value="">— Choisir —</option>${setsOpts(ex.sets)}
+          <option value="">— Select —</option>${setsOpts(ex.sets)}
         </select>
         <div class="question-pts">6 pts</div>
       </div>
@@ -1607,28 +1607,28 @@ function openPronoModal(eventId) {
       <div class="question-row">
         <div class="question-label">🏆 Qui gagne la finale ?</div>
         <select class="question-select" id="q-winner">
-          <option value="">— Choisir —</option>${makeOpts(ex.winner)}
+          <option value="">— Select —</option>${makeOpts(ex.winner)}
         </select>
         <div class="question-pts">10 pts</div>
       </div>
       <div class="question-row">
         <div class="question-label">📊 En combien de sets ?</div>
         <select class="question-select" id="q-sets">
-          <option value="">— Choisir —</option>${setsOpts(ex.sets)}
+          <option value="">— Select —</option>${setsOpts(ex.sets)}
         </select>
         <div class="question-pts">6 pts</div>
       </div>
       <div class="question-row">
         <div class="question-label">1️⃣ Qui gagne le 1er set ?</div>
         <select class="question-select" id="q-first-set">
-          <option value="">— Choisir —</option>${makeOpts(ex.first_set)}
+          <option value="">— Select —</option>${makeOpts(ex.first_set)}
         </select>
         <div class="question-pts">4 pts</div>
       </div>
       <div class="question-row">
         <div class="question-label">⚡ Nombre d'aces total ?</div>
         <select class="question-select" id="q-aces">
-          <option value="">— Choisir —</option>
+          <option value="">— Select —</option>
           <option value="0-10" ${ex.aces==='0-10'?'selected':''}>0 to 10 aces</option>
           <option value="11-20" ${ex.aces==='11-20'?'selected':''}>11 to 20 aces</option>
           <option value="21-30" ${ex.aces==='21-30'?'selected':''}>21 to 30 aces</option>
@@ -1647,28 +1647,28 @@ function openPronoModal(eventId) {
       <div class="question-row">
         <div class="question-label">🏆 Qui gagne la finale ?</div>
         <select class="question-select" id="q-winner">
-          <option value="">— Choisir —</option>${makeOpts(ex.winner)}
+          <option value="">— Select —</option>${makeOpts(ex.winner)}
         </select>
         <div class="question-pts">10 pts</div>
       </div>
       <div class="question-row">
         <div class="question-label">📊 En combien de sets ?</div>
         <select class="question-select" id="q-sets">
-          <option value="">— Choisir —</option>${setsOpts(ex.sets)}
+          <option value="">— Select —</option>${setsOpts(ex.sets)}
         </select>
         <div class="question-pts">6 pts</div>
       </div>
       <div class="question-row">
         <div class="question-label">1️⃣ Qui gagne le 1er set ?</div>
         <select class="question-select" id="q-first-set">
-          <option value="">— Choisir —</option>${makeOpts(ex.first_set)}
+          <option value="">— Select —</option>${makeOpts(ex.first_set)}
         </select>
         <div class="question-pts">4 pts</div>
       </div>
       <div class="question-row">
         <div class="question-label">⚡ Nombre d'aces total ?</div>
         <select class="question-select" id="q-aces">
-          <option value="">— Choisir —</option>
+          <option value="">— Select —</option>
           <option value="0-5" ${ex.aces==='0-5'?'selected':''}>0 to 5 aces</option>
           <option value="6-12" ${ex.aces==='6-12'?'selected':''}>6 to 12 aces</option>
           <option value="13-20" ${ex.aces==='13-20'?'selected':''}>13 to 20 aces</option>
@@ -1716,18 +1716,18 @@ function openPronoModal(eventId) {
       ${podium.map(([k,label])=>`
         <div style="margin-bottom:8px;">
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div>
-          <select id="q-${k}" class="question-select"><option value="">-- Choisir une équipe --</option>${teamOpts(k)}</select>
+          <select id="q-${k}" class="question-select"><option value="">-- Select a team --</option>${teamOpts(k)}</select>
         </div>`).join('')}
-      <div class="modal-section" style="margin-top:18px;">⚽ Meilleur buteur · 7 pts + 4 pts</div>
+      <div class="modal-section" style="margin-top:18px;">⚽ Top Scorer · 7 pts + 4 pts</div>
       <div style="margin-bottom:8px;">
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nationality</div>
-        <select id="q-topScorer" class="question-select"><option value="">-- Choisir --</option>${teamOpts('topScorer')}</select>
+        <select id="q-topScorer" class="question-select"><option value="">-- Select --</option>${teamOpts('topScorer')}</select>
       </div>
       <div style="margin-bottom:8px;">
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Number of goals</div>
-        <select id="q-topGoals" class="question-select"><option value="">-- Choisir --</option>${goalsOpts}</select>
+        <select id="q-topGoals" class="question-select"><option value="">-- Select --</option>${goalsOpts}</select>
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Podium 10-8-6-4 (partiel si proche) · Nationalité buteur = 7 pts · Fourchette buts = 4 pts · Max : 39 pts</div>`;
+      <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Podium 10-8-6-4 (partial if close) · Scorer nationality = 7 pts · Goal range = 4 pts · Max: 39 pts</div>`;
   } else if (currentEvent.type === 'multi_match') {
     const ex = userPronos[currentEvent.id] || {};
     const matchHtml = currentEvent.matches.map(m => {
@@ -1749,7 +1749,7 @@ function openPronoModal(eventId) {
       const topOpts = currentEvent.topScorer.map(t=>`<option value="${t}" ${ex.topScorer===t?'selected':''}>${t}</option>`).join('');
       return `<div class="modal-section">🥇 Quelle équipe marquera le plus de buts ? <span style="font-size:10px;color:var(--text-muted);">3 pts</span></div>
       <select class="question-select" id="q-topscorer" style="width:100%;margin-bottom:4px;">
-        <option value="">— Choisir une équipe —</option>${topOpts}
+        <option value="">— Select a team —</option>${topOpts}
       </select>
       <div class="points-info">🎯 ${currentEvent.matches.length} bons résultats + top buteur = <strong>${currentEvent.matches.length*(currentEvent.scoring?.perMatch||4)+3} pts max</strong></div>`;
     })() : `<div class="points-info">🎯 ${currentEvent.matches.length} bons résultats = <strong>${currentEvent.matches.length*(currentEvent.scoring?.perMatch||4)} pts max</strong>${currentEvent.scoring?.bonus?' · Bonus si tout bon !':''}</div>`;
@@ -1766,7 +1766,7 @@ function openPronoModal(eventId) {
           <div class="top4-row">
             <div class="top4-pos">${i+1}</div>
             <select class="top4-select" id="top4-${i}" onchange="updateSelects()">
-              <option value="">— Choisir —</option>
+              <option value="">— Select —</option>
               ${cands.map(c=>`<option value="${c}" ${c===ex4[i]?'selected':''}>${c}</option>`).join('')}
             </select>
             <div class="top4-pts">${POINTS_MAP[i]} pts</div>
@@ -1775,7 +1775,7 @@ function openPronoModal(eventId) {
       <div class="modal-section">⚡ Fastest lap</div>
       <div class="question-row">
         <select class="question-select" id="q-fastest" style="width:100%">
-          <option value="">— Choisir un pilote —</option>
+          <option value="">— Select a driver —</option>
           ${makeOpts(ex.fastest)}
         </select>
         <div class="question-pts">4 pts</div>
@@ -1795,7 +1795,7 @@ function openPronoModal(eventId) {
           <div class="top4-row">
             <div class="top4-pos">${i+1}</div>
             <select class="top4-select" id="top4-${i}" onchange="updateSelects()">
-              <option value="">— Choisir —</option>
+              <option value="">— Select —</option>
               ${cands.map(c=>`<option value="${c}" ${c===ex4[i]?'selected':''}>${c}</option>`).join('')}
             </select>
             <div class="top4-pts">${POINTS_MAP[i]} pts</div>
@@ -2096,7 +2096,7 @@ function openResultDetail(eventId) {
       if (j === -1) return 0;
       return Math.max(0, Math.min(POINTS_MAP[i]||0, POINTS_MAP[j]||0) - Math.abs(i-j));
     };
-    html += `<div class="rd-section">Top 4 — barème 10-8-6-4 pts (partiel si proche)</div>`;
+    html += `<div class="rd-section">Top 4 — 10-8-6-4 pts (partial if close)</div>`;
     offTop4.forEach((official_driver, i) => {
       const myPick = myTop4[i];
       const partialPts = top4PartialPts(myPick, i);
@@ -2142,7 +2142,7 @@ function getRowPts(ev, label) {
   if (ev.type === 'tournament_bonus') {
     if (['🥇 Champion','🥈 Finaliste','🥉 3ème place','4ème place'].includes(label)) return sc.podium||5;
     if (label === 'Top scorer (nat.)') return sc.topScorer||5;
-    if (label === 'Fourchette buts') return sc.topGoals||3;
+    if (label === 'Goal range') return sc.topGoals||3;
   }
   return 3;
 }
@@ -2237,7 +2237,7 @@ function setAdminTab(tab) {
 
 async function renderAdminGroups() {
   const el = document.getElementById('admin-groups-list');
-  el.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+  el.innerHTML = '<div style="padding:16px;color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
 
   const {data:groups} = await sb.from('groups').select('id,name,code,created_by,members_count,created_at').order('created_at', {ascending:false});
   if (!groups || !groups.length) {
@@ -2288,7 +2288,7 @@ async function renderAdminGroups() {
 
 async function renderAdminUsers() {
   const el = document.getElementById('admin-users-list');
-  el.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+  el.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
   const {data, error} = await sb.from('profiles').select('id,pseudo,email,points,pronos_count').order('pseudo');
   if (error || !data) { el.innerHTML = '<div style="color:#c62828;">❌ Erreur</div>'; return; }
   el.innerHTML = data.map(u => {
@@ -2402,7 +2402,7 @@ function renderAdminForm(ev, existing) {
       `<button onclick="saveResult(${ev.id},'multi_match')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
   if (ev.type === 'tournament_bonus') {
-    const keys = [['champion','🥇 Champion'],['finaliste','🥈 Finaliste'],['third','🥉 3ème'],['fourth','4ème'],['topScorer','Top scorer (nat.)'],['topGoals','Fourchette buts']];
+    const keys = [['champion','🥇 Champion'],['finaliste','🥈 Runner-up'],['third','🥉 3rd'],['fourth','4th'],['topScorer','Top scorer (nat.)'],['topGoals','Goal range']];
     const goalsOpts = ['Under 6 goals','6-8 goals','9-11 goals','12-13 goals','13+, more than Just Fontaine 😢'];
     return keys.map(([k,label]) => `
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;">
@@ -2673,7 +2673,7 @@ function renderRankList(rows, container, sport, comp) {
 async function loadRankings(sport, comp) {
   const list = document.getElementById('full-rank-list');
   if (!list) return;
-  list.innerHTML = '<div style="padding:20px 16px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+  list.innerHTML = '<div style="padding:20px 16px;color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
   try {
     if (!sport) {
       // Général : profiles.points (déjà cumulé par calculatePoints)
@@ -2737,7 +2737,7 @@ async function loadRankingsHome() {
     const rankRow = (p,i) => {
       const isMe=currentProfile&&p.pseudo===currentProfile.pseudo;
       const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-      return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${medal||i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo||'Joueur'}</span><span class="rank-pts">${p.points||0} pts</span></div>`;
+      return `<div class="rank-row"><span class="rank-pos ${isMe?'me':''}">${medal||i+1}</span><span class="rank-name ${isMe?'me':''}">${p.pseudo||'–'}</span><span class="rank-pts">${p.points||0} pts</span></div>`;
     };
 
     // Football calculé
@@ -2809,7 +2809,7 @@ function switchRankCompTab(el, comp) {
 // =====================
 async function renderGroupes() {
   const cards = document.getElementById('group-cards');
-  cards.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⏳ Chargement…</div>';
+  cards.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">⏳ Loading…</div>';
 
   const {data, error} = await sb.from('group_members').select('group_id').eq('user_id', currentUser.id);
   if (error || !data || !data.length) {
@@ -2877,9 +2877,9 @@ async function renderGroupes() {
       <div style="margin:8px 0;">${top3 || '<div style="font-size:12px;color:var(--text-muted);">Pas encore de points</div>'}</div>
       <div class="group-card-code">
         <span>🔗 Code: <strong>${g.code}</strong></span>
-        <button class="copy-btn" onclick="copyGroupInvite('${g.code}','${g.name.replace(/'/g,"\'")}')">Partager 📤</button>
+        <button class="copy-btn" onclick="copyGroupInvite('${g.code}','${g.name.replace(/'/g,"\'")}')">Share 📤</button>
       </div>
-      ${isAdmin ? `<button onclick="deleteGroup('${g.id}')" style="margin-top:8px;font-size:11px;color:#999;background:none;border:none;cursor:pointer;">🗑 Supprimer le groupe</button>` : `<button onclick="leaveGroup('${g.id}')" style="margin-top:8px;font-size:11px;color:#999;background:none;border:none;cursor:pointer;">↩ Quitter le groupe</button>`}
+      ${isAdmin ? `<button onclick="deleteGroup('${g.id}')" style="margin-top:8px;font-size:11px;color:#999;background:none;border:none;cursor:pointer;">🗑 Delete group</button>` : `<button onclick="leaveGroup('${g.id}')" style="margin-top:8px;font-size:11px;color:#999;background:none;border:none;cursor:pointer;">↩ Leave group</button>`}
     </div>`;
   }
   cards.innerHTML = html;
@@ -2888,7 +2888,7 @@ async function renderGroupes() {
 async function openGroupDetail(groupId, groupName) {
   const modal = document.getElementById('group-modal');
   document.getElementById('group-modal-title').textContent = '👥 ' + groupName;
-  document.getElementById('group-modal-content').innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:12px 0;">⏳ Chargement…</div>';
+  document.getElementById('group-modal-content').innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:12px 0;">⏳ Loading…</div>';
   modal.classList.add('open');
 
   const {data:members} = await sb.from('group_members').select('user_id').eq('group_id', groupId);
@@ -2959,7 +2959,7 @@ async function joinGroup() {
 }
 
 async function leaveGroup(groupId) {
-  if (!confirm('Quitter ce groupe ?')) return;
+  if (!confirm('Leave this group?')) return;
   await sb.from('group_members').delete().eq('group_id', groupId).eq('user_id', currentUser.id);
   showToast('Tu as quitté le groupe');
   renderGroupes();
@@ -3106,7 +3106,7 @@ function toggleGroupClassement() {
 
 async function renderGroupPronos(groupId) {
   const list = document.getElementById('group-events-list');
-  list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+  list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
 
   const {data:gevents} = await sb.from('group_events').select('event_id').eq('group_id', groupId);
   if (!gevents || !gevents.length) {
@@ -3161,7 +3161,7 @@ async function renderGroupPronos(groupId) {
 
 async function renderGroupManage(groupId) {
   const list = document.getElementById('group-manage-list');
-  list.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">⏳ Chargement…</div>';
+  list.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">⏳ Loading…</div>';
 
   const {data:gevents} = await sb.from('group_events').select('event_id').eq('group_id', groupId);
   const activeIds = new Set((gevents||[]).map(e => Number(e.event_id)));
@@ -3228,7 +3228,7 @@ function renderProfil() {
   if (!currentProfile) return;
   const p=currentProfile;
   document.getElementById('profil-avatar').textContent=p.pseudo?p.pseudo[0].toUpperCase():'?';
-  document.getElementById('profil-pseudo').textContent=p.pseudo||'Joueur';
+  document.getElementById('profil-pseudo').textContent=p.pseudo||'–';
   document.getElementById('profil-pts').textContent=p.points||0;
   document.getElementById('profil-pronos').textContent=p.pronos_count||0;
   document.getElementById('profil-badges').textContent=p.badges_count||0;
@@ -3300,7 +3300,7 @@ async function openGroupMemberProfile(uid, pseudo) {
   const header = document.getElementById('member-modal-header');
   const body   = document.getElementById('member-modal-body');
   header.innerHTML = '';
-  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
   modal.classList.add('open');
 
   const [profRes, pronosRes] = await Promise.all([
@@ -3349,7 +3349,7 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   const header = document.getElementById('member-modal-header');
   const body   = document.getElementById('member-modal-body');
   header.innerHTML = '';
-  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
+  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
   modal.classList.add('open');
 
   // Référence réelle : events qui ont un résultat officiel en DB
