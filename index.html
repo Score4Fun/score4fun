@@ -2967,26 +2967,27 @@ async function renderGroupPronos(groupId) {
   const groupEventIds = gevents.map(e => Number(e.event_id));
   const events = EVENTS.filter(e => groupEventIds.includes(e.id));
 
-  // Charger résultats officiels et prono de l'utilisateur pour les events fermés
-  const closedIds = events.filter(ev => isTrulyClosed(ev)).map(ev => ev.id);
+  // Source de vérité = table results en DB (pas isTrulyClosed)
   const officialMap = {};
   const myPronoMap = {};
-  if (closedIds.length && currentUser) {
+  if (groupEventIds.length && currentUser) {
     const [{data:resData}, {data:pronoData}] = await Promise.all([
-      sb.from('results').select('event_id,result_data').in('event_id', closedIds),
-      sb.from('pronos').select('event_id,data').eq('user_id', currentUser.id).in('event_id', closedIds)
+      sb.from('results').select('event_id,result_data').in('event_id', groupEventIds),
+      sb.from('pronos').select('event_id,data').eq('user_id', currentUser.id).in('event_id', groupEventIds)
     ]);
-    if (resData) resData.forEach(r => { officialMap[r.event_id] = r.result_data; });
-    if (pronoData) pronoData.forEach(p => { myPronoMap[p.event_id] = p.data; });
+    if (resData) resData.forEach(r => { officialMap[Number(r.event_id)] = r.result_data; });
+    if (pronoData) pronoData.forEach(p => { myPronoMap[Number(p.event_id)] = p.data; });
   }
+  const scoredEventIds = new Set(Object.keys(officialMap).map(Number));
 
   list.innerHTML = events.map(ev => {
     const done = isDone(ev.id);
-    const closed = isTrulyClosed(ev);
+    const hasResult = scoredEventIds.has(ev.id);
+    const closed = isTrulyClosed(ev) || hasResult;
     const official = officialMap[ev.id];
     const myProno = myPronoMap[ev.id];
     let ptsHtml = '';
-    if (closed && official && myProno) {
+    if (hasResult && official && myProno) {
       const pts = computeUserPoints(ev, myProno, official);
       const max = getMaxPts(ev);
       ptsHtml = `<span style="font-size:11px;font-weight:700;color:var(--orange-dark);margin-right:4px;">${pts}/${max} pts</span>`;
