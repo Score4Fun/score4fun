@@ -987,7 +987,7 @@ const EVENTS = [
 
   // ===== CYCLISME =====
   { id:40, sport:'cyclisme', comp:'Tour de France 2026', phase:'General Classification', emoji:'🚴',
-    name:'Vainqueur TDF 2026', sub:'Tour de France 2026 · Top 4', type:'top4',
+    name:'TDF 2026 Winner', sub:'Tour de France 2026 · Top 4', type:'top4',
     candidates:['Tadej Pogacar','Jonas Vingegaard','Remco Evenepoel','Primoz Roglic','Adam Yates','Egan Bernal'],
     status:'soon', urgency:false, cutoff:'End of June', deadline:'2026-06-27T08:00:00Z' },
 
@@ -1055,11 +1055,11 @@ function isTrulyClosed(ev) {
 function getCountdown(ev) {
   if (!ev.deadline) return ev.cutoff;
   const diff = new Date(ev.deadline) - new Date();
-  if (diff <= 0) return '🔒 Fermé';
+  if (diff <= 0) return '🔒 Closed';
   const days = Math.floor(diff / 86400000);
   const h = Math.floor(diff / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
-  if (days >= 2) return `📅 ${days}j restants`;
+  if (days >= 2) return `📅 ${days}d left`;
   if (h >= 2) return `⏱ ${h}h${String(m).padStart(2,'0')}`;
   return `⏱ ${m} min`;
 }
@@ -1407,7 +1407,7 @@ function renderHomeEvents() {
           <div class="prono-sub">${ev.comp} · <span style="color:${soon?'var(--text-muted)':closed?'var(--text-muted)':'var(--orange-dark)'};">${countdown}</span></div>
         </div>
         <span class="prono-tag ${done?'done-tag':soon?'closed-tag':closed?'closed-tag':'todo'}">
-          ${done?'✓ Fait':soon?'Bientôt 🔜':closed?'Fermé':'À faire'}
+          ${done?'✓ Done':soon?'Soon 🔜':closed?'Closed':'To pick'}
         </span>
       </div>`;
     }).join('') + '</div>';
@@ -1448,7 +1448,7 @@ function renderEventCard(ev) {
     inner = `
       <div class="event-status">
         <div class="status-dot ${done?'done-dot':closed?'closed':''}"></div>
-        <span class="status-text">${done?'🎯 Prono enregistré !':nbDone>0?`${nbDone}/6 questions répondues`:'6 questions à répondre'}</span>
+        <span class="status-text">${done?'🎯 Pick saved!':nbDone>0?`${nbDone}/6 questions répondues`:'6 questions à répondre'}</span>
       </div>
       ${!closed
         ? done
@@ -1462,7 +1462,7 @@ function renderEventCard(ev) {
     inner = `
       <div class="event-status">
         <div class="status-dot ${done?'done-dot':closed?'closed':''}"></div>
-        <span class="status-text">${done?'🎯 Prono enregistré !':nb>0?`${nb}/3 questions répondues`:'3 questions à répondre'}</span>
+        <span class="status-text">${done?'🎯 Pick saved!':nb>0?`${nb}/3 questions répondues`:'3 questions à répondre'}</span>
       </div>
       ${!closed
         ? done
@@ -1476,7 +1476,7 @@ function renderEventCard(ev) {
     inner = `
       <div class="event-status">
         <div class="status-dot ${done?'done-dot':closed?'closed':''}"></div>
-        <span class="status-text">${done?'🎯 Prono enregistré !':nbDone>0?`${nbDone}/${ev.matches.length} matchs joués`:`${ev.matches.length} matchs à pronostiquer`}</span>
+        <span class="status-text">${done?'🎯 Pick saved!':nbDone>0?`${nbDone}/${ev.matches.length} matchs joués`:`${ev.matches.length} matchs à pronostiquer`}</span>
       </div>
       ${!closed
         ? done
@@ -1501,7 +1501,7 @@ function renderEventCard(ev) {
     inner = `
       <div class="event-status">
         <div class="status-dot ${done?'done-dot':evClosed||ev.status==='soon'?'closed':''}"></div>
-        <span class="status-text">${done?'🎯 Prono enregistré !':evClosed?'Fermé 🔒':ev.status==='open'?'Ouvert !':'Bientôt'}</span>
+        <span class="status-text">${done?'🎯 Pick saved!':evClosed?'Closed 🔒':ev.status==='open'?'Open!':'Soon'}</span>
       </div>
       ${evClosed
         ? `<button class="prono-btn view">Fermé 🔒</button>`
@@ -1516,7 +1516,7 @@ function renderEventCard(ev) {
     <div class="event-header">
       <span class="sport-tag">${ev.emoji} ${ev.sport==='f1'?'F1':ev.sport.charAt(0).toUpperCase()+ev.sport.slice(1)}</span>
       ${done
-        ? '<span class="done-badge">✓ Fait</span>'
+        ? '<span class="done-badge">✓ Done</span>'
         : `<span class="countdown ${ev.urgency&&!isClosed(ev)?'urgent':''}">${getCountdown(ev)}</span>`}
     </div>
     <div class="event-name">${ev.name}</div>
@@ -1537,7 +1537,7 @@ async function quickSelect(eventId, result, el, e) {
   // Mise à jour UI immédiate (optimiste)
   userPronos[eventId] = {result};
   const cdSpan = card.querySelector('.countdown');
-  if (cdSpan) { cdSpan.className='done-badge'; cdSpan.textContent='✓ Fait'; }
+  if (cdSpan) { cdSpan.className='done-badge'; cdSpan.textContent='✓ Done'; }
   card.classList.add('done'); card.classList.remove('urgent');
   showToast('✅ Pronostic enregistré !');
   if (isNew) { currentProfile.pronos_count=(currentProfile.pronos_count||0)+1; updateTopBar(); unlockBadge('🎯'); }
@@ -1571,7 +1571,7 @@ function openPronoModal(eventId) {
       <div style="font-size:14px;font-weight:500;text-align:center;margin-bottom:12px;">${currentEvent.team1} vs ${currentEvent.team2}</div>
       <div class="modal-1x2">
         <div class="modal-1x2-btn ${sel==='1'?'selected':''}" onclick="select1x2('1',this)">1<br><small>${currentEvent.team1}</small></div>
-        <div class="modal-1x2-btn ${sel==='X'?'selected':''}" onclick="select1x2('X',this)">X<br><small>Match nul</small></div>
+        <div class="modal-1x2-btn ${sel==='X'?'selected':''}" onclick="select1x2('X',this)">X<br><small>Draw</small></div>
         <div class="modal-1x2-btn ${sel==='2'?'selected':''}" onclick="select1x2('2',this)">2<br><small>${currentEvent.team2}</small></div>
       </div>
       <div class="points-info">🎯 Bonne prédiction = <strong>4 pts</strong> · Mauvaise = 0 pt</div>`;
@@ -1629,10 +1629,10 @@ function openPronoModal(eventId) {
         <div class="question-label">⚡ Nombre d'aces total ?</div>
         <select class="question-select" id="q-aces">
           <option value="">— Choisir —</option>
-          <option value="0-10" ${ex.aces==='0-10'?'selected':''}>0 à 10 aces</option>
-          <option value="11-20" ${ex.aces==='11-20'?'selected':''}>11 à 20 aces</option>
-          <option value="21-30" ${ex.aces==='21-30'?'selected':''}>21 à 30 aces</option>
-          <option value="30+" ${ex.aces==='30+'?'selected':''}>Plus de 30 aces</option>
+          <option value="0-10" ${ex.aces==='0-10'?'selected':''}>0 to 10 aces</option>
+          <option value="11-20" ${ex.aces==='11-20'?'selected':''}>11 to 20 aces</option>
+          <option value="21-30" ${ex.aces==='21-30'?'selected':''}>21 to 30 aces</option>
+          <option value="30+" ${ex.aces==='30+'?'selected':''}>30+ aces</option>
         </select>
         <div class="question-pts">3 pts</div>
       </div>
@@ -1669,10 +1669,10 @@ function openPronoModal(eventId) {
         <div class="question-label">⚡ Nombre d'aces total ?</div>
         <select class="question-select" id="q-aces">
           <option value="">— Choisir —</option>
-          <option value="0-5" ${ex.aces==='0-5'?'selected':''}>0 à 5 aces</option>
-          <option value="6-12" ${ex.aces==='6-12'?'selected':''}>6 à 12 aces</option>
-          <option value="13-20" ${ex.aces==='13-20'?'selected':''}>13 à 20 aces</option>
-          <option value="20+" ${ex.aces==='20+'?'selected':''}>Plus de 20 aces</option>
+          <option value="0-5" ${ex.aces==='0-5'?'selected':''}>0 to 5 aces</option>
+          <option value="6-12" ${ex.aces==='6-12'?'selected':''}>6 to 12 aces</option>
+          <option value="13-20" ${ex.aces==='13-20'?'selected':''}>13 to 20 aces</option>
+          <option value="20+" ${ex.aces==='20+'?'selected':''}>20+ aces</option>
         </select>
         <div class="question-pts">3 pts</div>
       </div>
@@ -1686,31 +1686,31 @@ function openPronoModal(eventId) {
       <div style="font-size:11px;font-weight:600;color:var(--orange);background:var(--orange-bg);padding:2px 8px;border-radius:10px;">${pts} pts</div>
     </div>`;
     content.innerHTML = `
-      ${qLabel('⚽','Résultat final',5)}
+      ${qLabel('⚽','Final result',5)}
       <div style="display:flex;gap:6px;margin-bottom:4px;" data-q="result">
-        <div class="btn-sm-1x2 ${sel('result','1')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="1" onclick="selectOpeningBtn('result',this)"><span style="font-size:17px;font-weight:800;">1</span><small style="font-size:10px;opacity:.75;">🇲🇽 Mexique</small></div>
-        <div class="btn-sm-1x2 ${sel('result','X')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="X" onclick="selectOpeningBtn('result',this)"><span style="font-size:17px;font-weight:800;">X</span><small style="font-size:10px;opacity:.75;">Nul</small></div>
-        <div class="btn-sm-1x2 ${sel('result','2')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="2" onclick="selectOpeningBtn('result',this)"><span style="font-size:17px;font-weight:800;">2</span><small style="font-size:10px;opacity:.75;">🇿🇦 Afr. du Sud</small></div>
+        <div class="btn-sm-1x2 ${sel('result','1')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="1" onclick="selectOpeningBtn('result',this)"><span style="font-size:17px;font-weight:800;">1</span><small style="font-size:10px;opacity:.75;">🇲🇽 Mexico</small></div>
+        <div class="btn-sm-1x2 ${sel('result','X')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="X" onclick="selectOpeningBtn('result',this)"><span style="font-size:17px;font-weight:800;">X</span><small style="font-size:10px;opacity:.75;">Draw</small></div>
+        <div class="btn-sm-1x2 ${sel('result','2')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="2" onclick="selectOpeningBtn('result',this)"><span style="font-size:17px;font-weight:800;">2</span><small style="font-size:10px;opacity:.75;">🇿🇦 S. Africa</small></div>
       </div>
-      ${qLabel('⏱','Résultat à la mi-temps',3)}
+      ${qLabel('⏱','Half-time result',3)}
       <div style="display:flex;gap:6px;margin-bottom:4px;" data-q="halftime">
-        <div class="btn-sm-1x2 ${sel('halftime','1')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="1" onclick="selectOpeningBtn('halftime',this)"><span style="font-size:17px;font-weight:800;">1</span><small style="font-size:10px;opacity:.75;">🇲🇽 Mexique</small></div>
-        <div class="btn-sm-1x2 ${sel('halftime','X')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="X" onclick="selectOpeningBtn('halftime',this)"><span style="font-size:17px;font-weight:800;">X</span><small style="font-size:10px;opacity:.75;">Nul</small></div>
-        <div class="btn-sm-1x2 ${sel('halftime','2')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="2" onclick="selectOpeningBtn('halftime',this)"><span style="font-size:17px;font-weight:800;">2</span><small style="font-size:10px;opacity:.75;">🇿🇦 Afr. du Sud</small></div>
+        <div class="btn-sm-1x2 ${sel('halftime','1')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="1" onclick="selectOpeningBtn('halftime',this)"><span style="font-size:17px;font-weight:800;">1</span><small style="font-size:10px;opacity:.75;">🇲🇽 Mexico</small></div>
+        <div class="btn-sm-1x2 ${sel('halftime','X')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="X" onclick="selectOpeningBtn('halftime',this)"><span style="font-size:17px;font-weight:800;">X</span><small style="font-size:10px;opacity:.75;">Draw</small></div>
+        <div class="btn-sm-1x2 ${sel('halftime','2')}" style="flex:1;height:50px;flex-direction:column;gap:2px;" data-val="2" onclick="selectOpeningBtn('halftime',this)"><span style="font-size:17px;font-weight:800;">2</span><small style="font-size:10px;opacity:.75;">🇿🇦 S. Africa</small></div>
       </div>
-      ${qLabel('🥅','Quelle équipe scorera en premier ?',3)}
+      ${qLabel('🥅','Which team scores first?',3)}
       <div style="display:flex;gap:6px;" data-q="firstScorer">
-        <div class="btn-sm-1x2 ${sel('firstScorer','Mexico')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Mexique" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🇲🇽</span><small style="font-size:10px;">Mexique</small></div>
-        <div class="btn-sm-1x2 ${sel('firstScorer','South Africa')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Afrique du Sud" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🇿🇦</span><small style="font-size:10px;">Afr. du Sud</small></div>
-        <div class="btn-sm-1x2 ${sel('firstScorer','No goal')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Aucun but" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🫙</span><small style="font-size:10px;">Aucun but</small></div>
+        <div class="btn-sm-1x2 ${sel('firstScorer','Mexico')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="Mexico" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🇲🇽</span><small style="font-size:10px;">Mexico</small></div>
+        <div class="btn-sm-1x2 ${sel('firstScorer','South Africa')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="South Africa" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🇿🇦</span><small style="font-size:10px;">S. Africa</small></div>
+        <div class="btn-sm-1x2 ${sel('firstScorer','No goal')}" style="flex:1;height:54px;flex-direction:column;gap:3px;" data-val="No goal" onclick="selectOpeningBtn('firstScorer',this)"><span style="font-size:22px;">🫙</span><small style="font-size:10px;">No goal</small></div>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:14px;text-align:center;">🎯 Total max : <strong>11 pts</strong></div>`;
   } else if (currentEvent.type === 'tournament_bonus') {
     const ex = userPronos[currentEvent.id] || {};
     const teamOpts = k => TEAMS_CDM2026.map(n=>`<option value="${n}" ${ex[k]===n?'selected':''}>${n}</option>`).join('');
-    const goalsOpts = ['Moins de 6 buts','6-8 buts','9-11 buts','12-13 buts','13+, plus que Just Fontaine 😢']
+    const goalsOpts = ['Under 6 goals','6-8 goals','9-11 goals','12-13 goals','13+, more than Just Fontaine 😢']
       .map(v=>`<option value="${v}" ${ex.topGoals===v?'selected':''}>${v}</option>`).join('');
-    const podium = [['champion','🥇 Champion du monde'],['finaliste','🥈 Finaliste'],['third','🥉 3ème place'],['fourth','4ème place']];
+    const podium = [['champion','🥇 World Champion'],['runner_up','🥈 Runner-up'],['third','🥉 3rd place'],['fourth','4th place']];
     content.innerHTML = `
       <div class="modal-section">🏆 Top 4 du tournoi · 10-8-6-4 pts</div>
       ${podium.map(([k,label])=>`
@@ -1720,11 +1720,11 @@ function openPronoModal(eventId) {
         </div>`).join('')}
       <div class="modal-section" style="margin-top:18px;">⚽ Meilleur buteur · 7 pts + 4 pts</div>
       <div style="margin-bottom:8px;">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nationalité</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nationality</div>
         <select id="q-topScorer" class="question-select"><option value="">-- Choisir --</option>${teamOpts('topScorer')}</select>
       </div>
       <div style="margin-bottom:8px;">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nombre de buts</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Number of goals</div>
         <select id="q-topGoals" class="question-select"><option value="">-- Choisir --</option>${goalsOpts}</select>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Podium 10-8-6-4 (partiel si proche) · Nationalité buteur = 7 pts · Fourchette buts = 4 pts · Max : 39 pts</div>`;
@@ -2403,7 +2403,7 @@ function renderAdminForm(ev, existing) {
   }
   if (ev.type === 'tournament_bonus') {
     const keys = [['champion','🥇 Champion'],['finaliste','🥈 Finaliste'],['third','🥉 3ème'],['fourth','4ème'],['topScorer','Top scorer (nat.)'],['topGoals','Fourchette buts']];
-    const goalsOpts = ['Moins de 6 buts','6-8 buts','9-11 buts','12-13 buts','13+, plus que Just Fontaine 😢'];
+    const goalsOpts = ['Under 6 goals','6-8 goals','9-11 goals','12-13 goals','13+, more than Just Fontaine 😢'];
     return keys.map(([k,label]) => `
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;">
         <span style="width:140px;font-weight:500;">${label}</span>
@@ -3090,7 +3090,7 @@ async function renderGroupPronos(groupId) {
           <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
           <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.comp}</div>
         </div>
-        <span class="prono-tag ${done?'done-tag':closed?'closed-tag':'todo'}" style="flex-shrink:0;">${done?'✓ Fait':closed?'🔒 Fermé':'À faire'}</span>
+        <span class="prono-tag ${done?'done-tag':closed?'closed-tag':'todo'}" style="flex-shrink:0;">${done?'✓ Done':closed?'🔒 Fermé':'À faire'}</span>
       </div>
       ${ptsHtml ? `<div style="margin-top:4px;font-size:11px;font-weight:700;color:${ptsColor};">🎯 ${ptsHtml}</div>` : ''}
     </div>`;
@@ -3148,7 +3148,7 @@ async function saveGroupCompetitions() {
   if (btn) btn.textContent = '＋';
   const gid = _currentGroup?.id;
   await Promise.all([renderGroupPronos(gid), renderGroupClassement(gid)]);
-  showToast('✅ Compétitions mises à jour !');
+  showToast('✅ Competitions updated!');
 }
 
 async function toggleGroupEvent(groupId, eventId, add) {
