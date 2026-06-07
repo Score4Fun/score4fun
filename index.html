@@ -478,7 +478,7 @@
         <input class="auth-input" type="text" id="new-group-name" placeholder="Group name (e.g. The office squad)" style="margin-bottom:8px;" />
         <div style="display:flex;gap:8px;">
           <button class="auth-btn" style="margin:0;flex:1;" onclick="createGroup()">Create</button>
-          <button class="auth-btn secondary" style="margin:0;" onclick="document.getElementById('create-group-form').style.display='none'">Cancel</button>
+          <button class="auth-btn secondary" style="margin:0;" onclick="document.getElementById('create-group-form').style.display='none'">Close</button>
         </div>
       </div>
       <button class="create-group-btn" onclick="document.getElementById('create-group-form').style.display='block';document.getElementById('new-group-name').focus()">+ Create a group</button>
@@ -591,7 +591,7 @@
     <div class="modal-sub" id="modal-sub"></div>
     <div id="modal-content"></div>
     <button class="modal-submit" onclick="submitProno()">Submit my pick ✓</button>
-    <button class="modal-close" onclick="closeModal()">Cancel</button>
+    <button class="modal-close" onclick="closeModal()">Close</button>
   </div>
 </div>
 
@@ -683,14 +683,14 @@ function renderMemberPronoCards(body, pronoCards) {
       inner += selectRow('🥉 3ème', p.third, official ? official.third : null, POINTS_MAP[2]);
       inner += selectRow('4ème', p.fourth, official ? official.fourth : null, POINTS_MAP[3]);
       inner += selectRow('Top scorer', p.topScorer, official ? official.topScorer : null, sc.topScorer||7);
-      inner += selectRow('Fourchette buts', p.topGoals, official ? official.topGoals : null, sc.topGoals||4);
+      inner += selectRow('Goals range', p.topGoals, official ? official.topGoals : null, sc.topGoals||4);
     } else if (ev.type === 'tennis_sf') {
-      inner += selectRow('Vainqueur', p.winner, official ? official.winner : null, 10);
-      inner += selectRow('Nb sets', String(p.sets||''), String(official ? official.sets : ''), 6);
+      inner += selectRow('Winner', p.winner, official ? official.winner : null, 10);
+      inner += selectRow('Sets played', String(p.sets||''), String(official ? official.sets : ''), 6);
     } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
-      inner += selectRow('Vainqueur', p.winner, official ? official.winner : null, 10);
-      inner += selectRow('Nb sets', String(p.sets||''), String(official ? official.sets : ''), 6);
-      inner += selectRow('Gagnant 1er set', p.first_set, official ? official.first_set : null, 4);
+      inner += selectRow('Winner', p.winner, official ? official.winner : null, 10);
+      inner += selectRow('Sets played', String(p.sets||''), String(official ? official.sets : ''), 6);
+      inner += selectRow('1st Set Winner', p.first_set, official ? official.first_set : null, 4);
       inner += selectRow('Aces total', p.aces, official ? official.aces : null, 3);
     } else if (ev.type === 'f1_race' || ev.type === 'top4') {
       const myTop4 = p.top4 || [];
@@ -749,9 +749,9 @@ const TEAMS_CDM2026 = [
   '🇲🇽 Mexique','🇿🇦 Afrique du Sud','🇰🇷 Corée du Sud','🇨🇿 Tchéquie',
   '🇨🇦 Canada','🇧🇦 Bosnie','🇶🇦 Qatar','🇨🇭 Suisse',
   '🇧🇷 Brazil','🇲🇦 Morocco','🇭🇹 Haiti','🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland',
-  '🇺🇸 États-Unis','🇵🇾 Paraguay','🇦🇺 Australie','🇹🇷 Turquie',
-  '🇩🇪 Allemagne','🇨🇼 Curaçao','🇨🇮 Côte d\'Ivoire','🇪🇨 Équateur',
-  '🇳🇱 Pays-Bas','🇯🇵 Japon','🇸🇪 Suède','🇹🇳 Tunisie',
+  '🇺🇸 USA','🇵🇾 Paraguay','🇦🇺 Australia','🇹🇷 Turkey',
+  '🇩🇪 Germany','🇨🇼 Curaçao','🇨🇮 Côte d\'Ivoire','🇪🇨 Équateur',
+  '🇳🇱 Netherlands','🇯🇵 Japan','🇸🇪 Sweden','🇹🇳 Tunisie',
   '🇧🇪 Belgium','🇪🇬 Egypt','🇮🇷 Iran','🇳🇿 New Zealand',
   '🇪🇸 Espagne','🇸🇦 Arabie Saoudite','🇺🇾 Uruguay','🇨🇻 Cap-Vert',
   '🇫🇷 France','🇸🇳 Senegal','🇳🇴 Norway','🇮🇶 Iraq',
@@ -784,11 +784,11 @@ const EVENTS = [
     type:'multi_match',
     matches:[
       { key:'m1', team1:'🇨🇦 Canada', team2:'🇧🇦 Bosnia' },
-      { key:'m2', team1:'🇺🇸 États-Unis', team2:'🇵🇾 Paraguay' },
+      { key:'m2', team1:'🇺🇸 USA', team2:'🇵🇾 Paraguay' },
       { key:'m3', team1:'🇧🇷 Brazil', team2:'🇲🇦 Morocco' },
-      { key:'m4', team1:'🇦🇺 Australie', team2:'🇹🇷 Turkey' },
-      { key:'m5', team1:'🇩🇪 Allemagne', team2:'🇨🇼 Curaçao' },
-      { key:'m6', team1:'🇳🇱 Pays-Bas', team2:'🇯🇵 Japan' },
+      { key:'m4', team1:'🇦🇺 Australia', team2:'🇹🇷 Turkey' },
+      { key:'m5', team1:'🇩🇪 Germany', team2:'🇨🇼 Curaçao' },
+      { key:'m6', team1:'🇳🇱 Netherlands', team2:'🇯🇵 Japan' },
     ],
     scoring:{ perMatch:4 },
     status:'open', urgency:false, cutoff:'June 12, 9pm', deadline:'2026-06-12T19:00:00Z' },
@@ -829,7 +829,7 @@ const EVENTS = [
     matches:[
       { key:'m1', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland', team2:'🇲🇦 Morocco' },
       { key:'m2', team1:'🇧🇷 Brazil', team2:'🇭🇹 Haiti' },
-      { key:'m3', team1:'🇩🇪 Allemagne', team2:'🇨🇮 Ivory Coast' },
+      { key:'m3', team1:'🇩🇪 Germany', team2:'🇨🇮 Ivory Coast' },
       { key:'m4', team1:'🇹🇳 Tunisia', team2:'🇯🇵 Japan' },
       { key:'m5', team1:'🇪🇸 Espagne', team2:'🇸🇦 Saudi Arabia' },
       { key:'m6', team1:'🇧🇪 Belgium', team2:'🇮🇷 Iran' },
@@ -861,8 +861,8 @@ const EVENTS = [
       { key:'m2', team1:'🇧🇦 Bosnia', team2:'🇶🇦 Qatar' },
       { key:'m3', team1:'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland', team2:'🇧🇷 Brazil' },
       { key:'m4', team1:'🇲🇦 Morocco', team2:'🇭🇹 Haiti' },
-      { key:'m5', team1:'🇪🇨 Ecuador', team2:'🇩🇪 Allemagne' },
-      { key:'m6', team1:'🇹🇳 Tunisia', team2:'🇳🇱 Pays-Bas' },
+      { key:'m5', team1:'🇪🇨 Ecuador', team2:'🇩🇪 Germany' },
+      { key:'m6', team1:'🇹🇳 Tunisia', team2:'🇳🇱 Netherlands' },
     ],
     scoring:{ perMatch:4 },
     status:'open', urgency:false, cutoff:'June 24, 9pm', deadline:'2026-06-24T19:00:00Z' },
@@ -911,8 +911,8 @@ const EVENTS = [
     type:'multi_match',
     matches:[
       { key:'m1', team1:'🇧🇪 Belgium', team2:'🇹🇳 Tunisia' },
-      { key:'m2', team1:'🇺🇸 États-Unis', team2:'🇩🇪 Allemagne' },
-      { key:'m3', team1:'🇨🇭 Switzerland', team2:'🇦🇺 Australie' },
+      { key:'m2', team1:'🇺🇸 USA', team2:'🇩🇪 Germany' },
+      { key:'m3', team1:'🇨🇭 Switzerland', team2:'🇦🇺 Australia' },
     ],
     topScorer:['🇧🇪 Belgium','🇹🇳 Tunisia','🇺🇸 USA','🇩🇪 Germany','🇨🇭 Switzerland','🇦🇺 Australia'],
     scoring:{ perMatch:4 },
@@ -1509,7 +1509,7 @@ function renderEventCard(ev) {
           ? done
             ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Modifier</button>`
             : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pronostiquer →</button>`
-          : `<button class="prono-btn view">Bientôt 🔒</button>`}`;
+          : `<button class="prono-btn view">Coming soon 🔜</button>`}`;
   }
 
   return `<div class="event-card ${done?'done':ev.urgency?'urgent':''}">
@@ -1858,7 +1858,7 @@ async function submitProno() {
     const obj = {};
     for (const k of keys) {
       const v = document.getElementById('q-'+k)?.value;
-      if (!v) { showToast('⚠️ Réponds à toutes les questions !'); return; }
+      if (!v) { showToast('⚠️ Please answer all questions!'); return; }
       obj[k] = v;
     }
     const podium = [obj.champion,obj.finaliste,obj.third,obj.fourth];
@@ -1889,7 +1889,7 @@ async function submitProno() {
   } else if (currentEvent.type==='tennis_sf') {
     const winner=document.getElementById('q-winner').value;
     const sets=document.getElementById('q-sets').value;
-    if (!winner||!sets) { showToast('⚠️ Réponds à toutes les questions !'); return; }
+    if (!winner||!sets) { showToast('⚠️ Please answer all questions!'); return; }
     pronoData={winner,sets};
 
   } else if (currentEvent.type==='tennis_final_h'||currentEvent.type==='tennis_final_f') {
@@ -1897,7 +1897,7 @@ async function submitProno() {
     const sets=document.getElementById('q-sets').value;
     const first_set=document.getElementById('q-first-set').value;
     const aces=document.getElementById('q-aces').value;
-    if (!winner||!sets||!first_set||!aces) { showToast('⚠️ Réponds à toutes les questions !'); return; }
+    if (!winner||!sets||!first_set||!aces) { showToast('⚠️ Please answer all questions!'); return; }
     pronoData={winner,sets,first_set,aces};
 
   } else if (currentEvent.type==='f1_race') {
@@ -2073,19 +2073,19 @@ function openResultDetail(eventId) {
     html += selectRow('4ème', p.fourth, official.fourth, POINTS_MAP[3]);
     html += `<div class="rd-section">Buteur & buts</div>`;
     html += selectRow('Top scorer nationality', p.topScorer, official.topScorer, sc.topScorer||7);
-    html += selectRow('Fourchette buts', p.topGoals, official.topGoals, sc.topGoals||4);
+    html += selectRow('Goals range', p.topGoals, official.topGoals, sc.topGoals||4);
   } else if (ev.type === '1x2') {
     html += `<div class="rd-section">Résultat du match · 10 pts</div>`;
     html += match1x2('Résultat (1/X/2)', p.result, official.result, 4);
   } else if (ev.type === 'tennis_sf') {
     html += `<div class="rd-section">Demi-finale Tennis</div>`;
-    html += selectRow('🏆 Vainqueur', p.winner, official.winner, 10);
-    html += selectRow('📊 Nombre de sets', String(p.sets), String(official.sets), 6);
+    html += selectRow('🏆 Winner', p.winner, official.winner, 10);
+    html += selectRow('📊 Sets played', String(p.sets), String(official.sets), 6);
   } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
     html += `<div class="rd-section">Finale ${ev.type==='tennis_final_h'?'Men':'Women'} Roland Garros</div>`;
-    html += selectRow('🏆 Vainqueur', p.winner, official.winner, 10);
-    html += selectRow('📊 Nombre de sets', String(p.sets), String(official.sets), 6);
-    html += selectRow('1️⃣ Gagnant 1er set', p.first_set, official.first_set, 4);
+    html += selectRow('🏆 Winner', p.winner, official.winner, 10);
+    html += selectRow('📊 Sets played', String(p.sets), String(official.sets), 6);
+    html += selectRow('1️⃣ 1st Set Winner', p.first_set, official.first_set, 4);
     html += selectRow('⚡ Aces total', p.aces, official.aces, 3);
   } else if (ev.type === 'f1_race' || ev.type === 'top4') {
     const myTop4 = p.top4 || [];
@@ -2124,7 +2124,7 @@ function openResultDetail(eventId) {
   const max = getMaxPts(ev);
   html += `<div class="rd-total ${total>0?'good':'bad'}">
     <div class="rd-total-num">${total>0?'🎯 ':''} ${total} pt${total>1?'s':''}</div>
-    <div class="rd-total-sub">sur ${max} pts possibles</div>
+    <div class="rd-total-sub">out of ${max} possible pts</div>
   </div>`;
 
   document.getElementById('result-modal-content').innerHTML = html;
@@ -2600,8 +2600,34 @@ async function computeSportRanking(sport, comp) {
       if (!seen.has(pr.user_id)) { userPts[pr.user_id] = 0; userPronosCount[pr.user_id] = 0; }
     });
 
+    // Compute accuracy + last-5 trend per user for this sport
+    const userMaxPts = {}, userTot = {};
+    const userLast5Pts = {}, userLast5Max = {};
+    const byUser = {};
+    pronosData.forEach(pr => { (byUser[pr.user_id] = byUser[pr.user_id] || []).push(pr); });
+    for (const [uid, prs] of Object.entries(byUser)) {
+      const sorted = prs.filter(pr => officialMap[pr.event_id]).sort((a,b) => a.event_id - b.event_id);
+      let tot=0, mx=0, l5tot=0, l5mx=0;
+      sorted.forEach((pr, idx) => {
+        const ev = EVENTS.find(e => e.id === pr.event_id);
+        if (!ev) return;
+        const p = computeUserPoints(ev, pr.data, officialMap[pr.event_id]);
+        const m = getMaxPts(ev);
+        tot += p; mx += m;
+        if (idx >= sorted.length - 5) { l5tot += p; l5mx += m; }
+      });
+      userTot[uid] = tot; userMaxPts[uid] = mx;
+      userLast5Pts[uid] = l5tot; userLast5Max[uid] = l5mx;
+    }
     return Object.entries(userPts)
-      .map(([uid, pts]) => ({ pseudo: profileMap[uid]?.pseudo || '?', pts, pronos_count: userPronosCount[uid] || 0, uid }))
+      .map(([uid, pts]) => {
+        const mx = userMaxPts[uid] || 0;
+        const overall = mx > 0 ? Math.round(userTot[uid] / mx * 100) : null;
+        const l5mx = userLast5Max[uid] || 0;
+        const last5 = l5mx > 0 ? Math.round(userLast5Pts[uid] / l5mx * 100) : null;
+        const trend = (overall != null && last5 != null) ? last5 - overall : null;
+        return { pseudo: profileMap[uid]?.pseudo || '?', pts, pronos_count: userPronosCount[uid] || 0, uid, accuracy: overall, trend };
+      })
       .sort((a,b) => b.pts - a.pts);
   } catch(e) {
     console.error('computeSportRanking error:', e);
@@ -2611,7 +2637,7 @@ async function computeSportRanking(sport, comp) {
 
 function renderRankList(rows, container, sport, comp) {
   if (!rows || rows.length === 0) {
-    container.innerHTML = '<div style="padding:20px 16px;color:var(--text-muted);font-size:13px;text-align:center;">Aucun résultat calculé pour le moment 🏆</div>';
+    container.innerHTML = '<div style="padding:20px 16px;color:var(--text-muted);font-size:13px;text-align:center;">No results yet 🏆</div>';
     return;
   }
   container.innerHTML = rows.map((p,i) => {
@@ -2621,14 +2647,25 @@ function renderRankList(rows, container, sport, comp) {
     const pseudo_esc = (p.pseudo||'').replace(/'/g,"\\'");
     const sportArg = sport || '';
     const compArg = comp || '';
+    const acc = (p.accuracy != null) ? p.accuracy : null;
+    const accColor = acc != null ? (acc >= 60 ? '#22c55e' : acc >= 30 ? '#f59e0b' : '#ef4444') : 'var(--text-muted)';
+    const accStr = acc != null ? `${acc}%` : '–%';
+    const trend = (p.trend != null && p.trend !== 0) ? p.trend : null;
+    const trendHtml = trend != null
+      ? `<span style="font-size:10px;color:${trend>0?'#22c55e':'#ef4444'};font-weight:700;">${trend>0?'↑':'↓'}${Math.abs(trend)}%</span>`
+      : '';
     return `<div class="full-rank-row ${isMe?'me':''}" ${clickable?`onclick="openMemberProfile('${p.uid}','${pseudo_esc}','${sportArg}','${compArg}')" style="cursor:pointer;"`:''}>
       <div class="full-rank-num ${isMe?'me':''}">${medal||i+1}</div>
       <div class="full-rank-avatar ${isMe?'me':''}">${p.pseudo?p.pseudo[0].toUpperCase():'?'}</div>
       <div class="full-rank-info">
-        <div class="full-rank-name ${isMe?'me':''}" style="text-decoration:underline;text-underline-offset:2px;">${p.pseudo||'Joueur'}</div>
-        <div class="full-rank-country">${p.pronos_count||0} pronostics</div>
+        <div class="full-rank-name ${isMe?'me':''}">${p.pseudo||'–'}</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:2px;">
+          <span style="font-size:11px;font-weight:700;color:${accColor};">${accStr}</span>
+          ${trendHtml}
+          <span style="font-size:11px;color:var(--text-muted);">· ${p.pronos_count||0} picks</span>
+        </div>
       </div>
-      <div class="full-rank-pts ${isMe?'me':''}">${p.pts||0} pts</div>
+      <div class="full-rank-pts ${isMe?'me':''}">${p.pts||0}<span style="font-size:11px;font-weight:400;color:var(--text-muted);"> pts</span></div>
     </div>`;
   }).join('');
 }
@@ -2652,7 +2689,32 @@ async function loadRankings(sport, comp) {
         const {data:pronosRaw} = await sb.from('pronos').select('user_id').in('event_id', closedIds);
         if (pronosRaw) pronosRaw.forEach(p => { countMap[p.user_id] = (countMap[p.user_id]||0)+1; });
       }
-      renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:countMap[p.id]||0,uid:p.id})), list, '', '');
+      // Compute accuracy + last-5 trend for each user
+      const allResultIds = (resultsRaw||[]).map(r=>r.event_id);
+      let accMap = {}, trendMap = {};
+      if (allResultIds.length) {
+        const {data:allPR} = await sb.from('pronos').select('user_id,event_id,data').in('event_id', allResultIds);
+        const {data:allRes} = await sb.from('results').select('event_id,result_data').in('event_id', allResultIds);
+        const resMap = {}; (allRes||[]).forEach(r => { resMap[r.event_id]=r.result_data; });
+        // Group by user
+        const byUser = {}; (allPR||[]).forEach(pr => { (byUser[pr.user_id]=byUser[pr.user_id]||[]).push(pr); });
+        for (const [uid, prs] of Object.entries(byUser)) {
+          let tot=0,mx=0,last5tot=0,last5mx=0;
+          const sorted = prs.slice().sort((a,b)=>a.event_id-b.event_id);
+          sorted.forEach((pr,idx) => {
+            const ev=EVENTS.find(e=>e.id===pr.event_id); const off=resMap[pr.event_id];
+            if(!ev||!off) return;
+            const p=computeUserPoints(ev,pr.data,off), m=getMaxPts(ev);
+            tot+=p; mx+=m;
+            if(idx>=sorted.length-5){ last5tot+=p; last5mx+=m; }
+          });
+          const overall = mx>0?Math.round(tot/mx*100):null;
+          const last5 = last5mx>0?Math.round(last5tot/last5mx*100):null;
+          accMap[uid] = overall;
+          trendMap[uid] = (overall!=null&&last5!=null) ? last5-overall : null;
+        }
+      }
+      renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:countMap[p.id]||0,uid:p.id,accuracy:accMap[p.id]??null,trend:trendMap[p.id]??null})), list, '', '');
     } else {
       const ranked = await computeSportRanking(sport, comp);
       renderRankList(ranked, list, sport, comp);
@@ -2842,7 +2904,7 @@ async function openGroupDetail(groupId, groupName) {
       <div class="full-rank-avatar ${isMe?'me':''}">${p.pseudo?p.pseudo[0].toUpperCase():'?'}</div>
       <div class="full-rank-info">
         <div class="full-rank-name ${isMe?'me':''}">${p.pseudo}</div>
-        <div class="full-rank-country">${p.pronos_count||0} pronostics</div>
+        <div style="font-size:11px;color:var(--text-muted);">${p.pronos_count||0} picks</div>
       </div>
       <div class="full-rank-pts ${isMe?'me':''}">${p.points||0} pts</div>
     </div>`;
@@ -3310,48 +3372,4 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   const closedEventIds = scoredEventIds;
   const [pronosRes, resultsRes] = await Promise.all([
     closedEventIds.length ? sb.from('pronos').select('event_id,data').eq('user_id', uid).in('event_id', closedEventIds) : Promise.resolve({data:[]}),
-    Promise.resolve({data: allResults.filter(r => closedEventIds.includes(Number(r.event_id)))})
-  ]);
-
-  const prof    = profRes.data || {pseudo, points:0};
-  const pronos  = pronosRes.data || [];
-  const results = resultsRes.data || [];
-
-  const officialMap = {};
-  results.forEach(r => { officialMap[Number(r.event_id)] = r.result_data; });
-
-  let totalPts = 0, scoredCount = 0;
-  const pronoCards = pronos.map(pr => {
-    const ev = EVENTS.find(e => e.id === Number(pr.event_id));
-    if (!ev) return null;
-    const official = officialMap[Number(pr.event_id)];
-    let pts = null, max = null;
-    if (official) {
-      pts = computeUserPoints(ev, pr.data, official);
-      max = getMaxPts(ev);
-      totalPts += pts;
-      scoredCount++;
-    }
-    return { ev, data: pr.data, official, pts, max };
-  }).filter(Boolean).sort((a,b) => (b.pts??-1) - (a.pts??-1));
-
-  // Header : avatar + pseudo + stats
-  const initial = (pseudo||'?')[0].toUpperCase();
-  header.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding-right:28px;">'
-    + '<div style="width:42px;height:42px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">' + initial + '</div>'
-    + '<div><div style="font-size:16px;font-weight:700;">' + pseudo + '</div>'
-    + '<div style="font-size:11px;color:var(--text-muted);">' + (prof.points||0) + ' pts total · ' + totalPts + ' pts sur pronos fermés · ' + scoredCount + ' scorés</div></div>'
-    + '</div>';
-
-  renderMemberPronoCards(body, pronoCards);
-}
-</script>
-
-</body>
-</html
-
-  { id:60, sport:'hippisme', comp:'Big Races 2026', phase:'Autumn 2026', emoji:'🏇',
-    name:'Prix de l\'Arc de Triomphe 2026', sub:'Longchamp · Top 4',
-    type:'top4',
-    candidates:['Équipage A','Équipage B','Équipage C','Équipage D','Équipage E','Équipage F'],
-    status:'soon', urgency:false, cutoff:'Fin sept.', deadline:'2026-10-03T12:00:00Z' },>
+    Prom
