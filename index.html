@@ -23,16 +23,16 @@
   <!-- Open Graph (WhatsApp, Facebook, iMessage, LinkedIn) -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://score4fun.com" />
-  <meta property="og:title" content="Score4Fun 🏆 — Pronostique le sport avec tes amis !" />
-  <meta property="og:description" content="Football, F1, tennis, hippisme… Défie tes amis, pronostique et grimpe au classement. Gratuit et fun — inscris-toi en 30 secondes 🏆" />
+  <meta property="og:title" content="Score4Fun — Predict the score. Score the points." />
+  <meta property="og:description" content="Football, F1, tennis, horse racing & more. Predict it. Score it. Beat your friends. Free & fun — sign up in 30 seconds 🏆" />
   <meta property="og:image" content="https://score4fun.com/og-image.png" />
   <meta property="og:locale" content="fr_FR" />
   <meta property="og:site_name" content="Score4Fun" />
 
   <!-- Twitter / X Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Score4Fun 🏆 — Pronostique le sport avec tes amis !" />
-  <meta name="twitter:description" content="Football, F1, tennis, hippisme… Défie tes amis et grimpe au classement. Gratuit 🏆" />
+  <meta name="twitter:title" content="Score4Fun — Predict the score. Score the points." />
+  <meta name="twitter:description" content="Predict it. Score it. Beat your friends. Free & fun 🏆" />
   <meta name="twitter:image" content="https://score4fun.com/og-image.png" />
 
   <!-- Favicon -->
@@ -2766,7 +2766,7 @@ async function openGroupDetail(groupId, groupName) {
 
 function copyGroupInvite(code, name) {
   const link = `https://score4fun.com?join=${code}`;
-  const msg = `🏆 Rejoins mon groupe "${name}" sur Score4Fun et montre ce que tu vaux ! Clique pour rejoindre directement : ${link}`;
+  const msg = `🏆 Think you can outscore me? Join my group "${name}" on Score4Fun and let's find out! 👉 ${link}`;
   if (navigator.share) {
     navigator.share({ title: 'Score4Fun – ' + name, text: msg, url: link })
       .catch(() => {}); // annulation silencieuse
