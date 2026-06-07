@@ -2468,15 +2468,16 @@ function renderAdminForm(ev, existing) {
   // F1 race — top 4 podium selects
   if (ev.type === 'f1_race') {
     const drivers = ev.candidates || [];
-    const dOpts = (val) => drivers.map(d => `<option value="${d}" ${ex[val]===d?'selected':''}>${d}</option>`).join('');
-    const positions = [['p1','🥇 1st place'],['p2','🥈 2nd place'],['p3','🥉 3rd place'],['p4','4th place']];
+    const existingTop4 = existing ? (existing.top4 || []) : [];
+    const dOpts = (pos) => drivers.map(d => `<option value="${d}" ${existingTop4[pos]===d?'selected':''}>${d}</option>`).join('');
+    const positions = [['p1',0,'🥇 1st place'],['p2',1,'🥈 2nd place'],['p3',2,'🥉 3rd place'],['p4',3,'4th place']];
     return `
       <div style="font-size:12px;display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
-        ${positions.map(([k,label]) => `
+        ${positions.map(([k,pos,label]) => `
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="width:110px;font-weight:500;">${label}</span>
           <select id="admin-${ev.id}-${k}" style="font-size:12px;flex:1;">
-            <option value="">— Select driver —</option>${dOpts(k)}
+            <option value="">— Select driver —</option>${dOpts(pos)}
           </select>
         </div>`).join('')}
       </div>
@@ -2507,10 +2508,9 @@ async function saveResult(eventId, type) {
       result_data[k] = document.getElementById(`admin-${eventId}-${k}`)?.value || '';
     });
   } else if (type === 'f1_race') {
-    ['p1','p2','p3','p4'].forEach(k => {
-      result_data[k] = document.getElementById(`admin-${eventId}-${k}`)?.value || '';
-    });
-    if (!result_data.p1) { showToast('⚠️ Select at least 1st place!'); return; }
+    const top4 = ['p1','p2','p3','p4'].map(k => document.getElementById(`admin-${eventId}-${k}`)?.value || '');
+    if (!top4[0]) { showToast('⚠️ Select at least 1st place!'); return; }
+    result_data = { top4 };
   } else {
     if (type === 'tennis') {
       ['winner','sets','first_set','aces'].forEach(k => {
@@ -3351,4 +3351,121 @@ async function openGroupMemberProfile(uid, pseudo) {
   const pronoCards = pronos.map(pr => {
     const ev = EVENTS.find(e => e.id === Number(pr.event_id));
     if (!ev) return null;
-    const official = official
+    const official = officialMap[Number(pr.event_id)];
+    let pts = null, max = null;
+    if (official) {
+      pts = computeUserPoints(ev, pr.data, official);
+      max = getMaxPts(ev);
+      totalPts += pts;
+      scoredCount++;
+    }
+    return { ev, data: pr.data, official, pts, max };
+  }).filter(Boolean).sort((a,b) => (b.pts??-1) - (a.pts??-1));
+
+  // Header : avatar + pseudo + stats
+  const initial = (pseudo||'?')[0].toUpperCase();
+  header.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding-right:28px;">'
+    + '<div style="width:42px;height:42px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">' + initial + '</div>'
+    + '<div><div style="font-size:16px;font-weight:700;">' + pseudo + '</div>'
+    + '<div style="font-size:11px;color:var(--text-muted);">' + (prof.points||0) + ' pts total · ' + totalPts + ' pts sur pronos fermés · ' + scoredCount + ' scorés</div></div>'
+    + '</div>';
+
+  if (!pronoCards.length) {
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">Aucun pronostic fermé pour l\'instant.</div>';
+    return;
+  }
+
+  // Helpers identiques à openResultDetail
+  const match1x2 = (label, myPick, officialPick, rowPts) => {
+    const scored = myPick && myPick === officialPick;
+    const btns = ['1','X','2'].map(v => {
+      let cls = '';
+      if (v === myPick && v === officialPick) cls = 'my-correct';
+      else if (v === myPick && myPick !== officialPick) cls = 'my-wrong';
+      else if (v === officialPick) cls = 'official-mark';
+      return '<div class="rd-btn ' + cls + '">' + v + '</div>';
+    }).join('');
+    const pts = scored ? rowPts : 0;
+    return '<div class="rd-match-row">'
+      + '<div class="rd-match-name">' + label + '</div>'
+      + '<div class="rd-btns">' + btns + '</div>'
+      + '<div class="rd-pts ' + (pts===0?'zero':'') + '">' + (pts>0?'+'+pts+' pt':'') + '</div>'
+      + '</div>';
+  };
+
+  const selectRow = (label, myPick, officialPick, rowPts) => {
+    const scored = myPick && myPick === officialPick;
+    const cls = !myPick ? '' : scored ? 'correct' : 'wrong';
+    const pts = scored ? rowPts : 0;
+    return '<div class="rd-select-row">'
+      + '<div class="rd-select-label">' + label + '</div>'
+      + '<div class="rd-select-val ' + cls + '" style="font-size:12px;">' + (myPick||'—') + '</div>'
+      + (myPick !== officialPick ? '<div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;">✓ ' + (officialPick||'?') + '</div>' : '')
+      + '<div class="rd-pts ' + (pts===0?'zero':'') + '">' + (pts>0?'+'+pts+' pt':'') + '</div>'
+      + '</div>';
+  };
+
+  body.innerHTML = pronoCards.map(function(card) {
+    const ev = card.ev, p = card.data, official = card.official, pts = card.pts, max = card.max;
+    const ptsColor = pts === null ? 'var(--text-muted)' : pts >= max*0.6 ? 'var(--green)' : pts >= max*0.3 ? '#ff9800' : '#e53935';
+    const ptsStr = pts !== null ? pts + '/' + max + ' pts' : '–';
+
+    let inner = '';
+    if (ev.type === 'multi_match') {
+      const sc = ev.scoring || {};
+      (ev.matches||[]).forEach(function(m) {
+        inner += match1x2((m.team1||'') + ' vs ' + (m.team2||''), p[m.key], official ? official[m.key] : null, sc.perMatch||4);
+      });
+    } else if (ev.type === '1x2') {
+      inner += match1x2('Résultat (1/X/2)', p.result, official ? official.result : null, 4);
+    } else if (ev.type === 'opening_match') {
+      inner += match1x2('Résultat', p.result, official ? official.result : null, 5);
+      inner += match1x2('Mi-temps', p.halftime, official ? official.halftime : null, 3);
+      inner += selectRow('1er buteur', p.firstScorer, official ? official.firstScorer : null, 3);
+    } else if (ev.type === 'tournament_bonus') {
+      const sc = ev.scoring || {};
+      inner += selectRow('🥇 Champion', p.champion, official ? official.champion : null, POINTS_MAP[0]);
+      inner += selectRow('🥈 Finaliste', p.finaliste, official ? official.finaliste : null, POINTS_MAP[1]);
+      inner += selectRow('🥉 3ème', p.third, official ? official.third : null, POINTS_MAP[2]);
+      inner += selectRow('4ème', p.fourth, official ? official.fourth : null, POINTS_MAP[3]);
+      inner += selectRow('Meilleur buteur', p.topScorer, official ? official.topScorer : null, sc.topScorer||7);
+      inner += selectRow('Fourchette buts', p.topGoals, official ? official.topGoals : null, sc.topGoals||4);
+    } else if (ev.type === 'tennis_sf') {
+      inner += selectRow('Vainqueur', p.winner, official ? official.winner : null, 10);
+      inner += selectRow('Nb sets', String(p.sets||''), String(official ? official.sets : ''), 6);
+    } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
+      inner += selectRow('Vainqueur', p.winner, official ? official.winner : null, 10);
+      inner += selectRow('Nb sets', String(p.sets||''), String(official ? official.sets : ''), 6);
+      inner += selectRow('Gagnant 1er set', p.first_set, official ? official.first_set : null, 4);
+      inner += selectRow('Aces total', p.aces, official ? official.aces : null, 3);
+    } else if (ev.type === 'f1_race' || ev.type === 'top4') {
+      const myTop4 = p.top4 || [];
+      const offTop4 = official ? (official.top4 || []) : [];
+      [0,1,2,3].forEach(function(i) {
+        const myPick = myTop4[i], offPick = offTop4[i];
+        const j = myPick ? offTop4.indexOf(myPick) : -1;
+        const pPts = (myPick && j !== -1) ? Math.max(0, Math.min(POINTS_MAP[i]||0, POINTS_MAP[j]||0) - Math.abs(i-j)) : 0;
+        const cls = myPick === offPick ? 'correct' : (j !== -1 ? 'wrong' : '');
+        inner += '<div class="rd-select-row">'
+          + '<div class="rd-select-label">#' + (i+1) + ' · ' + (POINTS_MAP[i]||0) + 'pts</div>'
+          + '<div class="rd-select-val ' + cls + '">' + (myPick||'—') + '</div>'
+          + (myPick !== offPick && offPick ? '<div style="font-size:11px;color:var(--text-muted);">✓ ' + offPick + '</div>' : '')
+          + '<div class="rd-pts ' + (pPts===0?'zero':'') + '">' + (pPts>0?'+'+pPts+' pt':'') + '</div>'
+          + '</div>';
+      });
+    }
+
+    return '<div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+      + '<div><div style="font-weight:700;font-size:13px;">' + ev.emoji + ' ' + ev.name + '</div>'
+      + '<div style="font-size:11px;color:var(--text-muted);">' + ev.comp + '</div></div>'
+      + '<div style="font-weight:800;font-size:14px;color:' + ptsColor + ';">' + ptsStr + '</div>'
+      + '</div>'
+      + inner
+      + '</div>';
+  }).join('');
+}
+</script>
+
+</body>
+</html>
