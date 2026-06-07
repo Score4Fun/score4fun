@@ -409,6 +409,9 @@
       <div class="rank-tab" data-sport="tennis" onclick="switchRankTab(this)">🎾 Tennis</div>
       <div class="rank-tab" data-sport="f1" onclick="switchRankTab(this)">🏎️ F1</div>
       <div class="rank-tab" data-sport="cyclisme" onclick="switchRankTab(this)">🚴 Cyclisme</div>
+      <div class="rank-tab" data-sport="basket" onclick="switchRankTab(this)">🏀 Basket</div>
+      <div class="rank-tab" data-sport="athletisme" onclick="switchRankTab(this)">🏃 Athlétisme</div>
+      <div class="rank-tab" data-sport="chevaux" onclick="switchRankTab(this)">🏇 Chevaux</div>
     </div>
     <div id="rank-comp-tabs" style="display:none;margin-bottom:10px;display:none;gap:6px;flex-wrap:wrap;"></div>
     <div class="full-rank-list" id="full-rank-list"></div>
@@ -600,10 +603,13 @@ let appLaunched = false;
 // DATA — 3 NIVEAUX
 // =====================
 const SPORTS = [
-  { key: 'football', label: '⚽ Football' },
-  { key: 'tennis',   label: '🎾 Tennis' },
-  { key: 'f1',       label: '🏎️ F1' },
-  { key: 'cyclisme', label: '🚴 Cyclisme' },
+  { key: 'football',   label: '⚽ Football' },
+  { key: 'tennis',     label: '🎾 Tennis' },
+  { key: 'f1',         label: '🏎️ F1' },
+  { key: 'cyclisme',   label: '🚴 Cyclisme' },
+  { key: 'basket',     label: '🏀 Basket' },
+  { key: 'athletisme', label: '🏃 Athlétisme' },
+  { key: 'chevaux',    label: '🏇 Chevaux' },
 ];
 
 const TEAMS_CDM2026 = [
