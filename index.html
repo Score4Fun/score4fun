@@ -2425,7 +2425,7 @@ function renderRankList(rows, container, sport, comp) {
   container.innerHTML = rows.map((p,i) => {
     const isMe = currentProfile && p.pseudo === currentProfile.pseudo;
     const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-    const clickable = !isMe && p.uid;
+    const clickable = !!p.uid;
     const pseudo_esc = (p.pseudo||'').replace(/'/g,"\\'");
     const sportArg = sport || '';
     const compArg = comp || '';
@@ -2433,7 +2433,7 @@ function renderRankList(rows, container, sport, comp) {
       <div class="full-rank-num ${isMe?'me':''}">${medal||i+1}</div>
       <div class="full-rank-avatar ${isMe?'me':''}">${p.pseudo?p.pseudo[0].toUpperCase():'?'}</div>
       <div class="full-rank-info">
-        <div class="full-rank-name ${isMe?'me':''}" ${clickable?'style="text-decoration:underline;text-underline-offset:2px;"':''}>${p.pseudo||'Joueur'}</div>
+        <div class="full-rank-name ${isMe?'me':''}" style="text-decoration:underline;text-underline-offset:2px;">${p.pseudo||'Joueur'}</div>
         <div class="full-rank-country">${p.pronos_count||0} pronostics</div>
       </div>
       <div class="full-rank-pts ${isMe?'me':''}">${p.pts||0} pts</div>
@@ -2797,7 +2797,7 @@ async function renderGroupClassement(groupId) {
       <div style="font-size:14px;font-weight:700;width:22px;text-align:center;${isMe?'color:var(--orange)':''}">${medal||i+1}</div>
       <div style="width:30px;height:30px;border-radius:50%;background:${isMe?'var(--orange)':'var(--orange-bg)'};color:${isMe?'white':'var(--orange-dark)'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">${(m.pseudo||'?')[0].toUpperCase()}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:${isMe?700:500};${isMe?'color:var(--orange)':''};${!isMe?'text-decoration:underline;text-underline-offset:2px;cursor:pointer;':''}" ${!isMe?`onclick="openMemberProfile('${m.id}','${(m.pseudo||'').replace(/'/g,"\\'")}')"`:''}>${m.pseudo||'–'}</div>
+        <div style="font-size:13px;font-weight:${isMe?700:500};${isMe?'color:var(--orange)':''};text-decoration:underline;text-underline-offset:2px;cursor:pointer;" onclick="openMemberProfile('${m.id}','${(m.pseudo||'').replace(/'/g,"\\'")}',' ','')">${m.pseudo||'–'}</div>
         <div style="font-size:11px;color:${perfColor};font-weight:600;">${perfStr}</div>
       </div>
       <div style="font-size:14px;font-weight:700;${isMe?'color:var(--orange)':''}">${m.groupPts}<span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:2px;">pts</span></div>
@@ -2977,7 +2977,7 @@ function closeMemberModal() {
 }
 
 async function openMemberProfile(uid, pseudo, sport, comp) {
-  if (!uid || uid === currentUser?.id) return;
+  if (!uid) return;
   const modal  = document.getElementById('member-modal');
   const header = document.getElementById('member-modal-header');
   const body   = document.getElementById('member-modal-body');
