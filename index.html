@@ -2323,7 +2323,7 @@ async function computeSportRanking(sport, comp) {
   }
 }
 
-function renderRankList(rows, container) {
+function renderRankList(rows, container, sport, comp) {
   if (!rows || rows.length === 0) {
     container.innerHTML = '<div style="padding:20px 16px;color:var(--text-muted);font-size:13px;text-align:center;">Aucun résultat calculé pour le moment 🏆</div>';
     return;
@@ -2333,7 +2333,9 @@ function renderRankList(rows, container) {
     const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
     const clickable = !isMe && p.uid;
     const pseudo_esc = (p.pseudo||'').replace(/'/g,"\\'");
-    return `<div class="full-rank-row ${isMe?'me':''}" ${clickable?`onclick="openMemberProfile('${p.uid}','${pseudo_esc}')" style="cursor:pointer;"`:''}>
+    const sportArg = sport || '';
+    const compArg = comp || '';
+    return `<div class="full-rank-row ${isMe?'me':''}" ${clickable?`onclick="openMemberProfile('${p.uid}','${pseudo_esc}','${sportArg}','${compArg}')" style="cursor:pointer;"`:''}>
       <div class="full-rank-num ${isMe?'me':''}">${medal||i+1}</div>
       <div class="full-rank-avatar ${isMe?'me':''}">${p.pseudo?p.pseudo[0].toUpperCase():'?'}</div>
       <div class="full-rank-info">
@@ -2364,10 +2366,10 @@ async function loadRankings(sport, comp) {
         const {data:pronosRaw} = await sb.from('pronos').select('user_id').in('event_id', closedIds);
         if (pronosRaw) pronosRaw.forEach(p => { countMap[p.user_id] = (countMap[p.user_id]||0)+1; });
       }
-      renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:countMap[p.id]||0,uid:p.id})), list);
+      renderRankList((data||[]).map(p=>({pseudo:p.pseudo,pts:p.points||0,pronos_count:countMap[p.id]||0,uid:p.id})), list, '', '');
     } else {
       const ranked = await computeSportRanking(sport, comp);
-      renderRankList(ranked, list);
+      renderRankList(ranked, list, sport, comp);
     }
   } catch(e) {
     list.innerHTML = `<div style="padding:20px 16px;color:#c62828;font-size:13px;">❌ Erreur: ${e.message}</div>`;
@@ -2875,7 +2877,7 @@ function closeMemberModal() {
   document.getElementById('member-modal').classList.remove('open');
 }
 
-async function openMemberProfile(uid, pseudo) {
+async function openMemberProfile(uid, pseudo, sport, comp) {
   if (!uid || uid === currentUser?.id) return;
   const modal  = document.getElementById('member-modal');
   const header = document.getElementById('member-modal-header');
@@ -2884,7 +2886,12 @@ async function openMemberProfile(uid, pseudo) {
   body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Chargement…</div>';
   modal.classList.add('open');
 
-  const closedEventIds = EVENTS.filter(ev => isTrulyClosed(ev)).map(ev => ev.id);
+  const closedEventIds = EVENTS.filter(ev => {
+    if (!isTrulyClosed(ev)) return false;
+    if (sport && ev.sport !== sport) return false;
+    if (comp && ev.comp !== comp) return false;
+    return true;
+  }).map(ev => ev.id);
   const [profRes, pronosRes, resultsRes] = await Promise.all([
     sb.from('profiles').select('pseudo,points').eq('id', uid).maybeSingle(),
     closedEventIds.length ? sb.from('pronos').select('event_id,data').eq('user_id', uid).in('event_id', closedEventIds) : Promise.resolve({data:[]}),
