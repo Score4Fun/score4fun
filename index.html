@@ -17,7 +17,7 @@
 
   <!-- SEO -->
   <meta name="description" content="Predict football, F1, tennis, horse racing and more — challenge your friends and climb the leaderboard. Free, fun, 30 seconds to sign up." />
-  <meta name="keywords" content="pronostics, football, F1, tennis, hippisme, paris entre amis, classement, Score4Fun" />
+  <meta name="keywords" content="predictions, football, F1, tennis, horse racing, friends competition, rankings, Score4Fun" />
   <link rel="canonical" href="https://score4fun.com" />
 
   <!-- Open Graph (WhatsApp, Facebook, iMessage, LinkedIn) -->
@@ -1316,14 +1316,14 @@ function renderSportTabs() {
   const visibleSports = SPORTS.filter(s => isAdmin || !ADMIN_ONLY_SPORTS.includes(s.key));
   // Home tabs
   const tabs = document.getElementById('sport-tabs-home');
-  const all = [{key:null, label:'🌍 Tous'}, ...visibleSports];
+  const all = [{key:null, label:'🌍 All'}, ...visibleSports];
   tabs.innerHTML = all.map(s =>
     `<div class="sport-tab ${s.key===null?'active':''}" onclick="toggleSport(${s.key===null?'null':`'${s.key}'`},this)">${s.label}</div>`
   ).join('');
   // Rank tabs (Classement) — dynamic
   const rankTabs = document.getElementById('rank-tabs-inner');
   if (rankTabs) {
-    const rankAll = [{key:'', label:'🌍 Général'}, ...visibleSports];
+    const rankAll = [{key:'', label:'🌍 Overall'}, ...visibleSports];
     rankTabs.innerHTML = rankAll.map((s,i) =>
       `<div class="rank-tab ${i===0?'active':''}" data-sport="${s.key}" onclick="switchRankTab(this)">${s.label}</div>`
     ).join('');
@@ -1772,7 +1772,7 @@ function openPronoModal(eventId) {
             <div class="top4-pts">${POINTS_MAP[i]} pts</div>
           </div>`).join('')}
       </div>
-      <div class="modal-section">⚡ Meilleur tour en course</div>
+      <div class="modal-section">⚡ Fastest lap</div>
       <div class="question-row">
         <select class="question-select" id="q-fastest" style="width:100%">
           <option value="">— Choisir un pilote —</option>
@@ -2306,13 +2306,13 @@ async function renderAdminUsers() {
 }
 
 async function deleteUser(uid, pseudo) {
-  if (!confirm(`Virer ${pseudo} définitivement ? Ses pronos et classements seront supprimés.`)) return;
-  showToast('⏳ Suppression en cours…');
+  if (!confirm(`Remove ${pseudo} permanently? Their picks and rankings will be deleted.`)) return;
+  showToast('⏳ Deleting…');
   try {
     await sb.from('pronos').delete().eq('user_id', uid);
     await sb.from('group_members').delete().eq('user_id', uid);
     await sb.from('profiles').delete().eq('id', uid);
-    showToast(`✅ ${pseudo} supprimé(e)`);
+    showToast(`✅ ${pseudo} removed`);
     await recalculateAllPoints('deleteUser');
     renderAdminUsers();
   } catch(e) {
@@ -2389,7 +2389,7 @@ function renderAdminForm(ev, existing) {
           ${['Mexico','South Africa','No goal'].map(v=>`<option value="${v}" ${ex.firstScorer===v?'selected':''}>${v}</option>`).join('')}
         </select>
       </div>
-      <button onclick="saveResult(${ev.id},'opening_match')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Sauvegarder</button>`;
+      <button onclick="saveResult(${ev.id},'opening_match')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save</button>`;
     }
     return ev.matches.map(m => `
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;">
@@ -2399,7 +2399,7 @@ function renderAdminForm(ev, existing) {
           ${['1','X','2'].map(v=>`<option value="${v}" ${ex[m.key]===v?'selected':''}>${v}</option>`).join('')}
         </select>
       </div>`).join('') +
-      `<button onclick="saveResult(${ev.id},'multi_match')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Sauvegarder & Calculer pts</button>`;
+      `<button onclick="saveResult(${ev.id},'multi_match')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
   if (ev.type === 'tournament_bonus') {
     const keys = [['champion','🥇 Champion'],['finaliste','🥈 Finaliste'],['third','🥉 3ème'],['fourth','4ème'],['topScorer','Top scorer (nat.)'],['topGoals','Fourchette buts']];
@@ -2412,7 +2412,7 @@ function renderAdminForm(ev, existing) {
           ${(k==='topGoals'?goalsOpts:TEAMS_CDM2026).map(v=>`<option value="${v}" ${ex[k]===v?'selected':''}>${v}</option>`).join('')}
         </select>
       </div>`).join('') +
-      `<button onclick="saveResult(${ev.id},'tournament_bonus')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Sauvegarder & Calculer pts</button>`;
+      `<button onclick="saveResult(${ev.id},'tournament_bonus')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
   // Tennis finals
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
@@ -2451,11 +2451,11 @@ function renderAdminForm(ev, existing) {
           </select>
         </div>
       </div>
-      <button onclick="saveResult(${ev.id},'tennis')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Sauvegarder & Calculer pts</button>`;
+      <button onclick="saveResult(${ev.id},'tennis')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
   // Autres types : JSON brut
   return `<textarea id="admin-${ev.id}-json" style="width:100%;font-size:11px;font-family:monospace;height:60px;border:1px solid var(--border);border-radius:4px;padding:4px;">${existing?JSON.stringify(existing,null,2):''}</textarea>
-    <button onclick="saveResult(${ev.id},'json')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Sauvegarder & Calculer pts</button>`;
+    <button onclick="saveResult(${ev.id},'json')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
 }
 
 async function saveResult(eventId, type) {
@@ -2491,14 +2491,14 @@ async function saveResult(eventId, type) {
   const {error} = await sb.from('results').upsert({event_id:eventId, result_data, entered_at:new Date().toISOString()}, {onConflict:'event_id'});
   if (error) { showToast('❌ Erreur: '+error.message); return; }
   adminResults[eventId] = result_data;
-  showToast('⏳ Sauvegarde + recalcul en cours…');
+  showToast('⏳ Saving & recalculating…');
   await calculatePoints(eventId, ev, result_data);
   renderAdmin();
 }
 
 // Recalcule TOUS les points de TOUS les joueurs depuis zéro (idempotent)
 async function recalculateAllPoints(triggerLabel) {
-  showToast('⏳ Recalcul en cours…');
+  showToast('⏳ Recalculating…');
   try {
     // 1. Charger tous les résultats officiels
     const {data:results, error:re} = await sb.from('results').select('event_id, result_data');
@@ -2533,7 +2533,7 @@ async function recalculateAllPoints(triggerLabel) {
     // Remettre à 0 les joueurs sans prono sur aucun event corrigé
     // (optionnel — on laisse leur score inchangé)
 
-    const msg = errors ? `⚠️ ${updated} ok, ${errors} erreurs` : `✅ Sauvegardé & ${updated} joueur(s) recalculé(s)`;
+    const msg = errors ? `⚠️ ${updated} ok, ${errors} errors` : `✅ Saved & ${updated} player(s) recalculated`;
     showToast(msg);
     // Rafraîchir les points de l'utilisateur courant dans le top bar
     if (currentProfile && userTotals[currentProfile.id] !== undefined) {
@@ -2690,7 +2690,7 @@ async function loadRankingsHome() {
 
     document.getElementById('home-rankings').innerHTML=`
       <div class="rank-card">
-        <div class="rank-title">🌍 Général</div>
+        <div class="rank-title">🌍 Overall</div>
         ${data.length===0?'<div style="font-size:12px;color:var(--text-muted);">Sois le premier !</div>':data.map(rankRow).join('')}
       </div>
       <div class="rank-card">
@@ -2904,9 +2904,9 @@ async function leaveGroup(groupId) {
 }
 
 async function deleteGroup(groupId) {
-  if (!confirm('Supprimer ce groupe définitivement ?')) return;
+  if (!confirm('Permanently delete this group?')) return;
   await sb.from('groups').delete().eq('id', groupId);
-  showToast('Groupe supprimé');
+  showToast('Group deleted');
   renderGroupes();
 }
 
@@ -3120,7 +3120,7 @@ async function renderGroupManage(groupId) {
       <input type="checkbox" data-comp="${comp}" ${on?'checked':''} style="width:18px;height:18px;accent-color:var(--orange);cursor:pointer;flex-shrink:0;" onchange="toggleCompetition('${groupId}','${comp.replace(/'/g,"\'")}',this.checked)">
       <div>
         <div style="font-size:13px;font-weight:600;">${info.emoji} ${comp}</div>
-        <div style="font-size:11px;color:var(--text-muted);">${sportLabel} · ${info.events.length} pronostic(s)</div>
+        <div style="font-size:11px;color:var(--text-muted);">${sportLabel} · ${info.events.length} pick(s)</div>
       </div>
     </label>`;
   }
