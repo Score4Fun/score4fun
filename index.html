@@ -3007,7 +3007,8 @@ async function saveGroupCompetitions() {
   const btn = document.getElementById('group-add-comp-btn');
   if (panel) panel.style.display = 'none';
   if (btn) btn.textContent = '＋';
-  renderGroupPronos(_currentGroup?.id);
+  const gid = _currentGroup?.id;
+  await Promise.all([renderGroupPronos(gid), renderGroupClassement(gid)]);
   showToast('✅ Compétitions mises à jour !');
 }
 
