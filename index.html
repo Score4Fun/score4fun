@@ -16,7 +16,7 @@
   <title>Score4Fun — Predict the score. Score the points.</title>
 
   <!-- SEO -->
-  <meta name="description" content="Pronostique football, F1, tennis, hippisme et plus — défie tes amis et grimpe au classement. Gratuit, fun, 30 secondes pour s'inscrire." />
+  <meta name="description" content="Predict football, F1, tennis, horse racing and more — challenge your friends and climb the leaderboard. Free, fun, 30 seconds to sign up." />
   <meta name="keywords" content="pronostics, football, F1, tennis, hippisme, paris entre amis, classement, Score4Fun" />
   <link rel="canonical" href="https://score4fun.com" />
 
@@ -320,42 +320,42 @@
 <div id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">Score<span>4</span>Fun</div>
-    <div class="auth-tagline">Predict the score · Score the points</div>
+    <div class="auth-tagline">Predict it. Score it. Beat your friends. 🏆</div>
     <div id="login-form">
       <input class="auth-input" type="email" id="login-email" placeholder="Email" autocomplete="email" />
-      <input class="auth-input" type="password" id="login-password" placeholder="Mot de passe" autocomplete="current-password" />
+      <input class="auth-input" type="password" id="login-password" placeholder="Password" autocomplete="current-password" />
       <div id="login-error" class="auth-error" style="display:none;"></div>
-      <button class="auth-btn" id="login-btn" onclick="loginUser()">Se connecter</button>
-      <div class="auth-sep">— ou —</div>
-      <button class="auth-btn secondary" onclick="showForm('register')">Créer un compte</button>
-      <span class="forgot-link" onclick="showForm('forgot')">Mot de passe oublié ?</span>
+      <button class="auth-btn" id="login-btn" onclick="loginUser()">Log in</button>
+      <div class="auth-sep">— or —</div>
+      <button class="auth-btn secondary" onclick="showForm('register')">Create an account</button>
+      <span class="forgot-link" onclick="showForm('forgot')">Forgot password?</span>
     </div>
     <div id="register-form" style="display:none;">
       <input class="auth-input" type="text" id="reg-pseudo" placeholder="Pseudo" autocomplete="off" style="margin-bottom:4px;" />
       <div style="font-size:11px;color:var(--text-muted);text-align:left;margin-bottom:12px;padding:0 2px;">
-        👤 Ton prénom ou surnom — c'est ce que tes amis verront dans les classements.
+        👤 Your name or nickname — this is what your friends will see in the rankings.
       </div>
       <input class="auth-input" type="email" id="reg-email" placeholder="Email" autocomplete="email" style="margin-bottom:4px;" />
-      <input class="auth-input" type="password" id="reg-password" placeholder="Mot de passe" autocomplete="new-password" style="margin-bottom:4px;" />
+      <input class="auth-input" type="password" id="reg-password" placeholder="Password" autocomplete="new-password" style="margin-bottom:4px;" />
       <div style="font-size:11px;color:var(--text-muted);text-align:left;margin-bottom:14px;padding:6px 10px;background:#f9f7f5;border-radius:8px;line-height:1.6;">
-        🔒 Ton email et mot de passe servent uniquement à te connecter — ils ne sont jamais partagés ni conservés en clair. Le mot de passe peut être un simple mot 😉
+        🔒 Your email and password are only used to log you in — never shared, never stored in plain text. Keep it simple 😉
       </div>
       <div id="reg-error" class="auth-error" style="display:none;"></div>
-      <button class="auth-btn" onclick="registerUser()">Créer mon compte</button>
-      <button class="auth-btn secondary" onclick="showForm('login')">← Déjà un compte</button>
+      <button class="auth-btn" onclick="registerUser()">Create my account</button>
+      <button class="auth-btn secondary" onclick="showForm('login')">← Already have an account</button>
     </div>
     <div id="forgot-form" style="display:none;">
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Vérifie ton identité pour réinitialiser.</p>
-      <input class="auth-input" type="email" id="reset-email" placeholder="Ton email" />
-      <input class="auth-input" type="text" id="reset-pseudo" placeholder="Ton pseudo" />
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Verify your identity to reset your password.</p>
+      <input class="auth-input" type="email" id="reset-email" placeholder="Your email" />
+      <input class="auth-input" type="text" id="reset-pseudo" placeholder="Your username" />
       <div id="forgot-error" class="auth-error" style="display:none;"></div>
-      <button class="auth-btn" onclick="verifyReset()">Vérifier</button>
-      <button class="auth-btn secondary" onclick="showForm('login')">← Retour</button>
+      <button class="auth-btn" onclick="verifyReset()">Verify</button>
+      <button class="auth-btn secondary" onclick="showForm('login')">← Back</button>
     </div>
     <div id="newpwd-form" style="display:none;">
-      <input class="auth-input" type="password" id="new-pwd" placeholder="Nouveau mot de passe (min. 6 car.)" />
+      <input class="auth-input" type="password" id="new-pwd" placeholder="New password (min. 6 chars)" />
       <div id="newpwd-error" class="auth-error" style="display:none;"></div>
-      <button class="auth-btn" onclick="submitNewPwd()">Enregistrer</button>
+      <button class="auth-btn" onclick="submitNewPwd()">Save</button>
     </div>
   </div>
 </div>
@@ -383,18 +383,18 @@
       <div style="width:1px;height:36px;background:var(--border);"></div>
       <div style="text-align:center;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--text);line-height:1;" id="stat-rank">#–</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Classement</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Ranking</div>
       </div>
       <div style="width:1px;height:36px;background:var(--border);"></div>
       <div style="text-align:right;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;" id="stat-pct">–%</div>
         <div class="perf-bar-track" style="margin:4px 0 0;width:72px;"><div class="perf-bar-fill" id="stat-gauge" style="width:0%;background:var(--text-muted);"></div></div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Précision</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Accuracy</div>
       </div>
     </div>
-    <div class="section-title">Mes groupes</div>
+    <div class="section-title">My groups</div>
     <div class="groups-row" id="home-groups-row">
-      <div class="group-pill active"><div class="group-dot"></div>Tous</div>
+      <div class="group-pill active"><div class="group-dot"></div>All</div>
     </div>
     <div class="section-title">Sports</div>
     <div class="tabs-nav-wrapper">
@@ -403,7 +403,7 @@
       <button class="tabs-arrow" onclick="scrollTabs('sport-tabs-home',1)">&#8250;</button>
     </div>
     <div id="comp-tabs-container" style="display:none;">
-      <div class="section-title">Compétition</div>
+      <div class="section-title">Competition</div>
       <div class="phase-tabs" id="comp-tabs"></div>
     </div>
     <div id="home-events-container"></div>
@@ -412,13 +412,13 @@
 
   <!-- PRONOS -->
   <div class="page" id="page-pronos">
-    <div class="section-title" style="margin-top:8px;">Résultats & pronos clôturés</div>
+    <div class="section-title" style="margin-top:8px;">Results & closed picks</div>
     <div class="prono-list" id="prono-list"></div>
   </div>
 
   <!-- CLASSEMENTS -->
   <div class="page" id="page-classements">
-    <div class="section-title" style="margin-top:8px;">Classements</div>
+    <div class="section-title" style="margin-top:8px;">Rankings</div>
     <div class="tabs-nav-wrapper" style="margin-bottom:10px;">
       <button class="tabs-arrow" onclick="scrollTabs('rank-tabs-inner',-1)">&#8249;</button>
       <div class="rank-tabs" id="rank-tabs-inner"></div>
@@ -433,7 +433,7 @@
   <div class="page" id="page-group">
     <div style="display:flex;align-items:center;gap:10px;margin:8px 0 6px;">
       <button onclick="showPage(_prevPage||'groupes')" style="background:none;border:none;font-size:20px;cursor:pointer;padding:0;color:var(--text-muted);">←</button>
-      <button id="group-share-btn" onclick="" style="margin-left:auto;font-size:12px;padding:5px 12px;background:var(--orange-bg);color:var(--orange-dark);border:none;border-radius:8px;cursor:pointer;font-weight:600;">📤 Inviter</button>
+      <button id="group-share-btn" onclick="" style="margin-left:auto;font-size:12px;padding:5px 12px;background:var(--orange-bg);color:var(--orange-dark);border:none;border-radius:8px;cursor:pointer;font-weight:600;">📤 Invite</button>
     </div>
     <div style="margin-bottom:14px;">
       <div id="group-page-title" style="font-size:22px;font-weight:800;color:var(--text);line-height:1.2;"></div>
@@ -443,7 +443,7 @@
     <!-- Classement accordéon -->
     <div class="classement-accordion">
       <div class="classement-accordion-header" onclick="toggleGroupClassement()">
-        <span style="font-size:13px;font-weight:700;color:var(--text);">🏆 Classement</span>
+        <span style="font-size:13px;font-weight:700;color:var(--text);">🏆 Leaderboard</span>
         <span id="group-classement-count" style="font-size:11px;color:var(--text-muted);"></span>
         <span class="classement-accordion-chevron open" id="classement-chevron">▼</span>
       </div>
@@ -455,12 +455,12 @@
     <!-- Pronos pleine largeur -->
     <div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">⚽ Pronos</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;">⚽ Picks</div>
         <button id="group-add-comp-btn" onclick="toggleGroupManagePanel()" style="display:none;background:var(--orange);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:16px;line-height:1;cursor:pointer;font-weight:700;padding:0;">＋</button>
       </div>
       <!-- Admin manage panel (inline, collapsible) -->
       <div id="group-tab-manage-panel" style="display:none;background:var(--orange-bg);border-radius:10px;padding:10px;margin-bottom:10px;">
-        <div style="font-size:11px;font-weight:700;color:var(--orange-dark);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Ajouter des compétitions</div>
+        <div style="font-size:11px;font-weight:700;color:var(--orange-dark);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Add competitions</div>
         <div id="group-manage-list"></div>
       </div>
       <div id="group-events-list"></div>
@@ -468,28 +468,28 @@
   </div>
 
     <div class="page" id="page-groupes">
-    <div class="section-title" style="margin-top:8px;">Mes groupes</div>
+    <div class="section-title" style="margin-top:8px;">My groups</div>
     <div id="group-cards"></div>
 
-    <!-- Créer un groupe -->
+    <!-- Create a group -->
     <div id="create-group-section" style="margin-top:12px;">
       <div id="create-group-form" style="display:none;background:white;border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;">
-        <div style="font-size:13px;font-weight:600;margin-bottom:10px;">✨ Nouveau groupe</div>
-        <input class="auth-input" type="text" id="new-group-name" placeholder="Nom du groupe (ex: Les potes du bureau)" style="margin-bottom:8px;" />
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px;">✨ New group</div>
+        <input class="auth-input" type="text" id="new-group-name" placeholder="Group name (e.g. The office squad)" style="margin-bottom:8px;" />
         <div style="display:flex;gap:8px;">
-          <button class="auth-btn" style="margin:0;flex:1;" onclick="createGroup()">Créer</button>
-          <button class="auth-btn secondary" style="margin:0;" onclick="document.getElementById('create-group-form').style.display='none'">Annuler</button>
+          <button class="auth-btn" style="margin:0;flex:1;" onclick="createGroup()">Create</button>
+          <button class="auth-btn secondary" style="margin:0;" onclick="document.getElementById('create-group-form').style.display='none'">Cancel</button>
         </div>
       </div>
-      <button class="create-group-btn" onclick="document.getElementById('create-group-form').style.display='block';document.getElementById('new-group-name').focus()">+ Créer un groupe</button>
+      <button class="create-group-btn" onclick="document.getElementById('create-group-form').style.display='block';document.getElementById('new-group-name').focus()">+ Create a group</button>
     </div>
 
-    <!-- Rejoindre un groupe -->
+    <!-- Join a group -->
     <div style="margin-top:12px;background:white;border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px;">🔗 Rejoindre avec un code</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;">🔗 Join with a code</div>
       <div style="display:flex;gap:8px;">
-        <input class="auth-input" type="text" id="join-code" placeholder="Code d'invitation" style="margin:0;flex:1;text-transform:uppercase;" />
-        <button class="prono-btn" style="width:auto;margin:0;padding:0 16px;" onclick="joinGroup()">Rejoindre</button>
+        <input class="auth-input" type="text" id="join-code" placeholder="Invite code" style="margin:0;flex:1;text-transform:uppercase;" />
+        <button class="prono-btn" style="width:auto;margin:0;padding:0 16px;" onclick="joinGroup()">Join</button>
       </div>
     </div>
   </div>
@@ -508,17 +508,17 @@
   <div class="page" id="page-admin">
     <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 4px;">
       <div class="section-title" style="margin:0;">⚙️ ADMIN</div>
-      <button onclick="recalculateAllPoints('manual')" style="font-size:12px;padding:6px 14px;background:var(--green);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔄 Recalculer tout</button>
+      <button onclick="recalculateAllPoints('manual')" style="font-size:12px;padding:6px 14px;background:var(--green);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔄 Recalculate all</button>
     </div>
     <div style="display:flex;gap:6px;margin:6px 0 10px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:8px;">
-      <button id="admin-tab-results" onclick="setAdminTab('results')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">📋 Résultats</button>
-      <button id="admin-tab-users" onclick="setAdminTab('users')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">👥 Utilisateurs</button>
-      <button id="admin-tab-groups" onclick="setAdminTab('groups')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">🏆 Groupes</button>
+      <button id="admin-tab-results" onclick="setAdminTab('results')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">📋 Results</button>
+      <button id="admin-tab-users" onclick="setAdminTab('users')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">👥 Users</button>
+      <button id="admin-tab-groups" onclick="setAdminTab('groups')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">🏆 Groups</button>
     </div>
     <div id="admin-results-section">
       <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-        <button id="admin-filter-all" onclick="setAdminFilter('all')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">Tous</button>
-        <button id="admin-filter-pending" onclick="setAdminFilter('pending')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">⏳ En attente de résultat</button>
+        <button id="admin-filter-all" onclick="setAdminFilter('all')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">All</button>
+        <button id="admin-filter-pending" onclick="setAdminFilter('pending')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">⏳ Awaiting result</button>
       </div>
       <div id="admin-list"></div>
     </div>
@@ -532,7 +532,7 @@
 
     <!-- PROFIL -->
   <div class="page" id="page-profil">
-    <div class="section-title" style="margin-top:8px;">Mon profil</div>
+    <div class="section-title" style="margin-top:8px;">My profile</div>
     <div class="profil-header">
       <div class="profil-avatar" id="profil-avatar">?</div>
       <div class="profil-pseudo" id="profil-pseudo">...</div>
@@ -542,15 +542,15 @@
           <div class="profil-stat-val" id="profil-pts">0</div><div class="profil-stat-label">Points</div>
         </div>
         <div class="profil-stat" style="border-right:0.5px solid var(--border);padding:0 8px 8px;">
-          <div class="profil-stat-val" id="profil-rank">#–</div><div class="profil-stat-label">Classement</div>
+          <div class="profil-stat-val" id="profil-rank">#–</div><div class="profil-stat-label">Ranking</div>
         </div>
         <div class="profil-stat" style="padding:0 8px 8px;">
-          <div class="profil-stat-val" id="profil-pct" style="font-size:18px;">–%</div><div class="profil-stat-label">Précision</div>
+          <div class="profil-stat-val" id="profil-pct" style="font-size:18px;">–%</div><div class="profil-stat-label">Accuracy</div>
         </div>
       </div>
       <div class="profil-stats" style="gap:0;border-top:0.5px solid var(--border);padding-top:14px;margin-top:4px;display:grid;grid-template-columns:repeat(3,1fr);">
         <div class="profil-stat" style="border-right:0.5px solid var(--border);padding:0 8px;">
-          <div class="profil-stat-val" id="profil-pronos">0</div><div class="profil-stat-label">Pronos</div>
+          <div class="profil-stat-val" id="profil-pronos">0</div><div class="profil-stat-label">Picks</div>
         </div>
         <div class="profil-stat" style="border-right:0.5px solid var(--border);padding:0 8px;">
           <div class="profil-stat-val" id="profil-podiums">–</div><div class="profil-stat-label">Podiums 🥉</div>
@@ -560,27 +560,27 @@
         </div>
       </div>
     </div>
-    <div class="section-title">Mes badges</div>
+    <div class="section-title">My badges</div>
     <div class="badges-grid">
-      <div class="badge-item"><div class="badge-icon">🎯</div><div class="badge-name">Premier prono</div></div>
-      <div class="badge-item" style="opacity:0.3;"><div class="badge-icon">🔥</div><div class="badge-name">En feu x5</div></div>
+      <div class="badge-item"><div class="badge-icon">🎯</div><div class="badge-name">First pick</div></div>
+      <div class="badge-item" style="opacity:0.3;"><div class="badge-icon">🔥</div><div class="badge-name">On fire x5</div></div>
       <div class="badge-item" style="opacity:0.3;"><div class="badge-icon">👑</div><div class="badge-name">Top Scorer</div></div>
       <div class="badge-item" style="opacity:0.3;"><div class="badge-icon">🌍</div><div class="badge-name">4 sports</div></div>
       <div class="badge-item" style="opacity:0.3;"><div class="badge-icon">⚡</div><div class="badge-name">Sniper</div></div>
       <div class="badge-item" style="opacity:0.3;"><div class="badge-icon">🏆</div><div class="badge-name">Champion</div></div>
-      <div class="badge-item" style="opacity:0.3;"><div class="badge-icon">🎪</div><div class="badge-name">7 jours</div></div>
+      <div class="badge-item" style="opacity:0.3;"><div class="badge-icon">🎪</div><div class="badge-name">7 days</div></div>
       <div class="badge-item" style="opacity:0.3;"><div class="badge-icon">💎</div><div class="badge-name">Perfect</div></div>
     </div>
-    <button class="logout-btn" onclick="logoutUser()">Se déconnecter</button>
+    <button class="logout-btn" onclick="logoutUser()">Log out</button>
   </div>
 
   <nav class="bottom-nav">
-    <div class="nav-item active" onclick="showPage('home')" id="nav-home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></div>
-    <div class="nav-item" onclick="showPage('pronos')" id="nav-pronos"><span class="nav-icon">✅</span><span class="nav-label">Résultats</span></div>
-    <div class="nav-item" onclick="showPage('classements')" id="nav-classements"><span class="nav-icon">🏆</span><span class="nav-label">Classements</span></div>
-    <div class="nav-item" onclick="showPage('groupes')" id="nav-groupes"><span class="nav-icon">👥</span><span class="nav-label">Groupes</span></div>
+    <div class="nav-item active" onclick="showPage('home')" id="nav-home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></div>
+    <div class="nav-item" onclick="showPage('pronos')" id="nav-pronos"><span class="nav-icon">✅</span><span class="nav-label">Results</span></div>
+    <div class="nav-item" onclick="showPage('classements')" id="nav-classements"><span class="nav-icon">🏆</span><span class="nav-label">Rankings</span></div>
+    <div class="nav-item" onclick="showPage('groupes')" id="nav-groupes"><span class="nav-icon">👥</span><span class="nav-label">Groups</span></div>
     <div class="nav-item" onclick="showPage('admin')" id="nav-admin" style="display:none;"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span></div>
-    <div class="nav-item" onclick="showPage('profil')" id="nav-profil"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></div>
+    <div class="nav-item" onclick="showPage('profil')" id="nav-profil"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></div>
   </nav>
 </div>
 
@@ -590,8 +590,8 @@
     <div class="modal-title" id="modal-title"></div>
     <div class="modal-sub" id="modal-sub"></div>
     <div id="modal-content"></div>
-    <button class="modal-submit" onclick="submitProno()">Valider mon pronostic ✓</button>
-    <button class="modal-close" onclick="closeModal()">Annuler</button>
+    <button class="modal-submit" onclick="submitProno()">Submit my pick ✓</button>
+    <button class="modal-close" onclick="closeModal()">Cancel</button>
   </div>
 </div>
 
@@ -1093,7 +1093,7 @@ async function loginUser() {
   btn.textContent='Connexion...'; btn.disabled=true;
   const hash = await hashPwd(pwd);
   const {data} = await sb.from('profiles').select('*').eq('email',email).eq('pwd',hash).maybeSingle();
-  btn.textContent='Se connecter'; btn.disabled=false;
+  btn.textContent='Log in'; btn.disabled=false;
   if (!data) { err.textContent='Email ou mot de passe incorrect.'; err.style.display='block'; return; }
   currentProfile=data; currentUser={id:data.id};
   localStorage.setItem('s4f_session', JSON.stringify({id:data.id}));
@@ -1135,7 +1135,7 @@ async function verifyReset() {
   } catch(e) {
     err.textContent='Erreur: '+e.message; err.style.display='block';
   } finally {
-    btn.textContent='Vérifier'; btn.disabled=false;
+    btn.textContent='Verify'; btn.disabled=false;
   }
 }
 
@@ -1183,7 +1183,7 @@ function launchApp() {
       showPage('groupes');
       const inp = document.getElementById('join-code');
       if (inp) { inp.value = urlJoin.toUpperCase(); }
-      showToast('🔗 Code ' + urlJoin.toUpperCase() + ' détecté — clique sur Rejoindre !');
+      showToast('🔗 Code ' + urlJoin.toUpperCase() + ' detected — click Join!');
       history.replaceState({}, '', window.location.pathname); // nettoyer l'URL
     } else {
       showPage('home');
@@ -1203,7 +1203,7 @@ async function renderHomeGroups() {
   const pills = groups.map(g =>
     `<div class="group-pill" onclick="showGroupPage('${g.id}','home')"><div class="group-dot"></div>${g.name}</div>`
   ).join('');
-  row.innerHTML = `<div class="group-pill active" onclick="filterByGroup(null,this)"><div class="group-dot"></div>Tous</div>` + pills;
+  row.innerHTML = `<div class="group-pill active" onclick="filterByGroup(null,this)"><div class="group-dot"></div>All</div>` + pills;
 }
 
 let _activeGroup = null;
@@ -1556,7 +1556,7 @@ async function quickSelect(eventId, result, el, e) {
 // =====================
 function openPronoModal(eventId) {
   const evCheck = EVENTS.find(e => e.id === eventId);
-  if (evCheck && isTrulyClosed(evCheck)) { showToast('🔒 Ce pronostic est clôturé !'); return; }
+  if (evCheck && isTrulyClosed(evCheck)) { showToast('🔒 This pick is closed!'); return; }
   currentEvent = EVENTS.find(e=>e.id===eventId);
   if (!currentEvent) return;
   document.getElementById('modal-title').textContent = currentEvent.name;
@@ -2260,11 +2260,11 @@ async function renderAdminGroups() {
     <div style="display:flex;gap:10px;margin-bottom:14px;">
       <div style="flex:1;background:var(--orange-bg);border-radius:10px;padding:10px 12px;text-align:center;">
         <div style="font-size:22px;font-weight:800;color:var(--orange-dark);">${total}</div>
-        <div style="font-size:11px;color:var(--text-muted);">groupe${total>1?'s':''}</div>
+        <div style="font-size:11px;color:var(--text-muted);">group${total>1?'s':''}</div>
       </div>
       <div style="flex:1;background:var(--orange-bg);border-radius:10px;padding:10px 12px;text-align:center;">
         <div style="font-size:22px;font-weight:800;color:var(--orange-dark);">${totalMembers}</div>
-        <div style="font-size:11px;color:var(--text-muted);">membre${totalMembers>1?'s':''} au total</div>
+        <div style="font-size:11px;color:var(--text-muted);">member${totalMembers>1?'s':''} total au total</div>
       </div>
     </div>
     ${groups.map(g => {
@@ -2274,14 +2274,14 @@ async function renderAdminGroups() {
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="flex:1;min-width:0;">
             <div style="font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${g.name}</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Créé par <b>${creator}</b> · ${date}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Created by <b>${creator}</b> · ${date}</div>
           </div>
           <div style="text-align:right;flex-shrink:0;">
             <div style="font-size:15px;font-weight:700;color:var(--orange-dark);">${g.members_count||0}</div>
-            <div style="font-size:10px;color:var(--text-muted);">membre${(g.members_count||0)>1?'s':''}</div>
+            <div style="font-size:10px;color:var(--text-muted);">member${(g.members_count||0)>1?'s':''}</div>
           </div>
         </div>
-        <div style="margin-top:6px;font-size:11px;color:var(--text-muted);">Code : <span style="font-family:monospace;font-weight:600;color:var(--text);">${g.code}</span></div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted);">Code: <span style="font-family:monospace;font-weight:600;color:var(--text);">${g.code}</span></div>
       </div>`;
     }).join('')}`;
 }
@@ -2503,7 +2503,7 @@ async function recalculateAllPoints(triggerLabel) {
     // 1. Charger tous les résultats officiels
     const {data:results, error:re} = await sb.from('results').select('event_id, result_data');
     if (re) throw re;
-    if (!results || !results.length) { showToast('⚠️ Aucun résultat officiel saisi'); return; }
+    if (!results || !results.length) { showToast('⚠️ No official results entered yet'); return; }
 
     const officialMap = {};
     results.forEach(r => { officialMap[r.event_id] = r.result_data; });
@@ -2814,7 +2814,7 @@ async function renderGroupes() {
       </div>
       <div style="margin:8px 0;">${top3 || '<div style="font-size:12px;color:var(--text-muted);">Pas encore de points</div>'}</div>
       <div class="group-card-code">
-        <span>🔗 Code : <strong>${g.code}</strong></span>
+        <span>🔗 Code: <strong>${g.code}</strong></span>
         <button class="copy-btn" onclick="copyGroupInvite('${g.code}','${g.name.replace(/'/g,"\'")}')">Partager 📤</button>
       </div>
       ${isAdmin ? `<button onclick="deleteGroup('${g.id}')" style="margin-top:8px;font-size:11px;color:#999;background:none;border:none;cursor:pointer;">🗑 Supprimer le groupe</button>` : `<button onclick="leaveGroup('${g.id}')" style="margin-top:8px;font-size:11px;color:#999;background:none;border:none;cursor:pointer;">↩ Quitter le groupe</button>`}
@@ -2857,7 +2857,7 @@ function copyGroupInvite(code, name) {
       .catch(() => {}); // annulation silencieuse
   } else {
     navigator.clipboard.writeText(msg);
-    showToast('Lien copié ! Partage-le à tes amis 📤');
+    showToast('Link copied! Share it with your friends 📤');
   }
 }
 
@@ -2872,7 +2872,7 @@ async function createGroup() {
   await sb.from('group_members').insert({group_id:data.id, user_id:currentUser.id, is_admin:true});
   document.getElementById('new-group-name').value = '';
   document.getElementById('create-group-form').style.display = 'none';
-  showToast('✅ Groupe créé ! Code : '+code);
+  showToast('✅ Groupe créé ! Code: '+code);
   renderGroupes();
 }
 
@@ -2928,7 +2928,7 @@ async function showGroupPage(groupId, fromPage) {
 
   // Vrai compte membres depuis la table
   const {count:realCount} = await sb.from('group_members').select('id', {count:'exact',head:true}).eq('group_id', groupId);
-  document.getElementById('group-page-sub').textContent = (realCount||1) + ' membre(s) · Code : ' + g.code;
+  document.getElementById('group-page-sub').textContent = (realCount||1) + ' member(s) · Code: ' + g.code;
 
   // Bouton + admin
   const isAdmin = g.created_by === currentUser?.id;
@@ -3232,7 +3232,7 @@ async function openGroupMemberProfile(uid, pseudo) {
   if (!uid) return;
   const scoredIds = window._groupScoredIds || [];
   const officialMap = window._groupOfficialMap || {};
-  if (!scoredIds.length) { showToast('Aucun résultat disponible encore.'); return; }
+  if (!scoredIds.length) { showToast('No results available yet.'); return; }
 
   const modal  = document.getElementById('member-modal');
   const header = document.getElementById('member-modal-header');
