@@ -2652,20 +2652,19 @@ function renderRankList(rows, container, sport, comp) {
     const accStr = acc != null ? `${acc}%` : '–%';
     const trend = (p.trend != null && p.trend !== 0) ? p.trend : null;
     const trendHtml = trend != null
-      ? `<span style="font-size:10px;color:${trend>0?'#22c55e':'#ef4444'};font-weight:700;">${trend>0?'↑':'↓'}${Math.abs(trend)}%</span>`
+      ? `<span style="font-size:10px;color:${trend>0?'#22c55e':'#ef4444'};font-weight:700;background:${trend>0?'#dcfce7':'#fee2e2'};padding:1px 4px;border-radius:4px;">${trend>0?'▲':'▼'}${Math.abs(trend)}%</span>`
       : '';
     return `<div class="full-rank-row ${isMe?'me':''}" ${clickable?`onclick="openMemberProfile('${p.uid}','${pseudo_esc}','${sportArg}','${compArg}')" style="cursor:pointer;"`:''}>
       <div class="full-rank-num ${isMe?'me':''}">${medal||i+1}</div>
       <div class="full-rank-avatar ${isMe?'me':''}">${p.pseudo?p.pseudo[0].toUpperCase():'?'}</div>
-      <div class="full-rank-info">
-        <div class="full-rank-name ${isMe?'me':''}">${p.pseudo||'–'}</div>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:2px;">
+      <div class="full-rank-info" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
+        <div class="full-rank-name ${isMe?'me':''}" style="flex-shrink:0;">${p.pseudo||'–'}</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-left:auto;">
           <span style="font-size:11px;font-weight:700;color:${accColor};">${accStr}</span>
           ${trendHtml}
-          <span style="font-size:11px;color:var(--text-muted);">· ${p.pronos_count||0} picks</span>
         </div>
       </div>
-      <div class="full-rank-pts ${isMe?'me':''}">${p.pts||0}<span style="font-size:11px;font-weight:400;color:var(--text-muted);"> pts</span></div>
+      <div class="full-rank-pts ${isMe?'me':''}" style="margin-left:10px;">${p.pts||0}<span style="font-size:11px;font-weight:400;color:var(--text-muted);"> pts</span></div>
     </div>`;
   }).join('');
 }
@@ -3371,5 +3370,4 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   }
   const closedEventIds = scoredEventIds;
   const [pronosRes, resultsRes] = await Promise.all([
-    closedEventIds.length ? sb.from('pronos').select('event_id,data').eq('user_id', uid).in('event_id', closedEventIds) : Promise.resolve({data:[]}),
-    Prom
+    closedEventIds.length ? sb.from('pronos').select('event_id,d
