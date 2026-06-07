@@ -1234,9 +1234,14 @@ function renderCompTabs() {
   const tabsEl = document.getElementById('comp-tabs');
   if (!_activeSport) { container.style.display='none'; return; }
   const comps = [...new Set(EVENTS.filter(e=>e.sport===_activeSport).map(e=>e.comp))];
-  if (comps.length <= 1) { container.style.display='none'; return; }
+  if (!comps.length) { container.style.display='none'; return; }
   container.style.display='block';
-  tabsEl.innerHTML = [{name:'Toutes',val:null},...comps.map(c=>({name:c,val:c}))]
+  // Si 1 seule compétition : pas de "Toutes", juste la comp active
+  const items = comps.length > 1
+    ? [{name:'Toutes',val:null},...comps.map(c=>({name:c,val:c}))]
+    : comps.map(c=>({name:c,val:c}));
+  if (comps.length === 1) _activeComp = comps[0]; // auto-sélectionner
+  tabsEl.innerHTML = items
     .map(c=>`<div class="phase-tab ${c.val===_activeComp?'active':''}" onclick="toggleComp(${c.val===null?'null':`'${c.val}'`},this)">${c.name}</div>`)
     .join('');
 }
@@ -2533,10 +2538,14 @@ function switchRankTab(el) {
   const compTabsEl = document.getElementById('rank-comp-tabs');
   if (_rankSport) {
     const comps = [...new Set(EVENTS.filter(e=>e.sport===_rankSport).map(e=>e.comp))];
-    if (comps.length > 1) {
+    if (comps.length > 0) {
       compTabsEl.style.display = 'flex';
-      compTabsEl.innerHTML = [{label:'Toutes',val:null},...comps.map(c=>({label:c,val:c}))]
-        .map(c=>`<div class="phase-tab ${c.val===null?'active':''}" onclick="switchRankCompTab(this,'${c.val||''}')">${c.label}</div>`)
+      const items = comps.length > 1
+        ? [{label:'Toutes',val:null},...comps.map(c=>({label:c,val:c}))]
+        : comps.map(c=>({label:c,val:c}));
+      if (comps.length === 1) _rankComp = comps[0];
+      compTabsEl.innerHTML = items
+        .map(c=>`<div class="phase-tab ${(comps.length===1||c.val===null)?'active':''}" onclick="switchRankCompTab(this,'${c.val||''}')">${c.label}</div>`)
         .join('');
     } else {
       compTabsEl.style.display = 'none';
