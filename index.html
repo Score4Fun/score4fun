@@ -248,11 +248,9 @@
 
     /* GROUPES */
     .group-cards { display: flex; flex-direction: column; gap: 10px; }
-    .group-page-cols { display: flex; gap: 12px; align-items: flex-start; }
-    .group-page-cols > div { flex: 1; min-width: 0; }
-    @media (max-width: 600px) {
-      .group-page-cols { flex-direction: column; gap: 16px; }
-    }
+    .group-page-cols { display: flex; gap: 10px; align-items: flex-start; }
+    .group-page-cols > div:first-child { flex: 3; min-width: 0; }
+    .group-page-cols > div:last-child  { flex: 2; min-width: 0; }
     .group-card { background: white; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
     .group-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .group-card-name { font-size: 18px; font-weight: 700; color: var(--orange-dark); text-decoration: underline; cursor: pointer; letter-spacing: -0.3px; }
@@ -2948,7 +2946,7 @@ async function renderGroupClassement(groupId) {
         <div style="font-size:13px;font-weight:${isMe?700:500};${isMe?'color:var(--orange)':''};text-decoration:underline;text-underline-offset:2px;cursor:pointer;" onclick="openGroupMemberProfile('${m.id}','${(m.pseudo||'').replace(/'/g,"\\\'")}')">${m.pseudo||'–'}</div>
         <div style="font-size:11px;color:${perfColor};font-weight:600;">${perfStr}</div>
       </div>
-      <div style="font-size:14px;font-weight:700;${isMe?'color:var(--orange)':''}">${m.groupPts}<span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:2px;">pts</span></div>
+      <div style="font-size:13px;font-weight:700;${isMe?'color:var(--orange)':''};white-space:nowrap;">${m.groupPts}<span style="font-size:9px;font-weight:400;color:var(--text-muted);margin-left:1px;">pts</span></div>
     </div>`;
   }).join('') + (scoredIds.length === 0 ? '<div style="padding:8px 4px;font-size:11px;color:var(--text-muted);">⏳ En attente des premiers résultats</div>' : '');
 }
@@ -3001,9 +2999,9 @@ async function renderGroupPronos(groupId) {
           <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.name}</div>
           <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.comp}</div>
         </div>
-        <span class="prono-tag ${done?'done-tag':closed?'closed-tag':'todo'}" style="flex-shrink:0;">${done?'✓ Fait':closed?'🔒 Fermé':'À faire →'}</span>
+        <span class="prono-tag ${done?'done-tag':closed?'closed-tag':'todo'}" style="flex-shrink:0;font-size:10px;padding:2px 6px;">${done?'✓':closed?'🔒':'→'}</span>
       </div>
-      ${ptsHtml ? `<div style="margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border);font-size:12px;font-weight:700;color:${ptsColor};">🎯 ${ptsHtml}</div>` : ''}
+      ${ptsHtml ? `<div style="margin-top:4px;font-size:11px;font-weight:700;color:${ptsColor};">🎯 ${ptsHtml}</div>` : ''}
     </div>`;
   }).join('');
 }

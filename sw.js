@@ -1,5 +1,5 @@
 // Score4Fun Service Worker — network-first pour toujours servir la dernière version
-const CACHE = 's4f-v3';
+const CACHE = 's4f-v4';
 
 self.addEventListener('install', () => self.skipWaiting());
 
