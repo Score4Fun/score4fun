@@ -229,7 +229,7 @@
     /* CLASSEMENTS */
 
     /* rank-tabs handled above */
-    .rank-tab { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+    .rank-tab { white-space: nowrap; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; flex-shrink: 0; }
     .rank-tab.active { background: var(--orange); color: white; border-color: var(--orange); }
     .full-rank-list { background: white; border-radius: var(--radius); border: 0.5px solid var(--border); overflow: hidden; }
     .full-rank-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--border); }
@@ -412,7 +412,7 @@
   <!-- CLASSEMENTS -->
   <div class="page" id="page-classements">
     <div class="section-title" style="margin-top:8px;">Classements</div>
-    <div class="tabs-nav-wrapper" style="margin-bottom:14px;">
+    <div class="tabs-nav-wrapper" style="margin-bottom:10px;">
       <button class="tabs-arrow" onclick="scrollTabs('rank-tabs-inner',-1)">&#8249;</button>
       <div class="rank-tabs" id="rank-tabs-inner"></div>
       <button class="tabs-arrow" onclick="scrollTabs('rank-tabs-inner',1)">&#8250;</button>
