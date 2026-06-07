@@ -3330,6 +3330,76 @@ function showPage(name) {
 </div>
 
 <script>
+
+async function openMemberProfile(uid, pseudo, sport, comp) {
+  if (!uid) return;
+  const modal  = document.getElementById('member-modal');
+  const header = document.getElementById('member-modal-header');
+  const body   = document.getElementById('member-modal-body');
+  header.innerHTML = '';
+  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
+  modal.classList.add('open');
+
+  // Détermine les events scorés filtrés par sport/comp
+  const filteredEvents = EVENTS.filter(ev => {
+    if (sport && ev.sport !== sport) return false;
+    if (comp && ev.comp !== comp) return false;
+    return true;
+  });
+  const filteredIds = filteredEvents.map(ev => ev.id);
+
+  // Résultats officiels pour ces events
+  const {data:resultsData} = filteredIds.length
+    ? await sb.from('results').select('event_id,result_data').in('event_id', filteredIds)
+    : {data:[]};
+  const officialMap = {};
+  (resultsData||[]).forEach(r => { officialMap[Number(r.event_id)] = r.result_data; });
+  const scoredIds = Object.keys(officialMap).map(Number);
+
+  if (!scoredIds.length) {
+    header.innerHTML = '<div style="font-size:15px;font-weight:700;">' + pseudo + '</div>';
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No scored picks yet for this filter.</div>';
+    return;
+  }
+
+  const [profRes, pronosRes] = await Promise.all([
+    sb.from('profiles').select('pseudo,points').eq('id', uid).maybeSingle(),
+    sb.from('pronos').select('event_id,data').eq('user_id', uid).in('event_id', scoredIds)
+  ]);
+
+  const prof   = profRes.data || {pseudo, points:0};
+  const pronos = pronosRes.data || [];
+
+  let totalPts = 0, totalMax = 0;
+  const pronoCards = pronos.map(pr => {
+    const ev = EVENTS.find(e => e.id === Number(pr.event_id));
+    if (!ev) return null;
+    const official = officialMap[Number(pr.event_id)];
+    if (!official) return null;
+    const pts = computeUserPoints(ev, pr.data, official);
+    const max = getMaxPts(ev);
+    totalPts += pts;
+    totalMax += max;
+    return { ev, data: pr.data, official, pts, max };
+  }).filter(Boolean).sort((a,b) => (b.pts??-1) - (a.pts??-1));
+
+  const initial = (pseudo||'?')[0].toUpperCase();
+  const accStr = totalMax > 0 ? Math.round(totalPts/totalMax*100) + '%' : '–%';
+  const scopeLabel = sport ? (comp || sport) : 'Overall';
+  header.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding-right:28px;">'
+    + '<div style="width:42px;height:42px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">' + initial + '</div>'
+    + '<div><div style="font-size:16px;font-weight:700;">' + pseudo + '</div>'
+    + '<div style="font-size:11px;color:var(--text-muted);">' + totalPts + ' pts · ' + accStr + ' accuracy · ' + scopeLabel + '</div></div>'
+    + '</div>';
+
+  if (!pronoCards.length) {
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No picks recorded for this filter.</div>';
+    return;
+  }
+
+  renderMemberPronoCards(body, pronoCards);
+}
+
 function closeMemberModal() {
   document.getElementById('member-modal').classList.remove('open');
 }
