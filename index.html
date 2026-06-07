@@ -2333,16 +2333,24 @@ async function renderAdminUsers() {
 async function deleteUser(uid, pseudo) {
   if (!confirm(`Remove ${pseudo} permanently? Their picks and rankings will be deleted.`)) return;
   showToast('⏳ Deleting…');
-  try {
-    await sb.from('pronos').delete().eq('user_id', uid);
-    await sb.from('group_members').delete().eq('user_id', uid);
-    await sb.from('profiles').delete().eq('id', uid);
-    showToast(`✅ ${pseudo} removed`);
-    await recalculateAllPoints('deleteUser');
-    renderAdminUsers();
-  } catch(e) {
-    showToast('❌ Erreur: ' + e.message);
+  // 1. Picks
+  const r1 = await sb.from('pronos').delete().eq('user_id', uid);
+  if (r1.error) { showToast('❌ pronos: ' + r1.error.message); return; }
+  // 2. Group memberships
+  const r2 = await sb.from('group_members').delete().eq('user_id', uid);
+  if (r2.error) { showToast('❌ group_members: ' + r2.error.message); return; }
+  // 3. Groups created by user (transfer or delete)
+  const {data: ownedGroups} = await sb.from('groups').select('id').eq('created_by', uid);
+  if (ownedGroups && ownedGroups.length) {
+    const r3 = await sb.from('groups').delete().in('id', ownedGroups.map(g=>g.id));
+    if (r3.error) { showToast('❌ groups: ' + r3.error.message); return; }
   }
+  // 4. Profile
+  const r4 = await sb.from('profiles').delete().eq('id', uid);
+  if (r4.error) { showToast('❌ profile: ' + r4.error.message); return; }
+  showToast(`✅ ${pseudo} removed`);
+  await recalculateAllPoints('deleteUser');
+  renderAdminUsers();
 }
 
 
@@ -3559,17 +3567,4 @@ async function openGroupMemberProfile(uid, pseudo) {
       }
     }
 
-    return '<div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
-      + '<div><div style="font-weight:700;font-size:13px;">' + ev.emoji + ' ' + ev.name + '</div>'
-      + '<div style="font-size:11px;color:var(--text-muted);">' + ev.comp + '</div></div>'
-      + '<div style="font-weight:800;font-size:14px;color:' + ptsColor + ';">' + ptsStr + '</div>'
-      + '</div>'
-      + inner
-      + '</div>';
-  }).join('');
-}
-</script>
-
-</body>
-</html>
+    return '<div style="background:white;bor
