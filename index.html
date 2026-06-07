@@ -1141,10 +1141,20 @@ function launchApp() {
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   loadUserPronos().then(() => {
-    showPage('home');
     updateTopBar(); renderSportTabs(); renderHomeEvents(); updateRating(); updatePodiums();
     loadRankingsHome(); renderPronos(); renderGroupes(); renderProfil();
     renderHomeGroups();
+    // Détecter ?join=CODE dans l'URL pour rejoindre un groupe directement
+    const urlJoin = new URLSearchParams(window.location.search).get('join');
+    if (urlJoin) {
+      showPage('groupes');
+      const inp = document.getElementById('join-code');
+      if (inp) { inp.value = urlJoin.toUpperCase(); }
+      showToast('🔗 Code ' + urlJoin.toUpperCase() + ' détecté — clique sur Rejoindre !');
+      history.replaceState({}, '', window.location.pathname); // nettoyer l'URL
+    } else {
+      showPage('home');
+    }
   });
 }
 
@@ -2755,9 +2765,15 @@ async function openGroupDetail(groupId, groupName) {
 }
 
 function copyGroupInvite(code, name) {
-  const msg = `⚽🏆 Think you can beat me? Join my group "${name}" on Score4Fun and let's see who predicts sports best! Code: ${code} 👉 score4fun.com`;
-  navigator.clipboard.writeText(msg);
-  showToast('Message copié ! Partage-le à tes amis 📤');
+  const link = `https://score4fun.com?join=${code}`;
+  const msg = `🏆 Rejoins mon groupe "${name}" sur Score4Fun et montre ce que tu vaux ! Clique pour rejoindre directement : ${link}`;
+  if (navigator.share) {
+    navigator.share({ title: 'Score4Fun – ' + name, text: msg, url: link })
+      .catch(() => {}); // annulation silencieuse
+  } else {
+    navigator.clipboard.writeText(msg);
+    showToast('Lien copié ! Partage-le à tes amis 📤');
+  }
 }
 
 function copyCode(code) { navigator.clipboard.writeText(code); showToast('Code copié ! 📋'); }
