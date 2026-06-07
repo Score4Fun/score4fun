@@ -2663,21 +2663,48 @@ async function renderGroupes() {
   const groupIds = data.map(d => d.group_id);
   const {data:groups} = await sb.from('groups').select('*').in('id', groupIds);
 
-  // Pour chaque groupe, charger le classement des membres
+  // Pour chaque groupe, calculer les points GROUPE de chaque membre
   let html = '';
   for (const g of (groups||[])) {
     const {data:members} = await sb.from('group_members').select('user_id').eq('group_id', g.id);
     const memberIds = (members||[]).map(m => m.user_id);
-    const {data:profiles} = await sb.from('profiles').select('pseudo,points').in('id', memberIds).order('points', {ascending:false});
+    const {data:profiles} = await sb.from('profiles').select('id,pseudo').in('id', memberIds);
 
-    const myRank = (profiles||[]).findIndex(p => p.pseudo === currentProfile.pseudo) + 1;
-    const top3 = (profiles||[]).slice(0,3).map((p,i) => {
-      const isMe = p.pseudo === currentProfile.pseudo;
+    // Events + résultats du groupe
+    const {data:gevents} = await sb.from('group_events').select('event_id').eq('group_id', g.id);
+    const groupEventIds = (gevents||[]).map(e => Number(e.event_id));
+    let officialMap = {};
+    let scoredIds = [];
+    if (groupEventIds.length) {
+      const {data:resData} = await sb.from('results').select('event_id,result_data').in('event_id', groupEventIds);
+      (resData||[]).forEach(r => { officialMap[Number(r.event_id)] = r.result_data; });
+      scoredIds = Object.keys(officialMap).map(Number);
+    }
+
+    // Calculer pts groupe pour chaque membre
+    let memberStats = [];
+    for (const prof of (profiles||[])) {
+      let groupPts = 0;
+      if (scoredIds.length) {
+        const {data:pronos} = await sb.from('pronos').select('event_id,data').eq('user_id', prof.id).in('event_id', scoredIds);
+        (pronos||[]).forEach(pr => {
+          const ev = EVENTS.find(e => e.id === Number(pr.event_id));
+          const official = officialMap[Number(pr.event_id)];
+          if (ev && official) groupPts += computeUserPoints(ev, pr.data, official);
+        });
+      }
+      memberStats.push({ pseudo: prof.pseudo, groupPts, id: prof.id });
+    }
+    memberStats.sort((a,b) => b.groupPts - a.groupPts);
+
+    const myRank = memberStats.findIndex(m => m.id === currentUser.id) + 1;
+    const top3 = memberStats.slice(0,3).map((m,i) => {
+      const isMe = m.id === currentUser.id;
       const medal = i===0?'🥇':i===1?'🥈':'🥉';
       return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border);">
         <span style="font-size:16px;">${medal}</span>
-        <span style="flex:1;font-size:13px;font-weight:${isMe?'600':'400'};color:${isMe?'var(--orange)':'var(--text)'};">${p.pseudo}</span>
-        <span style="font-size:13px;font-weight:600;color:var(--text-muted);">${p.points||0} pts</span>
+        <span style="flex:1;font-size:13px;font-weight:${isMe?'600':'400'};color:${isMe?'var(--orange)':'var(--text)'};">${m.pseudo}</span>
+        <span style="font-size:13px;font-weight:600;color:${isMe?'var(--orange)':'var(--text-muted)'};">${m.groupPts} pts</span>
       </div>`;
     }).join('');
 
