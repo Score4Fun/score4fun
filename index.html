@@ -834,6 +834,38 @@ const EVENTS = [
     candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
     status:'open', urgency:true, cutoff:'Dimanche 15h', deadline:'2026-06-07T13:00:00Z' },
 
+  // ===== TENNIS - Wimbledon 2026 =====
+  { id:24, sport:'tennis', comp:'Wimbledon 2026', phase:'Finales', emoji:'🎾',
+    name:'Finale Hommes Wimbledon', sub:'Wimbledon 2026 · Centre Court',
+    type:'tennis_final_h',
+    finalists: ['Carlos Alcaraz', 'Novak Djokovic'],
+    status:'soon', urgency:false, cutoff:'13 juillet', deadline:'2026-07-13T13:00:00Z' },
+
+  { id:25, sport:'tennis', comp:'Wimbledon 2026', phase:'Finales', emoji:'🎾',
+    name:'Finale Dames Wimbledon', sub:'Wimbledon 2026 · Centre Court',
+    type:'tennis_final_f',
+    candidates:['Aryna Sabalenka', 'Iga Swiatek'],
+    status:'soon', urgency:false, cutoff:'12 juillet', deadline:'2026-07-12T13:00:00Z' },
+
+  // ===== F1 - Saison 2026 (prochaines courses) =====
+  { id:31, sport:'f1', comp:'Saison F1 2026', phase:'Juin 2026', emoji:'🏎️',
+    name:'GP Canada 2026', sub:'Circuit Gilles-Villeneuve · Montréal',
+    type:'f1_race',
+    candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
+    status:'open', urgency:true, cutoff:'Dim. 20h', deadline:'2026-06-14T18:00:00Z' },
+
+  { id:32, sport:'f1', comp:'Saison F1 2026', phase:'Juillet 2026', emoji:'🏎️',
+    name:'GP Grande-Bretagne 2026', sub:'Silverstone · Northamptonshire',
+    type:'f1_race',
+    candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
+    status:'soon', urgency:false, cutoff:'6 juillet', deadline:'2026-07-06T13:00:00Z' },
+
+  { id:33, sport:'f1', comp:'Saison F1 2026', phase:'Juillet 2026', emoji:'🏎️',
+    name:'GP Hongrie 2026', sub:'Hungaroring · Budapest',
+    type:'f1_race',
+    candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
+    status:'soon', urgency:false, cutoff:'19 juillet', deadline:'2026-07-19T13:00:00Z' },
+
   // ===== CYCLISME =====
   { id:40, sport:'cyclisme', comp:'Tour de France 2026', phase:'Classement général', emoji:'🚴',
     name:'Vainqueur TDF 2026', sub:'Tour de France 2026 · Top 4', type:'top4',
