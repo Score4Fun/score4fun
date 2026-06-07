@@ -2465,6 +2465,23 @@ function renderAdminForm(ev, existing) {
       </div>
       <button onclick="saveResult(${ev.id},'tennis')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
+  // F1 race — top 4 podium selects
+  if (ev.type === 'f1_race') {
+    const drivers = ev.candidates || [];
+    const dOpts = (val) => drivers.map(d => `<option value="${d}" ${ex[val]===d?'selected':''}>${d}</option>`).join('');
+    const positions = [['p1','🥇 1st place'],['p2','🥈 2nd place'],['p3','🥉 3rd place'],['p4','4th place']];
+    return `
+      <div style="font-size:12px;display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+        ${positions.map(([k,label]) => `
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:110px;font-weight:500;">${label}</span>
+          <select id="admin-${ev.id}-${k}" style="font-size:12px;flex:1;">
+            <option value="">— Select driver —</option>${dOpts(k)}
+          </select>
+        </div>`).join('')}
+      </div>
+      <button onclick="saveResult(${ev.id},'f1_race')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
+  }
   // Autres types : JSON brut
   return `<textarea id="admin-${ev.id}-json" style="width:100%;font-size:11px;font-family:monospace;height:60px;border:1px solid var(--border);border-radius:4px;padding:4px;">${existing?JSON.stringify(existing,null,2):''}</textarea>
     <button onclick="saveResult(${ev.id},'json')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
@@ -2489,6 +2506,11 @@ async function saveResult(eventId, type) {
     ['champion','finaliste','third','fourth','topScorer','topGoals'].forEach(k => {
       result_data[k] = document.getElementById(`admin-${eventId}-${k}`)?.value || '';
     });
+  } else if (type === 'f1_race') {
+    ['p1','p2','p3','p4'].forEach(k => {
+      result_data[k] = document.getElementById(`admin-${eventId}-${k}`)?.value || '';
+    });
+    if (!result_data.p1) { showToast('⚠️ Select at least 1st place!'); return; }
   } else {
     if (type === 'tennis') {
       ['winner','sets','first_set','aces'].forEach(k => {
@@ -3329,32 +3351,4 @@ async function openGroupMemberProfile(uid, pseudo) {
   const pronoCards = pronos.map(pr => {
     const ev = EVENTS.find(e => e.id === Number(pr.event_id));
     if (!ev) return null;
-    const official = officialMap[Number(pr.event_id)];
-    let pts = null, max = null;
-    if (official) {
-      pts = computeUserPoints(ev, pr.data, official);
-      max = getMaxPts(ev);
-      totalPts += pts;
-      scoredCount++;
-    }
-    return { ev, data: pr.data, official, pts, max };
-  }).filter(Boolean).sort((a,b) => (b.pts??-1) - (a.pts??-1));
-
-  const initial = (pseudo||'?')[0].toUpperCase();
-  header.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding-right:28px;">'
-    + '<div style="width:42px;height:42px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">' + initial + '</div>'
-    + '<div><div style="font-size:16px;font-weight:700;">' + pseudo + '</div>'
-    + '<div style="font-size:11px;color:var(--text-muted);">' + totalPts + ' pts dans ce groupe · ' + scoredCount + ' pronos scorés</div></div>'
-    + '</div>';
-
-  if (!pronoCards.length) {
-    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">Aucun pronostic enregistré pour ce groupe.</div>';
-    return;
-  }
-
-  // Réutiliser le renderer de openMemberProfile pour les cartes
-  window._memberModalPronoCards = pronoCards;
-  renderMemberPronoCards(body, pronoCards);
-}
-
-asyn
+    const official = official
