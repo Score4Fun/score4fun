@@ -2481,6 +2481,13 @@ function renderAdminForm(ev, existing) {
           </select>
         </div>`).join('')}
       </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:110px;font-weight:500;">⚡ Fastest Lap</span>
+          <select id="admin-${ev.id}-fastest" style="font-size:12px;flex:1;">
+            <option value="">— Select driver —</option>${drivers.map(d => `<option value="${d}" ${(existing&&existing.fastest)===d?'selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+      </div>
       <button onclick="saveResult(${ev.id},'f1_race')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
   // Autres types : JSON brut
@@ -2510,7 +2517,8 @@ async function saveResult(eventId, type) {
   } else if (type === 'f1_race') {
     const top4 = ['p1','p2','p3','p4'].map(k => document.getElementById(`admin-${eventId}-${k}`)?.value || '');
     if (!top4[0]) { showToast('⚠️ Select at least 1st place!'); return; }
-    result_data = { top4 };
+    const fastest = document.getElementById(`admin-${eventId}-fastest`)?.value || '';
+    result_data = { top4, fastest };
   } else {
     if (type === 'tennis') {
       ['winner','sets','first_set','aces'].forEach(k => {
