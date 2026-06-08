@@ -3393,10 +3393,14 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
 
   // Résultats officiels pour ces events
   const {data:resultsData} = filteredIds.length
-    ? await sb.from('results').select('event_id,result_data').in('event_id', filteredIds)
+    ? await sb.from('results').select('event_id,result_data,entered_at').in('event_id', filteredIds).order('entered_at', {ascending:false})
     : {data:[]};
   const officialMap = {};
-  (resultsData||[]).forEach(r => { officialMap[Number(r.event_id)] = r.result_data; });
+  const resultOrder = {};
+  (resultsData||[]).forEach((r, i) => {
+    officialMap[Number(r.event_id)] = r.result_data;
+    resultOrder[Number(r.event_id)] = i; // 0 = most recently validated by admin
+  });
   const scoredIds = Object.keys(officialMap).map(Number);
 
   if (!scoredIds.length) {
@@ -3426,8 +3430,8 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     return { ev, data: pr.data, official, pts, max };
   }).filter(Boolean);
 
-  // Affichage : 3 derniers résultats validés (par event id décroissant)
-  const sorted = [...pronoCards].sort((a,b) => b.ev.id - a.ev.id);
+  // Affichage : 3 derniers résultats validés par Admin (ordre entered_at desc)
+  const sorted = [...pronoCards].sort((a,b) => (resultOrder[a.ev.id]??999) - (resultOrder[b.ev.id]??999));
   const displayed = sorted.slice(0, 3);
 
   const initial = (pseudo||'?')[0].toUpperCase();
