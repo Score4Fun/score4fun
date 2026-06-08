@@ -3424,7 +3424,11 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     totalPts += pts;
     totalMax += max;
     return { ev, data: pr.data, official, pts, max };
-  }).filter(Boolean).sort((a,b) => (b.pts??-1) - (a.pts??-1));
+  }).filter(Boolean);
+
+  // Affichage : 3 derniers résultats validés (par event id décroissant)
+  const sorted = [...pronoCards].sort((a,b) => b.ev.id - a.ev.id);
+  const displayed = sorted.slice(0, 3);
 
   const initial = (pseudo||'?')[0].toUpperCase();
   const accStr = totalMax > 0 ? Math.round(totalPts/totalMax*100) + '%' : '–%';
@@ -3432,15 +3436,17 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   header.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding-right:28px;">'
     + '<div style="width:42px;height:42px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">' + initial + '</div>'
     + '<div><div style="font-size:16px;font-weight:700;">' + pseudo + '</div>'
-    + '<div style="font-size:11px;color:var(--text-muted);">' + totalPts + ' pts · ' + accStr + ' accuracy · ' + scopeLabel + '</div></div>'
+    + '<div style="font-size:11px;color:var(--text-muted);">' + totalPts + ' pts · ' + accStr + ' accuracy · ' + scopeLabel + '</div>'
+    + (pronoCards.length > 3 ? '<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">Last 3 of ' + pronoCards.length + ' scored picks</div>' : '')
+    + '</div>'
     + '</div>';
 
-  if (!pronoCards.length) {
+  if (!displayed.length) {
     body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No picks recorded for this filter.</div>';
     return;
   }
 
-  renderMemberPronoCards(body, pronoCards);
+  renderMemberPronoCards(body, displayed);
 }
 
 function closeMemberModal() {
