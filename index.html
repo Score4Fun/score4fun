@@ -1735,7 +1735,7 @@ function openPronoModal(eventId) {
     const teamOpts = k => TEAMS_CDM2026.map(n=>`<option value="${n}" ${ex[k]===n?'selected':''}>${n}</option>`).join('');
     const goalsOpts = ['Under 6 goals','6-8 goals','9-11 goals','12-13 goals','13+, more than Just Fontaine 😢']
       .map(v=>`<option value="${v}" ${ex.topGoals===v?'selected':''}>${v}</option>`).join('');
-    const podium = [['champion','🥇 World Champion'],['runner_up','🥈 Runner-up'],['third','🥉 3rd place'],['fourth','4th place']];
+    const podium = [['champion','🥇 World Champion'],['finaliste','🥈 Runner-up'],['third','🥉 3rd place'],['fourth','4th place']];
     content.innerHTML = `
       <div class="modal-section">🏆 Top 4 du tournoi · 10-8-6-4 pts</div>
       ${podium.map(([k,label])=>`
