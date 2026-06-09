@@ -313,6 +313,22 @@
     .btn-sm-1x2:hover { border-color:var(--orange); color:var(--orange); }
     .btn-sm-1x2.selected { background:var(--orange); color:white; border-color:var(--orange); }
     .match-pts { font-size:10px; color:var(--text-muted); margin-left:4px; flex-shrink:0; }
+  /* Custom team select — flag-friendly dropdown */
+  .cs-wrap { position:relative; margin-bottom:8px; }
+  .cs-trigger { display:flex; justify-content:space-between; align-items:center; padding:9px 12px; border:1.5px solid var(--border); border-radius:var(--radius-sm); cursor:pointer; background:white; font-size:13px; font-family:'DM Sans',sans-serif; min-height:38px; }
+  .cs-trigger:hover { border-color:var(--orange); }
+  .cs-trigger.cs-open { border-color:var(--orange); border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
+  .cs-arrow { font-size:11px; opacity:.5; margin-left:6px; flex-shrink:0; }
+  .cs-display { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
+  .cs-display.placeholder { color:var(--text-muted); }
+  .cs-drop { position:absolute; z-index:200; width:100%; background:white; border:1.5px solid var(--orange); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); display:none; flex-direction:column; max-height:240px; box-shadow:0 4px 12px rgba(0,0,0,.12); }
+  .cs-drop.cs-open { display:flex; }
+  .cs-search { border:none; border-bottom:1px solid var(--border); padding:7px 10px; font-size:12px; outline:none; font-family:'DM Sans',sans-serif; }
+  .cs-list { overflow-y:auto; flex:1; }
+  .cs-opt { padding:8px 12px; cursor:pointer; font-size:13px; white-space:nowrap; }
+  .cs-opt:hover { background:var(--orange-bg); }
+  .cs-opt.cs-sel { background:var(--orange); color:white; }
+  .cs-opt.cs-hidden { display:none; }
   </style>
 </head>
 <body>
@@ -1733,27 +1749,34 @@ function openPronoModal(eventId) {
       <div style="font-size:11px;color:var(--text-muted);margin-top:14px;text-align:center;">🎯 Total max : <strong>11 pts</strong></div>`;
   } else if (currentEvent.type === 'tournament_bonus') {
     const ex = userPronos[currentEvent.id] || {};
-    const teamOpts = k => TEAMS_CDM2026.map(n=>`<option value="${n}" ${ex[k]===n?'selected':''}>${n}</option>`).join('');
-    const goalsOpts = ['Under 6 goals','6-8 goals','9-11 goals','12-13 goals','13+, more than Just Fontaine 😢']
-      .map(v=>`<option value="${v}" ${ex.topGoals===v?'selected':''}>${v}</option>`).join('');
+    const goalsOpts = ['Under 6 goals','6-8 goals','9-11 goals','12-13 goals','13+, more than Just Fontaine 😢'];
+    const goalsOptHtml = goalsOpts.map(v => {
+      const sel = v === ex.topGoals ? ' cs-sel' : '';
+      return `<div class="cs-opt${sel}" onclick="csSelect('q-topGoals',this)">${v}</div>`;
+    }).join('');
+    const goalDisplay = ex.topGoals || '';
     const podium = [['champion','🥇 World Champion'],['finaliste','🥈 Runner-up'],['third','🥉 3rd place'],['fourth','4th place']];
     content.innerHTML = `
       <div class="modal-section">🏆 Top 4 du tournoi · 10-8-6-4 pts</div>
       ${podium.map(([k,label])=>`
-        <div style="margin-bottom:8px;">
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div>
-          <select id="q-${k}" class="question-select"><option value="">-- Select a team --</option>${teamOpts(k)}</select>
-        </div>`).join('')}
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div>
+        ${buildTeamSelect('q-'+k, TEAMS_CDM2026, ex[k]||'', '— Select a team —')}`).join('')}
       <div class="modal-section" style="margin-top:18px;">⚽ Top Scorer · 7 pts + 4 pts</div>
-      <div style="margin-bottom:8px;">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nationality</div>
-        <select id="q-topScorer" class="question-select"><option value="">-- Select --</option>${teamOpts('topScorer')}</select>
-      </div>
-      <div style="margin-bottom:8px;">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Number of goals</div>
-        <select id="q-topGoals" class="question-select"><option value="">-- Select --</option>${goalsOpts}</select>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nationality</div>
+      ${buildTeamSelect('q-topScorer', TEAMS_CDM2026, ex.topScorer||'', '— Select —')}
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Number of goals</div>
+      <div class="cs-wrap" id="csw-q-topGoals">
+        <input type="hidden" id="q-topGoals" value="${goalDisplay}">
+        <div class="cs-trigger" onclick="csToggle('q-topGoals')">
+          <span class="cs-display${goalDisplay?'':' placeholder'}" id="csd-q-topGoals">${goalDisplay||'— Select —'}</span>
+          <span class="cs-arrow">▾</span>
+        </div>
+        <div class="cs-drop" id="csdd-q-topGoals">
+          <div class="cs-list" id="csl-q-topGoals">${goalsOptHtml}</div>
+        </div>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Podium 10-8-6-4 (partial if close) · Scorer nationality = 7 pts · Goal range = 4 pts · Max: 39 pts</div>`;
+    setTimeout(() => applyTwemoji(), 80);
   } else if (currentEvent.type === 'multi_match') {
     const ex = userPronos[currentEvent.id] || {};
     const matchHtml = currentEvent.matches.map(m => {
@@ -1864,6 +1887,71 @@ function updateSelects() {
 }
 
 function closeModal() { document.getElementById('prono-modal').classList.remove('open'); currentEvent=null; }
+
+// ── Custom team select component ──────────────────────────────────────────
+function buildTeamSelect(id, teams, currentVal, placeholder) {
+  placeholder = placeholder || '— Select a team —';
+  const opts = teams.map(t => {
+    const sel = t === currentVal ? ' cs-sel' : '';
+    return '<div class="cs-opt' + sel + '" onclick="csSelect(\'' + id + '\',this)">' + t + '</div>';
+  }).join('');
+  const display = currentVal || '';
+  const phCls = display ? '' : ' placeholder';
+  return '<div class="cs-wrap" id="csw-' + id + '">'
+    + '<input type="hidden" id="' + id + '" value="' + display + '">'
+    + '<div class="cs-trigger" onclick="csToggle(\'' + id + '\')">'
+    + '<span class="cs-display' + phCls + '" id="csd-' + id + '">' + (display || placeholder) + '</span>'
+    + '<span class="cs-arrow">▾</span></div>'
+    + '<div class="cs-drop" id="csdd-' + id + '">'
+    + '<input class="cs-search" placeholder="🔍 Search..." oninput="csFilter(\'' + id + '\',this.value)">'
+    + '<div class="cs-list" id="csl-' + id + '">' + opts + '</div>'
+    + '</div></div>';
+}
+function csToggle(id) {
+  const drop = document.getElementById('csdd-' + id);
+  const trig = drop?.previousElementSibling;
+  if (!drop) return;
+  // Close all others
+  document.querySelectorAll('.cs-drop.cs-open').forEach(d => {
+    if (d.id !== 'csdd-' + id) { d.classList.remove('cs-open'); d.previousElementSibling?.classList.remove('cs-open'); }
+  });
+  const isOpen = drop.classList.toggle('cs-open');
+  trig?.classList.toggle('cs-open', isOpen);
+  if (isOpen) {
+    const inp = drop.querySelector('.cs-search');
+    inp.value = ''; csFilter(id, ''); inp.focus();
+    setTimeout(() => applyTwemoji(), 50);
+  }
+}
+function csFilter(id, q) {
+  const list = document.getElementById('csl-' + id);
+  if (!list) return;
+  q = q.toLowerCase();
+  list.querySelectorAll('.cs-opt').forEach(o => {
+    o.classList.toggle('cs-hidden', q && !o.textContent.toLowerCase().includes(q));
+  });
+}
+function csSelect(id, el) {
+  const val = el.textContent.trim();
+  const hidden = document.getElementById(id);
+  const display = document.getElementById('csd-' + id);
+  const drop = document.getElementById('csdd-' + id);
+  const trig = drop?.previousElementSibling;
+  if (hidden) hidden.value = val;
+  if (display) { display.textContent = val; display.classList.remove('placeholder'); }
+  drop?.querySelectorAll('.cs-opt').forEach(o => o.classList.toggle('cs-sel', o === el));
+  drop?.classList.remove('cs-open');
+  trig?.classList.remove('cs-open');
+  setTimeout(() => applyTwemoji(), 50);
+}
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.cs-wrap')) {
+    document.querySelectorAll('.cs-drop.cs-open').forEach(d => {
+      d.classList.remove('cs-open'); d.previousElementSibling?.classList.remove('cs-open');
+    });
+  }
+});
 
 async function submitProno() {
   if (!currentEvent||!currentUser) return;
@@ -2460,15 +2548,15 @@ function renderAdminForm(ev, existing) {
   if (ev.type === 'tournament_bonus') {
     const keys = [['champion','🥇 Champion'],['finaliste','🥈 Runner-up'],['third','🥉 3rd'],['fourth','4th'],['topScorer','Top scorer (nat.)'],['topGoals','Goal range']];
     const goalsOpts = ['Under 6 goals','6-8 goals','9-11 goals','12-13 goals','13+, more than Just Fontaine 😢'];
-    return keys.map(([k,label]) => `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;">
-        <span style="width:140px;font-weight:500;">${label}</span>
-        <select id="admin-${ev.id}-${k}" style="font-size:12px;flex:1;">
-          <option value="">—</option>
-          ${(k==='topGoals'?goalsOpts:TEAMS_CDM2026).map(v=>`<option value="${v}" ${ex[k]===v?'selected':''}>${v}</option>`).join('')}
-        </select>
-      </div>`).join('') +
-      `<button onclick="saveResult(${ev.id},'tournament_bonus')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
+    const html = keys.map(([k,label]) => {
+      const teams = k === 'topGoals' ? goalsOpts : TEAMS_CDM2026;
+      const adminId = 'admin-' + ev.id + '-' + k;
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;">
+        <span style="width:130px;font-weight:500;flex-shrink:0;">${label}</span>
+        <div style="flex:1;">${buildTeamSelect(adminId, teams, ex[k]||'', '—')}</div>
+      </div>`;
+    }).join('');
+    return html + `<button onclick="saveResult(${ev.id},'tournament_bonus')" style="margin-top:6px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
   // Tennis finals
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
