@@ -1193,7 +1193,7 @@ const APP_VERSION = 'v25';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
-  if (currentProfile?.email === 'mervin.anthony@yahoo.com') {
+  if (currentProfile?.id === ADMIN_UID) {
     document.getElementById('nav-admin').style.display = 'flex';
   }
   document.getElementById('auth-screen').style.display='none';
@@ -1337,7 +1337,7 @@ function unlockBadge(icon) {
 const ADMIN_ONLY_SPORTS = ['cyclisme', 'athletisme'];
 
 function renderSportTabs() {
-  const isAdmin = currentProfile?.email === 'mervin.anthony@yahoo.com';
+  const isAdmin = currentProfile?.id === ADMIN_UID;
   const visibleSports = SPORTS.filter(s => isAdmin || !ADMIN_ONLY_SPORTS.includes(s.key));
   // Home tabs
   const tabs = document.getElementById('sport-tabs-home');
@@ -1380,7 +1380,7 @@ function renderCompTabs() {
   const container = document.getElementById('comp-tabs-container');
   const tabsEl = document.getElementById('comp-tabs');
   if (!_activeSport) { container.style.display='none'; return; }
-  const _isAdmin = currentProfile?.email === 'mervin.anthony@yahoo.com';
+  const _isAdmin = currentProfile?.id === ADMIN_UID;
   const comps = [...new Set(EVENTS.filter(e=>e.sport===_activeSport && (_isAdmin||!e.adminOnly)).map(e=>e.comp))];
   if (!comps.length) { container.style.display='none'; return; }
   container.style.display='block';
@@ -1404,7 +1404,7 @@ function toggleComp(comp, el) {
 
 function renderHomeEvents() {
   const container = document.getElementById('home-events-container');
-  const _isAdmin = currentProfile?.email === 'mervin.anthony@yahoo.com';
+  const _isAdmin = currentProfile?.id === ADMIN_UID;
   let evs = EVENTS.filter(e => _isAdmin || !e.adminOnly);
   if (_activeSport) evs = evs.filter(e=>e.sport===_activeSport);
   if (_activeComp)  evs = evs.filter(e=>e.comp===_activeComp);
@@ -2242,7 +2242,7 @@ function getMaxPts(ev) {
 // =====================
 // ADMIN
 // =====================
-const ADMIN_EMAIL = 'mervin.anthony@yahoo.com';
+const ADMIN_UID = '95cdcb57-2265-41f7-bd73-ddc844ffe3e2'; // Supabase profiles.id — pas d'email en clair
 let adminResults = {}; // event_id → result_data
 
 let _adminFilter = 'all';
@@ -2862,7 +2862,7 @@ function switchRankTab(el) {
   // Comp tabs
   const compTabsEl = document.getElementById('rank-comp-tabs');
   if (_rankSport) {
-    const _isAdminR = currentProfile?.email === 'mervin.anthony@yahoo.com';
+    const _isAdminR = currentProfile?.id === ADMIN_UID;
     const comps = [...new Set(EVENTS.filter(e=>e.sport===_rankSport && (_isAdminR||!e.adminOnly)).map(e=>e.comp))];
     if (comps.length > 0) {
       compTabsEl.style.display = 'flex';
