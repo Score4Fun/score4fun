@@ -2649,9 +2649,34 @@ function renderAdminForm(ev, existing) {
       </div>
       <button onclick="saveResult(${ev.id},'f1_race')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
+  // 1x2 match — simple 3-button select
+  if (ev.type === '1x2') {
+    return `<div style="font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
+      <span style="font-weight:500;">Résultat :</span>
+      <input type="hidden" id="admin-${ev.id}-1x2-val" value="${ex.result||''}">
+      ${['1','X','2'].map(v => `<button type="button" onclick="admin1x2Select(${ev.id},'${v}')"
+        id="admin-${ev.id}-1x2-btn-${v}"
+        style="padding:5px 14px;border:1.5px solid ${(ex.result===v)?'var(--orange)':'var(--border)'};border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;background:${(ex.result===v)?'var(--orange)':'white'};color:${(ex.result===v)?'white':'var(--text)'};"
+        >${v}</button>`).join('')}
+    </div>
+    <button onclick="saveResult(${ev.id},'1x2')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
+  }
   // Autres types : JSON brut
   return `<textarea id="admin-${ev.id}-json" style="width:100%;font-size:11px;font-family:monospace;height:60px;border:1px solid var(--border);border-radius:4px;padding:4px;">${existing?JSON.stringify(existing,null,2):''}</textarea>
     <button onclick="saveResult(${ev.id},'json')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
+}
+
+function admin1x2Select(evId, val) {
+  const hidden = document.getElementById('admin-'+evId+'-1x2-val');
+  if (hidden) hidden.value = val;
+  ['1','X','2'].forEach(v => {
+    const b = document.getElementById('admin-'+evId+'-1x2-btn-'+v);
+    if (!b) return;
+    const sel = v === val;
+    b.style.background  = sel ? 'var(--orange)' : 'white';
+    b.style.color       = sel ? 'white' : 'var(--text)';
+    b.style.borderColor = sel ? 'var(--orange)' : 'var(--border)';
+  });
 }
 
 async function saveResult(eventId, type) {
@@ -2673,6 +2698,11 @@ async function saveResult(eventId, type) {
     ['champion','finaliste','third','fourth','topScorer','topGoals'].forEach(k => {
       result_data[k] = document.getElementById(`admin-${eventId}-${k}`)?.value || '';
     });
+  } else if (type === '1x2') {
+    const hidden = document.getElementById(`admin-${eventId}-1x2-val`);
+    const val = hidden ? hidden.value : '';
+    if (!val) { showToast('⚠️ Sélectionne 1, X ou 2 !'); return; }
+    result_data = { result: val };
   } else if (type === 'f1_race') {
     const top4 = ['p1','p2','p3','p4'].map(k => document.getElementById(`admin-${eventId}-${k}`)?.value || '');
     if (!top4[0]) { showToast('⚠️ Select at least 1st place!'); return; }
