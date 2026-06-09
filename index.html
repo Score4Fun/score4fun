@@ -3611,5 +3611,17 @@ async function openGroupMemberProfile(uid, pseudo) {
 }
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js" crossorigin="anonymous"></script>
+<script>
+  // Remplace les emojis drapeaux par des images SVG (fix Windows/Chrome)
+  const _twemojiOpts = { folder:'svg', ext:'.svg', base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/' };
+  let _twTimer = null;
+  function applyTwemoji() {
+    clearTimeout(_twTimer);
+    _twTimer = setTimeout(() => twemoji.parse(document.body, _twemojiOpts), 120);
+  }
+  document.addEventListener('DOMContentLoaded', applyTwemoji);
+  new MutationObserver(applyTwemoji).observe(document.body, { childList:true, subtree:true });
+</script>
 </body>
 </html>
