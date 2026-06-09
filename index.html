@@ -2433,10 +2433,15 @@ function deleteEventPronos(eventId, eventName) {
     showToast('⏳ Deleting picks…');
     const {error:e1} = await sb.from('pronos').delete().eq('event_id', eventId);
     if (e1) { showToast('❌ Error: '+e1.message); return; }
-    // Keep the result row so the event doesn't reappear in "Awaiting results"
+    // If no result exists yet, insert a placeholder so the event disappears from "Awaiting results"
+    if (!adminResults[eventId]) {
+      await sb.from('results').upsert({event_id:eventId, result_data:{_cleared:true}, entered_at:new Date().toISOString()}, {onConflict:'event_id'});
+      adminResults[eventId] = {_cleared:true};
+    }
     showToast('✅ Picks deleted, recalculating…');
     await recalculateAllPoints('deleteEventPronos id='+eventId);
     renderAdminPronos();
+    renderAdmin();
   });
 }
 // ── END Admin Pronostiques tab ─────────────────────────────────────────────
