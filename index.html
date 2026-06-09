@@ -557,7 +557,7 @@
       <div id="admin-groups-list"></div>
     </div>
     <div id="admin-pronos-section" style="display:none;">
-      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">Supprime les pronos + résultats d'un event. Les points sont recalculés automatiquement.</p>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">Delete picks + result for an event. Points are automatically recalculated.</p>
       <div id="admin-pronos-list"><div style="color:var(--text-muted);font-size:13px;">⏳ Loading…</div></div>
     </div>
         <div id="admin-bots-section" style="display:none;">
@@ -2408,7 +2408,7 @@ async function renderAdminPronos() {
   // Only show events that have at least 1 prono
   const eventsWithPronos = EVENTS.filter(ev => countMap[ev.id]);
   if (!eventsWithPronos.length) {
-    el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:16px 0;">Aucun pronostique en base.</div>';
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:16px 0;">No picks in the database yet.</div>';
     return;
   }
 
@@ -2418,29 +2418,27 @@ async function renderAdminPronos() {
     return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
       <div style="flex:1;min-width:0;">
         <div style="font-weight:600;">${ev.emoji||'📋'} ${ev.name}</div>
-        <div style="color:var(--text-muted);font-size:11px;">${ev.sport} · ${ev.comp} · ${n} prono${n>1?'s':''} · ${hasRes?'<span style="color:#22c55e;">✅ résultat enregistré</span>':'<span style="color:#f59e0b;">⏳ pas de résultat</span>'}</div>
+        <div style="color:var(--text-muted);font-size:11px;">${ev.sport} · ${ev.comp} · ${n} pick${n>1?'s':''} · ${hasRes?'<span style="color:#22c55e;">✅ Result saved</span>':'<span style="color:#f59e0b;">⏳ No result yet</span>'}</div>
       </div>
       <button onclick="deleteEventPronos(${ev.id},'${(ev.name||'').replace(/'/g,"\'")}')"
         style="padding:5px 12px;background:#e53935;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;">
-        🗑️ Supprimer
+        🗑️ Delete
       </button>
     </div>`;
   }).join('');
 }
 
-async function deleteEventPronos(eventId, eventName) {
-  const confirmed = await showConfirm(`Supprimer TOUS les pronos + résultat de "${eventName}" et recalculer les points ?`);
-  if (!confirmed) return;
-
-  showToast('⏳ Suppression…');
-  const {error:e1} = await sb.from('pronos').delete().eq('event_id', eventId);
-  if (e1) { showToast('❌ Erreur pronos: '+e1.message); return; }
-  const {error:e2} = await sb.from('results').delete().eq('event_id', eventId);
-  if (e2) { showToast('❌ Erreur results: '+e2.message); return; }
-
-  showToast('✅ Pronos supprimés, recalcul…');
-  await recalculateAllPoints('deleteEventPronos id='+eventId);
-  renderAdminPronos(); // refresh list
+function deleteEventPronos(eventId, eventName) {
+  showConfirm(`Delete ALL picks + result for "${eventName}" and recalculate points?`, async () => {
+    showToast('⏳ Deleting…');
+    const {error:e1} = await sb.from('pronos').delete().eq('event_id', eventId);
+    if (e1) { showToast('❌ Error (picks): '+e1.message); return; }
+    const {error:e2} = await sb.from('results').delete().eq('event_id', eventId);
+    if (e2) { showToast('❌ Error (results): '+e2.message); return; }
+    showToast('✅ Deleted, recalculating…');
+    await recalculateAllPoints('deleteEventPronos id='+eventId);
+    renderAdminPronos();
+  });
 }
 // ── END Admin Pronostiques tab ─────────────────────────────────────────────
 
