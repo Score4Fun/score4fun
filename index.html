@@ -541,6 +541,7 @@
       <button id="admin-tab-users" onclick="setAdminTab('users')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">👥 Users</button>
       <button id="admin-tab-groups" onclick="setAdminTab('groups')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">🏆 Groups</button>
       <button id="admin-tab-bots" onclick="setAdminTab('bots')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">🤖 Bots</button>
+      <button id="admin-tab-pronos" onclick="setAdminTab('pronos')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">📋 Pronos</button>
     </div>
     <div id="admin-results-section">
       <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
@@ -555,7 +556,11 @@
     <div id="admin-groups-section" style="display:none;">
       <div id="admin-groups-list"></div>
     </div>
-    <div id="admin-bots-section" style="display:none;">
+    <div id="admin-pronos-section" style="display:none;">
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 10px;">Supprime les pronos + résultats d'un event. Les points sont recalculés automatiquement.</p>
+      <div id="admin-pronos-list"><div style="color:var(--text-muted);font-size:13px;">⏳ Loading…</div></div>
+    </div>
+        <div id="admin-bots-section" style="display:none;">
       <div id="admin-bots-log" style="background:#0d0d1a;color:#eee;font-family:monospace;font-size:12px;line-height:1.6;padding:12px;border-radius:8px;max-height:300px;overflow-y:auto;margin-bottom:10px;display:none;"></div>
       <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0;">
         <button onclick="adminBotAction('topscore')" style="padding:10px 16px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🤖 Créer TopScorer</button>
@@ -2375,7 +2380,7 @@ let _adminTab = 'results';
 
 function setAdminTab(tab) {
   _adminTab = tab;
-  ['results','users','groups','bots'].forEach(t => {
+  ['results','users','groups','bots','pronos'].forEach(t => {
     const btn = document.getElementById('admin-tab-'+t);
     if (btn) { btn.style.background = tab===t ? 'var(--orange)' : 'white'; btn.style.color = tab===t ? 'white' : 'var(--text)'; }
     const sec = document.getElementById('admin-'+t+'-section');
@@ -2383,7 +2388,62 @@ function setAdminTab(tab) {
   });
   if (tab === 'users') renderAdminUsers();
   if (tab === 'groups') renderAdminGroups();
+  if (tab === 'pronos') renderAdminPronos();
 }
+// ── Admin Pronostiques tab ────────────────────────────────────────────────
+async function renderAdminPronos() {
+  const el = document.getElementById('admin-pronos-list');
+  if (!el) return;
+  el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
+
+  // Count pronos per event_id
+  const {data:pronoCounts} = await sb.from('pronos').select('event_id');
+  const countMap = {};
+  (pronoCounts||[]).forEach(r => { countMap[r.event_id] = (countMap[r.event_id]||0)+1; });
+
+  // Get which events have official results
+  const {data:resultsData} = await sb.from('results').select('event_id');
+  const hasResult = new Set((resultsData||[]).map(r=>r.event_id));
+
+  // Only show events that have at least 1 prono
+  const eventsWithPronos = EVENTS.filter(ev => countMap[ev.id]);
+  if (!eventsWithPronos.length) {
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:16px 0;">Aucun pronostique en base.</div>';
+    return;
+  }
+
+  el.innerHTML = eventsWithPronos.map(ev => {
+    const n = countMap[ev.id] || 0;
+    const hasRes = hasResult.has(ev.id);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;">${ev.emoji||'📋'} ${ev.name}</div>
+        <div style="color:var(--text-muted);font-size:11px;">${ev.sport} · ${ev.comp} · ${n} prono${n>1?'s':''} · ${hasRes?'<span style="color:#22c55e;">✅ résultat enregistré</span>':'<span style="color:#f59e0b;">⏳ pas de résultat</span>'}</div>
+      </div>
+      <button onclick="deleteEventPronos(${ev.id},'${(ev.name||'').replace(/'/g,"\'")}')"
+        style="padding:5px 12px;background:#e53935;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;">
+        🗑️ Supprimer
+      </button>
+    </div>`;
+  }).join('');
+}
+
+async function deleteEventPronos(eventId, eventName) {
+  const confirmed = await showConfirm(`Supprimer TOUS les pronos + résultat de "${eventName}" et recalculer les points ?`);
+  if (!confirmed) return;
+
+  showToast('⏳ Suppression…');
+  const {error:e1} = await sb.from('pronos').delete().eq('event_id', eventId);
+  if (e1) { showToast('❌ Erreur pronos: '+e1.message); return; }
+  const {error:e2} = await sb.from('results').delete().eq('event_id', eventId);
+  if (e2) { showToast('❌ Erreur results: '+e2.message); return; }
+
+  showToast('✅ Pronos supprimés, recalcul…');
+  await recalculateAllPoints('deleteEventPronos id='+eventId);
+  renderAdminPronos(); // refresh list
+}
+// ── END Admin Pronostiques tab ─────────────────────────────────────────────
+
 // ── BOT / SEED helpers (admin only) ───────────────────────────────────────
 const _BOT_USERS = [
     {pseudo:"TopScorer",email:"topscorer@fake-s4f.com",bot:"favorites"},
