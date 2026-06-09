@@ -1639,9 +1639,9 @@ function openPronoModal(eventId) {
       <div class="modal-section">Résultat du match</div>
       <div style="font-size:14px;font-weight:500;text-align:center;margin-bottom:12px;">${currentEvent.team1} vs ${currentEvent.team2}</div>
       <div class="modal-1x2">
-        <div class="modal-1x2-btn ${sel==='1'?'selected':''}" onclick="select1x2('1',this)">1<br><small>${currentEvent.team1}</small></div>
-        <div class="modal-1x2-btn ${sel==='X'?'selected':''}" onclick="select1x2('X',this)">X<br><small>Draw</small></div>
-        <div class="modal-1x2-btn ${sel==='2'?'selected':''}" onclick="select1x2('2',this)">2<br><small>${currentEvent.team2}</small></div>
+        <div class="modal-1x2-btn ${sel==='1'?'selected':''}" data-val="1" onclick="select1x2('1',this)">1<br><small>${currentEvent.team1}</small></div>
+        <div class="modal-1x2-btn ${sel==='X'?'selected':''}" data-val="X" onclick="select1x2('X',this)">X<br><small>Draw</small></div>
+        <div class="modal-1x2-btn ${sel==='2'?'selected':''}" data-val="2" onclick="select1x2('2',this)">2<br><small>${currentEvent.team2}</small></div>
       </div>
       <div class="points-info">🎯 Bonne prédiction = <strong>4 pts</strong> · Mauvaise = 0 pt</div>`;
 
@@ -2025,7 +2025,7 @@ async function submitProno() {
   } else if (currentEvent.type==='1x2') {
     const sel = document.querySelector('.modal-1x2-btn.selected');
     if (!sel) { showToast('⚠️ Choisis 1, X ou 2 !'); return; }
-    pronoData={result:sel.textContent.trim().split('\n')[0].trim()};
+    pronoData={result:sel.dataset.val};
 
   } else if (currentEvent.type==='tennis_sf') {
     const winner=document.getElementById('q-winner').value;
