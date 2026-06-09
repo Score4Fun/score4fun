@@ -3611,14 +3611,18 @@ async function openGroupMemberProfile(uid, pseudo) {
 }
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <script>
-  // Remplace les emojis drapeaux par des images SVG (fix Windows/Chrome)
-  const _twemojiOpts = { folder:'svg', ext:'.svg', base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/' };
+  // Remplace les emojis par des images SVG (fix drapeaux Windows/Chrome)
+  // Note: ne fonctionne pas dans les <select><option> (limitation HTML)
+  const _twemojiOpts = {
+    folder: 'svg', ext: '.svg',
+    base: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'
+  };
   let _twTimer = null;
   function applyTwemoji() {
     clearTimeout(_twTimer);
-    _twTimer = setTimeout(() => twemoji.parse(document.body, _twemojiOpts), 120);
+    _twTimer = setTimeout(() => { if(window.twemoji) twemoji.parse(document.body, _twemojiOpts); }, 150);
   }
   document.addEventListener('DOMContentLoaded', applyTwemoji);
   new MutationObserver(applyTwemoji).observe(document.body, { childList:true, subtree:true });
