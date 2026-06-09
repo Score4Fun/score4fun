@@ -540,6 +540,7 @@
       <button id="admin-tab-results" onclick="setAdminTab('results')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">📋 Results</button>
       <button id="admin-tab-users" onclick="setAdminTab('users')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">👥 Users</button>
       <button id="admin-tab-groups" onclick="setAdminTab('groups')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">🏆 Groups</button>
+      <button id="admin-tab-bots" onclick="setAdminTab('bots')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">🤖 Bots</button>
     </div>
     <div id="admin-results-section">
       <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
@@ -553,6 +554,14 @@
     </div>
     <div id="admin-groups-section" style="display:none;">
       <div id="admin-groups-list"></div>
+    </div>
+    <div id="admin-bots-section" style="display:none;">
+      <div id="admin-bots-log" style="background:#0d0d1a;color:#eee;font-family:monospace;font-size:12px;line-height:1.6;padding:12px;border-radius:8px;max-height:300px;overflow-y:auto;margin-bottom:10px;display:none;"></div>
+      <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0;">
+        <button onclick="adminBotAction('topscore')" style="padding:10px 16px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🤖 Créer TopScorer</button>
+        <button onclick="adminBotAction('seed')" style="padding:10px 16px;background:#4caf50;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🌱 Créer tous les faux users</button>
+        <button onclick="adminBotAction('delete')" style="padding:10px 16px;background:#e53935;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🗑️ Supprimer les faux users (sauf TopScorer)</button>
+      </div>
     </div>
   </div>
 
@@ -2366,7 +2375,7 @@ let _adminTab = 'results';
 
 function setAdminTab(tab) {
   _adminTab = tab;
-  ['results','users','groups'].forEach(t => {
+  ['results','users','groups','bots'].forEach(t => {
     const btn = document.getElementById('admin-tab-'+t);
     if (btn) { btn.style.background = tab===t ? 'var(--orange)' : 'white'; btn.style.color = tab===t ? 'white' : 'var(--text)'; }
     const sec = document.getElementById('admin-'+t+'-section');
@@ -2375,6 +2384,115 @@ function setAdminTab(tab) {
   if (tab === 'users') renderAdminUsers();
   if (tab === 'groups') renderAdminGroups();
 }
+// ── BOT / SEED helpers (admin only) ───────────────────────────────────────
+const _BOT_USERS = [
+    {pseudo:"TopScorer",email:"topscorer@fake-s4f.com",bot:"favorites"},
+    {pseudo:"ZizouFan93",email:"zizou93@fake-s4f.com"},
+    {pseudo:"leBlanc",email:"leblanc@fake-s4f.com"},
+    {pseudo:"tartine",email:"tartine@fake-s4f.com"},
+    {pseudo:"caipirinha77",email:"caipirinha77@fake-s4f.com"},
+    {pseudo:"Marquinhos",email:"marquinhos@fake-s4f.com"},
+    {pseudo:"rooney_rules",email:"rooney@fake-s4f.com"},
+    {pseudo:"pub_prophet",email:"pubprophet@fake-s4f.com"},
+    {pseudo:"Schnellster",email:"schnellster@fake-s4f.com"},
+    {pseudo:"pampa10",email:"pampa10@fake-s4f.com"},
+    {pseudo:"el_taquero",email:"eltaquero@fake-s4f.com"},
+    {pseudo:"sakura_bet",email:"sakurabet@fake-s4f.com"},
+    {pseudo:"Driss",email:"driss@fake-s4f.com"},
+    {pseudo:"pixel42",email:"pixel42@fake-s4f.com"},
+    {pseudo:"darkforest",email:"darkforest@fake-s4f.com"},
+    {pseudo:"K1ng_Prono",email:"kingprono@fake-s4f.com"},
+    {pseudo:"sophie_b",email:"sophieb@fake-s4f.com"},
+    {pseudo:"luna",email:"luna@fake-s4f.com"},
+    {pseudo:"Marisol",email:"marisol@fake-s4f.com"},
+    {pseudo:"nathdu06",email:"nathdu06@fake-s4f.com"}
+  ];
+const _BOT_TEAMS = ['🇲🇽 Mexico','🇿🇦 South Africa','🇰🇷 South Korea','🇨🇿 Czechia','🇨🇦 Canada','🇧🇦 Bosnia','🇶🇦 Qatar','🇨🇭 Suisse','🇧🇷 Brazil','🇲🇦 Morocco','🇺🇸 USA','🇵🇾 Paraguay','🇦🇺 Australia','🇹🇷 Turkey','🇩🇪 Germany','🇨🇼 Curaçao','🇳🇱 Netherlands','🇯🇵 Japan','🇧🇪 Belgium','🇪🇬 Egypt','🇮🇷 Iran','🇳🇿 New Zealand','🇪🇸 Spain','🇸🇦 Saudi Arabia','🇺🇾 Uruguay','🇨🇻 Cape Verde','🇫🇷 France','🇸🇳 Senegal','🇳🇴 Norway','🇮🇶 Iraq','🇦🇷 Argentina','🇩🇿 Algeria','🇦🇹 Austria','🇯🇴 Jordan','🇵🇹 Portugal','🇨🇩 DR Congo','🇺🇿 Uzbekistan','🇨🇴 Colombia','🏴󠁧󠁢󠁥󠁮󠁧󠁿 England','🇭🇷 Croatia','🇬🇭 Ghana','🇵🇦 Panama'];
+const _BOT_EVENTS = [
+  {id:100,sport:'football',comp:'WC 2026',name:'World Cup 2026 Picks',type:'tournament_bonus'},
+  {id:101,sport:'football',comp:'WC 2026',name:'Opening Match · June 11',type:'opening_match'},
+  {id:102,sport:'football',comp:'WC 2026',name:'Matchday Jun 12-14',type:'multi_match',matches:[{key:'m1'},{key:'m2'},{key:'m3'},{key:'m4'},{key:'m5'},{key:'m6'}]},
+  {id:103,sport:'football',comp:'WC 2026',name:'Matchday Jun 15-16',type:'multi_match',matches:[{key:'m1'},{key:'m2'},{key:'m3'},{key:'m4'},{key:'m5'},{key:'m6'}]},
+  {id:104,sport:'football',comp:'WC 2026',name:'Matchday Jun 18-19',type:'multi_match',matches:[{key:'m1'},{key:'m2'},{key:'m3'},{key:'m4'},{key:'m5'},{key:'m6'}]},
+  {id:105,sport:'football',comp:'WC 2026',name:'Matchday Jun 20-22',type:'multi_match',matches:[{key:'m1'},{key:'m2'},{key:'m3'},{key:'m4'},{key:'m5'},{key:'m6'}]},
+  {id:106,sport:'football',comp:'WC 2026',name:'Matchday Jun 23-24',type:'multi_match',matches:[{key:'m1'},{key:'m2'},{key:'m3'},{key:'m4'},{key:'m5'},{key:'m6'}]},
+  {id:107,sport:'football',comp:'WC 2026',name:'Matchday Jun 25-26',type:'multi_match',matches:[{key:'m1'},{key:'m2'},{key:'m3'},{key:'m4'},{key:'m5'},{key:'m6'}]},
+  {id:108,sport:'football',comp:'WC 2026',name:'Matchday Jun 27-28',type:'multi_match',matches:[{key:'m1'},{key:'m2'},{key:'m3'},{key:'m4'},{key:'m5'},{key:'m6'}]},
+];
+
+function _botLog(msg, cls) {
+  const el = document.getElementById('admin-bots-log');
+  if (!el) return;
+  el.style.display = 'block';
+  const color = cls==='ok'?'#4caf50':cls==='err'?'#f44336':'#90caf9';
+  el.innerHTML += `<div style="color:${color}">${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function _botRnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function _botRndResult() { return _botRnd(['1','X','2']); }
+
+function _botGenData(ev, bot) {
+  if (bot === 'favorites') {
+    if (ev.type==='tournament_bonus') return {champion:'🇧🇷 Brazil',finaliste:'🇫🇷 France',third:'🇦🇷 Argentina',fourth:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England',topScorer:'🇧🇷 Brazil',topGoals:'12-13 goals'};
+    if (ev.type==='opening_match') return {result:'1',halftime:'1',firstScorer:'Mexico'};
+    if (ev.type==='multi_match') { const d={}; ev.matches.forEach(m=>{d[m.key]='1';}); return d; }
+    return {};
+  }
+  if (ev.type==='tournament_bonus') {
+    const s=[..._BOT_TEAMS].sort(()=>Math.random()-0.5);
+    return {champion:s[0],finaliste:s[1],third:s[2],fourth:s[3],topScorer:_botRnd(_BOT_TEAMS),topGoals:_botRnd(['Under 6 goals','6-8 goals','9-11 goals','12-13 goals'])};
+  }
+  if (ev.type==='opening_match') return {result:_botRndResult(),halftime:_botRndResult(),firstScorer:_botRnd(['Mexico','South Africa','No goal'])};
+  if (ev.type==='multi_match') { const d={}; ev.matches.forEach(m=>{d[m.key]=_botRndResult();}); return d; }
+  return {};
+}
+
+async function _botCreateOne(u) {
+  const pwdHash = await hashPwd('Score4Fun2026!');
+  const id = crypto.randomUUID();
+  const pr = await sb.from('profiles').insert({id,pseudo:u.pseudo,email:u.email,pwd:pwdHash,points:0,pronos_count:0,badges_count:0});
+  if (pr.error) { _botLog('❌ '+u.pseudo+': '+pr.error.message,'err'); return; }
+  _botLog('✅ '+u.pseudo,'ok');
+  let count=0;
+  for (const ev of _BOT_EVENTS) {
+    const data = _botGenData(ev, u.bot);
+    const pp = await sb.from('pronos').insert({user_id:id,event_id:ev.id,event_name:ev.name,sport:ev.sport,data,created_at:new Date().toISOString()});
+    if (!pp.error) count++;
+  }
+  await sb.from('profiles').update({pronos_count:count}).eq('id',id);
+  _botLog('  → '+count+' pronos');
+}
+
+async function adminBotAction(action) {
+  const logEl = document.getElementById('admin-bots-log');
+  if (logEl) { logEl.innerHTML=''; logEl.style.display='block'; }
+  document.querySelectorAll('#admin-bots-section button').forEach(b=>b.disabled=true);
+
+  if (action === 'topscore') {
+    const u = _BOT_USERS.find(u=>u.pseudo==='TopScorer');
+    await _botCreateOne(u);
+    _botLog('✅ TopScorer créé !','ok');
+  } else if (action === 'seed') {
+    _botLog('🌱 Creating all fake users...');
+    for (const u of _BOT_USERS) { await _botCreateOne(u); }
+    _botLog('✅ Done !','ok');
+  } else if (action === 'delete') {
+    _botLog('🗑️ Fetching fake users...');
+    const {data:users} = await sb.from('profiles').select('id,pseudo').like('email','%fake-s4f.com%');
+    const toDelete = (users||[]).filter(u=>u.pseudo!=='TopScorer');
+    if (!toDelete.length) { _botLog('Nothing to delete.','ok'); }
+    else {
+      const ids = toDelete.map(u=>u.id);
+      await sb.from('pronos').delete().in('user_id', ids);
+      await sb.from('profiles').delete().in('id', ids);
+      _botLog('🗑️ Deleted '+toDelete.length+' users (TopScorer preserved)','ok');
+    }
+  }
+  document.querySelectorAll('#admin-bots-section button').forEach(b=>b.disabled=false);
+}
+// ── END BOT helpers ────────────────────────────────────────────────────────
+
 
 async function renderAdminGroups() {
   const el = document.getElementById('admin-groups-list');
