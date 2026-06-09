@@ -963,21 +963,21 @@ const EVENTS = [
     type:'1x2',
     team1:'🇫🇷 France', team2:'🇪🇸 Spain',
     scoring:{ correct:4 },
-    status:'open', urgency:true, cutoff:'5 min', deadline:'2026-06-09T05:33:00Z' },
+    status:'open', urgency:true, cutoff:'5 min', deadline:'2026-06-09T05:43:00Z' },
 
   { id:201, sport:'football', comp:'Friendlies', phase:'Test', emoji:'🧪',
     name:'Test Friendly · Brazil vs Argentina', sub:'Test pick · 1X2',
     type:'1x2',
     team1:'🇧🇷 Brazil', team2:'🇦🇷 Argentina',
     scoring:{ correct:4 },
-    status:'open', urgency:true, cutoff:'5 min', deadline:'2026-06-09T05:33:00Z' },
+    status:'open', urgency:true, cutoff:'5 min', deadline:'2026-06-09T05:43:00Z' },
 
   { id:202, sport:'football', comp:'Friendlies', phase:'Test', emoji:'🧪',
     name:'Test Friendly · England vs Germany', sub:'Test pick · 1X2',
     type:'1x2',
     team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England', team2:'🇩🇪 Germany',
     scoring:{ correct:4 },
-    status:'open', urgency:true, cutoff:'5 min', deadline:'2026-06-09T05:33:00Z' },
+    status:'open', urgency:true, cutoff:'5 min', deadline:'2026-06-09T05:43:00Z' },
 
   // J1 League 6 juin
   { id:51, sport:'football', comp:'Friendlies', phase:'June 2026', emoji:'⚽',
@@ -1547,19 +1547,24 @@ function renderEventCard(ev) {
           ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Edit</button>`
           : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pick →</button>`
         : `<button class="prono-btn view">Fermé 🔒</button>`}`;
-    } else if (ev.type === '1x2' && !isClosed(ev)) {
-    const sel = userPronos[ev.id]?.result || '';
+    } else if (ev.type === '1x2') {
+    const closed = isClosed(ev);
+    const sel = userPronos[ev.id]?.result;
     inner = `
-      <div class="match-teams">
+      <div class="match-teams" style="margin-bottom:8px;">
         <span>${ev.team1}</span>
         <span class="match-vs">vs</span>
         <span>${ev.team2}</span>
       </div>
-      <div class="match-1x2">
-        <div class="btn-1x2 ${sel==='1'?'selected':''}" onclick="quickSelect(${ev.id},'1',this,event)">1<br><small style="font-size:10px;opacity:0.8;">${ev.team1.split(' ').pop()}</small></div>
-        <div class="btn-1x2 ${sel==='X'?'selected':''}" onclick="quickSelect(${ev.id},'X',this,event)">X<br><small style="font-size:10px;opacity:0.8;">Nul</small></div>
-        <div class="btn-1x2 ${sel==='2'?'selected':''}" onclick="quickSelect(${ev.id},'2',this,event)">2<br><small style="font-size:10px;opacity:0.8;">${ev.team2.split(' ').pop()}</small></div>
-      </div>`;
+      <div class="event-status">
+        <div class="status-dot ${done?'done-dot':closed?'closed':''}"></div>
+        <span class="status-text">${done?'🎯 Pick saved! · '+sel:'Make your pick'}</span>
+      </div>
+      ${!closed
+        ? done
+          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Edit</button>`
+          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pick →</button>`
+        : `<button class="prono-btn view">Fermé 🔒</button>`}`;
   } else {
     const evClosed = isTrulyClosed(ev);
     inner = `
