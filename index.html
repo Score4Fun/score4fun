@@ -2892,7 +2892,7 @@ function renderRankList(rows, container, sport, comp) {
       <div class="full-rank-num ${isMe?'me':''}">${medal||i+1}</div>
       <div class="full-rank-avatar ${isMe?'me':''}">${p.pseudo?p.pseudo[0].toUpperCase():'?'}</div>
       <div class="full-rank-info" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
-        <div class="full-rank-name ${isMe?'me':''}" style="flex-shrink:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;">${p.pseudo||'–'}</div>
+        <div class="full-rank-name ${isMe?'me':''}" style="flex-shrink:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;${p.pseudo==='TopScorer'?'font-weight:700;color:var(--orange);':''}">${p.pseudo==='TopScorer'?'👑 ':''}${p.pseudo||'–'}${p.pseudo==='TopScorer'?' 🤖':''}</div>
         <div style="display:flex;align-items:center;gap:4px;margin-left:auto;">
           <span style="font-size:11px;font-weight:700;color:${accColor};">${accStr}</span>
           ${trendHtml}
