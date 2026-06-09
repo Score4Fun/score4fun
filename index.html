@@ -2429,13 +2429,12 @@ async function renderAdminPronos() {
 }
 
 function deleteEventPronos(eventId, eventName) {
-  showConfirm(`Delete ALL picks + result for "${eventName}" and recalculate points?`, async () => {
-    showToast('⏳ Deleting…');
+  showConfirm(`Delete ALL picks for "${eventName}" and recalculate points?`, async () => {
+    showToast('⏳ Deleting picks…');
     const {error:e1} = await sb.from('pronos').delete().eq('event_id', eventId);
-    if (e1) { showToast('❌ Error (picks): '+e1.message); return; }
-    const {error:e2} = await sb.from('results').delete().eq('event_id', eventId);
-    if (e2) { showToast('❌ Error (results): '+e2.message); return; }
-    showToast('✅ Deleted, recalculating…');
+    if (e1) { showToast('❌ Error: '+e1.message); return; }
+    // Keep the result row so the event doesn't reappear in "Awaiting results"
+    showToast('✅ Picks deleted, recalculating…');
     await recalculateAllPoints('deleteEventPronos id='+eventId);
     renderAdminPronos();
   });
