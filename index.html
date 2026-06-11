@@ -566,6 +566,9 @@
         <button onclick="adminBotAction('topscore')" style="padding:10px 16px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🤖 Créer TopScorer</button>
         <button onclick="adminBotAction('seed')" style="padding:10px 16px;background:#4caf50;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🌱 Créer tous les faux users</button>
         <button onclick="adminBotAction('delete')" style="padding:10px 16px;background:#e53935;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🗑️ Supprimer les faux users (sauf TopScorer)</button>
+        <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
+        <button onclick="showAdminPickEntry()" style="padding:10px 16px;background:#7c4dff;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">👤 Saisir un prono pour un user</button>
+        <div id="admin-pick-entry" style="display:none;margin-top:14px;background:var(--card);border-radius:10px;padding:14px;"></div>
       </div>
     </div>
   </div>
@@ -2501,6 +2504,138 @@ async function adminBotAction(action) {
 }
 // ── END BOT helpers ────────────────────────────────────────────────────────
 
+// ── ADMIN: Enter pick for user ─────────────────────────────────────────────
+async function showAdminPickEntry() {
+  const wrap = document.getElementById('admin-pick-entry');
+  if (!wrap) return;
+  wrap.style.display = 'block';
+  wrap.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">⏳ Loading users…</div>';
+  const {data:profiles} = await sb.from('profiles').select('id,pseudo').not('email','like','%fake-s4f%').order('pseudo');
+  const userOpts = (profiles||[]).map(p=>`<option value="${p.id}">${p.pseudo}</option>`).join('');
+  const evOpts = EVENTS.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  wrap.innerHTML = `
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;">👤 Saisir un pronostic pour un user</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <select id="apick-uid" onchange="renderAdminPickForm()" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;">
+        <option value="">— Choisir un user —</option>${userOpts}
+      </select>
+      <select id="apick-evid" onchange="renderAdminPickForm()" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;">
+        <option value="">— Choisir un event —</option>${evOpts}
+      </select>
+    </div>
+    <div id="apick-form" style="margin-top:8px;"></div>`;
+}
+
+function renderAdminPickForm() {
+  const uid = document.getElementById('apick-uid')?.value;
+  const evId = parseInt(document.getElementById('apick-evid')?.value);
+  const wrap = document.getElementById('apick-form');
+  if (!wrap || !uid || !evId) { if(wrap) wrap.innerHTML=''; return; }
+  const ev = EVENTS.find(e=>e.id===evId);
+  if (!ev) { wrap.innerHTML='<div style="color:#f44336;font-size:12px;">Event inconnu</div>'; return; }
+
+  let html = '';
+  if (ev.type === 'tournament_bonus') {
+    const fields = [['champion','🥇 Champion'],['finaliste','🥈 Finaliste'],['third','🥉 3e'],['fourth','4e'],['topScorer','Top Scorer (pays)']];
+    html += fields.map(([k,label])=>`
+      <div style="margin-bottom:8px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div>
+        <select id="apf-${k}" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;">
+          <option value="">— Sélectionner —</option>
+          ${TEAMS_CDM2026.map(t=>`<option value="${t}">${t}</option>`).join('')}
+        </select>
+      </div>`).join('');
+    html += `<div style="margin-bottom:8px;">
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nombre de buts (top scorer)</div>
+      <select id="apf-topGoals" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;">
+        <option value="">— Sélectionner —</option>
+        ${['Under 6 goals','6-8 goals','9-11 goals','12-13 goals'].map(v=>`<option value="${v}">${v}</option>`).join('')}
+      </select></div>`;
+  } else if (ev.type === 'opening_match') {
+    html += _apickBtns('result','Résultat final',['1','X','2']);
+    html += _apickBtns('halftime','Mi-temps',['1','X','2']);
+    html += _apickBtns('firstScorer','Premier buteur',['Mexico','South Africa','No goal']);
+  } else if (ev.type === 'multi_match') {
+    (ev.matches||[]).forEach((m,i)=>{
+      html += _apickBtns(m.key, `Match ${i+1}`, ['1','X','2']);
+    });
+  } else if (ev.type === '1x2') {
+    html += _apickBtns('result','Résultat',['1','X','2']);
+  } else {
+    html += '<div style="color:#aaa;font-size:12px;">Type non supporté: '+ev.type+'</div>';
+  }
+  html += `<button onclick="saveAdminPickForUser()" style="margin-top:12px;padding:10px 20px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;width:100%;">💾 Enregistrer le prono</button>`;
+  wrap.innerHTML = html;
+}
+
+function _apickBtns(key, label, opts) {
+  return `<div style="margin-bottom:10px;">
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${label}</div>
+    <input type="hidden" id="apf-${key}" value="">
+    <div style="display:flex;gap:6px;">
+      ${opts.map(v=>`<button type="button" onclick="apickSelect('${key}','${v}',this)" style="flex:1;padding:8px 0;border:2px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">${v}</button>`).join('')}
+    </div>
+  </div>`;
+}
+
+function apickSelect(key, val, btn) {
+  const h = document.getElementById('apf-'+key);
+  if (h) h.value = val;
+  const btns = btn.parentElement.querySelectorAll('button');
+  btns.forEach(b=>{ b.style.background='var(--card)'; b.style.borderColor='var(--border)'; b.style.color='var(--text)'; });
+  btn.style.background='var(--orange)'; btn.style.borderColor='var(--orange)'; btn.style.color='white';
+}
+
+async function saveAdminPickForUser() {
+  const uid  = document.getElementById('apick-uid')?.value;
+  const evId = parseInt(document.getElementById('apick-evid')?.value);
+  if (!uid || !evId) { showToast('⚠️ Choisir user et event !'); return; }
+  const ev = EVENTS.find(e=>e.id===evId);
+  if (!ev) return;
+
+  let data = {};
+  if (ev.type === 'tournament_bonus') {
+    ['champion','finaliste','third','fourth','topScorer','topGoals'].forEach(k=>{
+      const el = document.getElementById('apf-'+k);
+      if (el) data[k] = el.value;
+    });
+    if (!data.champion) { showToast('⚠️ Sélectionner le champion !'); return; }
+  } else if (ev.type === 'opening_match') {
+    ['result','halftime','firstScorer'].forEach(k=>{ const el=document.getElementById('apf-'+k); if(el) data[k]=el.value; });
+    if (!data.result) { showToast('⚠️ Sélectionner le résultat final !'); return; }
+  } else if (ev.type === 'multi_match') {
+    (ev.matches||[]).forEach(m=>{ const el=document.getElementById('apf-'+m.key); if(el) data[m.key]=el.value; });
+  } else if (ev.type === '1x2') {
+    const el=document.getElementById('apf-result'); if(el) data.result=el.value;
+    if (!data.result) { showToast('⚠️ Sélectionner 1, X ou 2 !'); return; }
+  }
+
+  // Check if prono already exists
+  const {data:existing} = await sb.from('pronos').select('user_id').eq('user_id',uid).eq('event_id',evId).maybeSingle();
+  const isNew = !existing;
+
+  const {error} = await sb.from('pronos').upsert({
+    user_id:uid, event_id:evId, event_name:ev.name, sport:ev.sport,
+    data, created_at:new Date().toISOString()
+  },{onConflict:'user_id,event_id'});
+
+  if (error) { showToast('❌ Erreur: '+error.message); return; }
+
+  if (isNew) {
+    // Increment pronos_count
+    const {data:prof} = await sb.from('profiles').select('pronos_count').eq('id',uid).maybeSingle();
+    await sb.from('profiles').update({pronos_count:(prof?.pronos_count||0)+1}).eq('id',uid);
+  }
+
+  showToast('✅ Prono enregistré pour cet utilisateur !');
+  // Reset form
+  document.getElementById('apick-uid').value='';
+  document.getElementById('apick-evid').value='';
+  document.getElementById('apick-form').innerHTML='';
+}
+// ── END ADMIN pick entry ────────────────────────────────────────────────────
+
+
 
 async function renderAdminGroups() {
   const el = document.getElementById('admin-groups-list');
@@ -3734,6 +3869,11 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     if (officialMap[evId]) return;
     // Apply sport filter if active
     if (sportFilter && pr.sport !== sportFilter) return;
+    // Comp filter: only include if event matches current comp filter
+    if (comp) {
+      const evDef = EVENTS.find(e => e.id === evId);
+      if (!evDef || evDef.comp !== comp) return;
+    }
     // Try to find event definition in EVENTS array
     const ev = EVENTS.find(e => e.id === evId) || {
       id: evId, name: pr.event_name || ('Event #' + evId),
@@ -3742,23 +3882,16 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     pendingCards.push({ ev, data: pr.data, official: null, pts: null, max: null });
   });
 
-  if (!displayed.length && !pendingCards.length) {
-    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No picks recorded.<br><small style=\'color:#999;font-size:11px;\'>uid:'+uid+'<br>allPronos:'+(allUserPronos||[]).length+'<br>scoredIds:'+JSON.stringify(scoredIds.slice(0,5))+'<br>officialMap:'+JSON.stringify(Object.keys(officialMap).slice(0,5))+'</small></div>';
-    return;
-  }
-
-  // Store data on window for tab switching
+  // Store for tab switching
   window._mmScored  = displayed;
   window._mmPending = pendingCards;
 
-  // Show tabs if there's content in both sections
+  // Always show both tabs
   const tabBar = document.getElementById('member-modal-tabs');
-  if (tabBar) {
-    tabBar.style.display = (displayed.length && pendingCards.length) ? 'flex' : 'none';
-  }
+  if (tabBar) tabBar.style.display = 'flex';
 
-  // Default tab: scored if available, else pending
-  switchMemberTab(displayed.length ? 'scored' : 'pending');
+  // Default: Awaiting first if pending picks exist, else Scored
+  switchMemberTab(pendingCards.length ? 'pending' : 'scored');
 }
 
 function switchMemberTab(tab) {
