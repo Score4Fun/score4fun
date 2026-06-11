@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="Score4Fun" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
-  <title>Score4Fun v57 — Think you know sport? Prove it.</title>
+  <title>Score4Fun v58 — Think you know sport? Prove it.</title>
 
   <!-- SEO -->
   <meta name="description" content="Think you know sport? Prove it. Pick the winners across football, F1, tennis &amp; more — challenge friends, rack up points, rule the leaderboard. Free. Fun. 30 seconds to join." />
@@ -576,6 +576,12 @@
   </div>
 
     <!-- PROFIL -->
+  <!-- ═══ NEWS PAGE ═══ -->
+  <div class="page" id="page-news">
+    <div style="padding:16px 16px 8px;font-size:18px;font-weight:800;letter-spacing:-0.5px;">📰 News</div>
+    <div id="news-feed" style="padding:0 12px 100px;"></div>
+  </div>
+
   <div class="page" id="page-profil">
     <div class="section-title">My profile</div>
     <div class="profil-header">
@@ -624,6 +630,7 @@
     <div class="nav-item" onclick="showPage('pronos')" id="nav-pronos"><span class="nav-icon">✅</span><span class="nav-label">Results</span></div>
     <div class="nav-item" onclick="showPage('classements')" id="nav-classements"><span class="nav-icon">🏆</span><span class="nav-label">Rankings</span></div>
     <div class="nav-item" onclick="showPage('groupes')" id="nav-groupes"><span class="nav-icon">👥</span><span class="nav-label">Groups</span></div>
+    <div class="nav-item" onclick="showPage('news')" id="nav-news"><span class="nav-icon">📰</span><span class="nav-label">News</span></div>
     <div class="nav-item" onclick="showPage('admin')" id="nav-admin" style="display:none;"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span></div>
     <div class="nav-item" onclick="showPage('profil')" id="nav-profil"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></div>
   </nav>
@@ -1199,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'v57';
+const APP_VERSION = 'v58';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -3821,6 +3828,43 @@ function renderProfil() {
 // =====================
 // NAVIGATION
 // =====================
+// =====================
+// NEWS
+// =====================
+const NEWS_POSTS = [
+  {
+    id: 2,
+    date: '12 juin 2026',
+    emoji: '📣',
+    title: 'Rankings — le vrai classement est là !',
+    body: `On a fait le ménage 🧹 Les classements sont maintenant filtrés par sport — donc fini les scores gonflés des tests F1 et tennis. Ce que vous voyez en <strong>Football</strong>, c'est 100% WC 2026, propre et honnête.\n\nEt la grande nouveauté : cliquez sur n'importe quel pseudo dans Rankings → vous voyez ses picks scorés <em>et</em> ses prochains pronostics en attente. Transparence totale. 👀\n\nÀ vous de voir qui joue quoi... et si vous pouvez faire mieux. 😈`,
+    tag: '🔧 Update'
+  },
+  {
+    id: 1,
+    date: '11 juin 2026',
+    emoji: '🌍',
+    title: 'Ça y est — le Mondial a commencé !',
+    body: `Premier match, déjà du spectacle : plus de cartons rouges que de buts au coup de sifflet final. Bienvenue au WC 2026 😅\n\nMais le vrai héros du soir ? <strong>Julian Quiñones</strong> 🇲🇽 — celui qui fait mieux que Cristiano au Mexique et qui l'a encore prouvé ce soir. Un but magnifique, homme du match haut la main. Watch out.\n\nEt mention spéciale à ceux qui ont scoré <strong>11/11 pts</strong> sur l'Opening Match 🤯 Vous savez qui vous êtes.\n\nN'oubliez pas vos <strong>prochains pronostics</strong> — le Matchday 2 arrive vite ! 🔥`,
+    tag: '⚽ WC 2026'
+  }
+];
+
+function renderNews() {
+  const feed = document.getElementById('news-feed');
+  if (!feed) return;
+  feed.innerHTML = NEWS_POSTS.map(post => `
+    <div style="background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:11px;font-weight:700;color:var(--orange);background:var(--orange-bg);padding:3px 8px;border-radius:20px;">${post.tag}</span>
+        <span style="font-size:11px;color:var(--text-muted);">${post.date}</span>
+      </div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:8px;line-height:1.3;">${post.emoji} ${post.title}</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.6;">${post.body.replace(/\n/g,'<br>')}</div>
+    </div>
+  `).join('');
+}
+
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -3830,6 +3874,7 @@ function showPage(name) {
   if (name==='classements') { document.querySelectorAll('#rank-tabs-inner .rank-tab').forEach(t=>t.classList.remove('active')); const first=document.querySelector('#rank-tabs-inner .rank-tab'); if(first){first.classList.add('active');} _rankSport=''; _rankComp=null; const ct=document.getElementById('rank-comp-tabs'); if(ct){ct.style.display='none';ct.innerHTML='';} loadRankings('',null); }
   if (name==='groupes') renderGroupes();
   if (name==='admin') renderAdmin();
+  if (name==='news') renderNews();
 }
 
 // =====================
@@ -4158,50 +4203,4 @@ async function openGroupMemberProfile(uid, pseudo) {
 
 <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <script>
-  // Remplace les emojis par des images SVG (fix drapeaux Windows/Chrome)
-  // Note: ne fonctionne pas dans les <select><option> (limitation HTML)
-  const _twemojiOpts = {
-    folder: 'svg', ext: '.svg',
-    base: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'
-  };
-  let _twTimer = null;
-  function applyTwemoji() {
-    clearTimeout(_twTimer);
-    _twTimer = setTimeout(() => { if(window.twemoji) twemoji.parse(document.body, _twemojiOpts); }, 150);
-  }
-  document.addEventListener('DOMContentLoaded', applyTwemoji);
-  new MutationObserver(applyTwemoji).observe(document.body, { childList:true, subtree:true });
-</script>
-
-<script>
-// ── Install prompt (PWA) ──────────────────────────────────────────────────
-(function() {
-  // Don't show if already installed (standalone mode)
-  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) return;
-  // Don't show if already dismissed this session
-  if (sessionStorage.getItem('s4f-install-dismissed')) return;
-
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
-  const isAndroid = /android/i.test(navigator.userAgent);
-  if (!isIOS && !isAndroid) return; // desktop — skip
-
-  let deferredPrompt = null;
-
-  function showInstallModal() {
-    if (document.getElementById('s4f-install-modal')) return;
-    const modal = document.createElement('div');
-    modal.id = 's4f-install-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;';
-
-    const content = isIOS
-      ? `<div style="font-size:15px;line-height:1.6;color:#333;margin-bottom:18px;">
-           Tap <strong>Share</strong> <span style="font-size:18px;">⎙</span> then<br>
-           <strong>"Add to Home Screen"</strong> <span style="font-size:16px;">＋</span><br>
-           to install Score4Fun on your phone.
-         </div>
-         <button id="s4f-install-ok" style="width:100%;padding:12px;background:var(--orange);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">Got it!</button>`
-      : `<div style="font-size:15px;line-height:1.6;color:#333;margin-bottom:18px;">
-           Add <strong>Score4Fun</strong> to your home screen for instant access — no app store needed!
-         </div>
-         <button id="s4f-install-btn" style="width:100%;padding:12px;background:var(--orange);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;">📲 Install Score4Fun</button>
-         <button id="s4f-install-later" style="width:100%;padding:10px;background:non
+  // Remplace les e
