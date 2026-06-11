@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="Score4Fun" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
-  <title>Score4Fun v58 — Think you know sport? Prove it.</title>
+  <title>Score4Fun v59 — Think you know sport? Prove it.</title>
 
   <!-- SEO -->
   <meta name="description" content="Think you know sport? Prove it. Pick the winners across football, F1, tennis &amp; more — challenge friends, rack up points, rule the leaderboard. Free. Fun. 30 seconds to join." />
@@ -1206,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'v58';
+const APP_VERSION = 'v59';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -3834,18 +3834,18 @@ function renderProfil() {
 const NEWS_POSTS = [
   {
     id: 2,
-    date: '12 juin 2026',
+    date: 'June 12, 2026',
     emoji: '📣',
-    title: 'Rankings — le vrai classement est là !',
-    body: `On a fait le ménage 🧹 Les classements sont maintenant filtrés par sport — donc fini les scores gonflés des tests F1 et tennis. Ce que vous voyez en <strong>Football</strong>, c'est 100% WC 2026, propre et honnête.\n\nEt la grande nouveauté : cliquez sur n'importe quel pseudo dans Rankings → vous voyez ses picks scorés <em>et</em> ses prochains pronostics en attente. Transparence totale. 👀\n\nÀ vous de voir qui joue quoi... et si vous pouvez faire mieux. 😈`,
+    title: 'Rankings just got real',
+    body: `Cleaned up the leaderboard 🧹 Rankings are now sport-filtered — so no more inflated scores from F1 and tennis testing. What you see under <strong>Football</strong> is pure WC 2026. Clean slate.\n\nBig new feature too: tap any name in Rankings and you'll see their scored picks <em>and</em> their pending ones. Full transparency. 👀\n\nSo... see what your opponents are betting on. And ask yourself if you can do better. 😈`,
     tag: '🔧 Update'
   },
   {
     id: 1,
-    date: '11 juin 2026',
+    date: 'June 11, 2026',
     emoji: '🌍',
-    title: 'Ça y est — le Mondial a commencé !',
-    body: `Premier match, déjà du spectacle : plus de cartons rouges que de buts au coup de sifflet final. Bienvenue au WC 2026 😅\n\nMais le vrai héros du soir ? <strong>Julian Quiñones</strong> 🇲🇽 — celui qui fait mieux que Cristiano au Mexique et qui l'a encore prouvé ce soir. Un but magnifique, homme du match haut la main. Watch out.\n\nEt mention spéciale à ceux qui ont scoré <strong>11/11 pts</strong> sur l'Opening Match 🤯 Vous savez qui vous êtes.\n\nN'oubliez pas vos <strong>prochains pronostics</strong> — le Matchday 2 arrive vite ! 🔥`,
+    title: 'The World Cup is ON 🔥',
+    body: `More red cards than goals in the opener. Welcome to WC 2026 😅\n\nBut the real story: <strong>Julian Quiñones</strong> 🇲🇽 Put on an absolute clinic. For context — the guy is the <strong>top scorer in the Saudi Pro League</strong>. CR7 sitting 3rd behind him. So yeah, the level he showed tonight? Totally expected. One stunning goal, undisputed Man of the Match. The dark horse is real.\n\nShoutout to everyone who hit <strong>11/11 pts</strong> on the Opening Match 🤯 You know who you are.\n\nDon't sleep on your next picks — Matchday 2 is coming fast. 🔥`,
     tag: '⚽ WC 2026'
   }
 ];
@@ -4203,4 +4203,4 @@ async function openGroupMemberProfile(uid, pseudo) {
 
 <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <script>
-  // Remplace les e
+  // Remplace les e                                                                       
