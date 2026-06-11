@@ -3877,8 +3877,8 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     if (!isTrulyClosed(ev)) return;  // only show truly closed events (deadline past, not 'soon')
     pendingCards.push({ ev, data:pr.data, official:null, pts:null, max:null });
   });
-  // 3 soonest-closed (deadline asc)
-  pendingCards.sort((a,b) => new Date(a.ev.deadline||0) - new Date(b.ev.deadline||0));
+  // 3 most recently closed (deadline desc — freshest first, so new WC events beat old Roland Garros etc.)
+  pendingCards.sort((a,b) => new Date(b.ev.deadline||0) - new Date(a.ev.deadline||0));
   const displayedPending = pendingCards.slice(0, 3);
 
   // 6. Header — built AFTER all data is ready
