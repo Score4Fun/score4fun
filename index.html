@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="Score4Fun" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
-  <title>Score4Fun v60 — Think you know sport? Prove it.</title>
+  <title>Score4Fun v61 — Think you know sport? Prove it.</title>
 
   <!-- SEO -->
   <meta name="description" content="Think you know sport? Prove it. Pick the winners across football, F1, tennis &amp; more — challenge friends, rack up points, rule the leaderboard. Free. Fun. 30 seconds to join." />
@@ -1206,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'v60';
+const APP_VERSION = 'v61';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -2797,7 +2797,6 @@ async function renderAdminUsers() {
 }
 
 async function adminViewAllPronos(uid, pseudo) {
-  // Reuse member-modal as a read-only all-picks viewer (admin only)
   const modal  = document.getElementById('member-modal');
   const header = document.getElementById('member-modal-header');
   const body   = document.getElementById('member-modal-body');
@@ -2811,11 +2810,11 @@ async function adminViewAllPronos(uid, pseudo) {
   const {data:pronos} = await sb.from('pronos').select('event_id,sport,data,created_at').eq('user_id', uid).order('event_id');
 
   const initial = (pseudo||'?')[0].toUpperCase();
-  header.innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding-right:28px;">
+  header.innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding-right:36px;">
     <div style="width:42px;height:42px;border-radius:50%;background:#0288d1;color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">${initial}</div>
     <div>
-      <div style="font-size:16px;font-weight:700;">${pseudo}</div>
-      <div style="font-size:11px;color:var(--text-muted);">👁 Admin view — ${(pronos||[]).length} picks in DB</div>
+      <div style="font-size:15px;font-weight:700;">${pseudo} — all picks</div>
+      <div style="font-size:11px;color:var(--text-muted);">👁 Admin · ${(pronos||[]).length} picks in DB</div>
     </div></div>`;
 
   if (!pronos || !pronos.length) {
@@ -2823,22 +2822,53 @@ async function adminViewAllPronos(uid, pseudo) {
     return;
   }
 
+  function _pickLines(ev, d) {
+    if (!d) return ['—'];
+    const lines = [];
+    if (ev.type === 'tournament_bonus') {
+      if (d.champion)  lines.push('🥇 ' + d.champion);
+      if (d.finaliste) lines.push('🥈 ' + d.finaliste);
+      if (d.third)     lines.push('🥉 ' + d.third);
+      if (d.fourth)    lines.push('4th: ' + d.fourth);
+      if (d.topScorer) lines.push('Top scorer: ' + d.topScorer);
+      if (d.topGoals)  lines.push('Goals range: ' + d.topGoals);
+    } else if (ev.type === 'opening_match') {
+      const res = {1:'Home wins','X':'Draw',2:'Away wins'};
+      if (d.result)      lines.push('Result: ' + (res[d.result]||d.result));
+      if (d.halftime)    lines.push('Half-time: ' + (res[d.halftime]||d.halftime));
+      if (d.firstScorer) lines.push('First scorer: ' + d.firstScorer);
+    } else if (ev.type === 'multi_match') {
+      (ev.matches||[]).forEach(m => {
+        const pick = d[m.key];
+        if (!pick) return;
+        const winner = pick==='1' ? m.team1 : pick==='2' ? m.team2 : 'Draw';
+        lines.push((m.team1||'?') + ' vs ' + (m.team2||'?') + ' → ' + winner);
+      });
+    } else if (ev.type === '1x2') {
+      const res = {1:'Home wins','X':'Draw',2:'Away wins'};
+      if (d.result) lines.push('Result: ' + (res[d.result]||d.result));
+    } else {
+      lines.push(JSON.stringify(d));
+    }
+    return lines.length ? lines : ['—'];
+  }
+
   body.innerHTML = (pronos||[]).map(pr => {
     const ev = EVENTS.find(e => e.id === Number(pr.event_id));
-    const name = ev ? ev.name : `Event #${pr.event_id}`;
-    const phase = ev ? ev.phase||ev.comp||'' : pr.sport||'';
-    const dataStr = JSON.stringify(pr.data||{}, null, 0)
-      .replace(/[{}"]/g,'').replace(/,/g,' · ').replace(/:/g,': ');
+    const name  = ev ? ev.name : `Unknown event #${pr.event_id}`;
+    const phase = ev ? (ev.phase||ev.comp||'') : (pr.sport||'');
+    const lines = ev ? _pickLines(ev, pr.data) : [JSON.stringify(pr.data||{})];
     const saved = pr.created_at ? new Date(pr.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '';
+    const hasResult = ev && Object.keys(pr.data||{}).some(k => (pr.data)[k]);
     return `<div style="background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">
         <div>
           <div style="font-size:13px;font-weight:700;">${name}</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${phase} · event_id: ${pr.event_id}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${phase}</div>
         </div>
         <div style="font-size:11px;color:var(--text-muted);flex-shrink:0;">${saved}</div>
       </div>
-      <div style="font-size:12px;color:var(--orange);margin-top:6px;line-height:1.6;">${dataStr||'—'}</div>
+      ${lines.map(l => `<div style="font-size:12px;color:var(--orange);padding:2px 0;border-left:2px solid var(--orange);padding-left:8px;margin-top:3px;">${l}</div>`).join('')}
     </div>`;
   }).join('');
 }
@@ -4186,21 +4216,4 @@ async function openGroupMemberProfile(uid, pseudo) {
         inner += match1x2((m.team1||'') + ' vs ' + (m.team2||''), p[m.key], official ? official[m.key] : null, sc.perMatch||4);
       });
     } else if (ev.type === '1x2') {
-      inner += match1x2('Résultat (1/X/2)', p.result, official ? official.result : null, 4);
-    } else if (ev.type === 'opening_match') {
-      inner += match1x2('Résultat', p.result, official ? official.result : null, 5);
-      inner += match1x2('Mi-temps', p.halftime, official ? official.halftime : null, 3);
-      inner += selectRow('1er buteur', p.firstScorer, official ? official.firstScorer : null, 3);
-    } else if (ev.type === 'tournament_bonus') {
-      const sc = ev.scoring || {};
-      inner += selectRow('🥇 Champion', p.champion, official ? official.champion : null, POINTS_MAP[0]);
-      inner += selectRow('🥈 Finaliste', p.finaliste, official ? official.finaliste : null, POINTS_MAP[1]);
-      inner += selectRow('🥉 3ème', p.third, official ? official.third : null, POINTS_MAP[2]);
-      inner += selectRow('4ème', p.fourth, official ? official.fourth : null, POINTS_MAP[3]);
-      inner += selectRow('Meilleur buteur', p.topScorer, official ? official.topScorer : null, sc.topScorer||7);
-      inner += selectRow('Fourchette buts', p.topGoals, official ? official.topGoals : null, sc.topGoals||4);
-    } else if (ev.type === 'tennis_sf') {
-      inner += selectRow('Vainqueur', p.winner, official ? official.winner : null, 10);
-      inner += selectRow('Nb sets', String(p.sets||''), String(official ? official.sets : ''), 6);
-    } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
-      inner += se
+      inner += mat
