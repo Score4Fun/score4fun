@@ -3718,23 +3718,29 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     + '</div>'
     + '</div>';
 
-  // ── Pending picks: closed events with no official result yet ──────────────
-  const pendingEvents = filteredEvents.filter(ev =>
-    isTrulyClosed(ev) && !officialMap[ev.id]
-  );
-  const pendingIds = pendingEvents.map(ev => ev.id);
+  // ── Pending picks: all user pronos without an official real result ──────────
+  // Fetch ALL pronos for this user (not filtered by event) to catch picks
+  // for events that may have been removed from the EVENTS array
+  const sportFilter = sport || null;
+  const {data:allUserPronos} = await sb.from('pronos').select('event_id,event_name,sport,data')
+    .eq('user_id', uid);
+
   let pendingCards = [];
-  console.log('[S4F debug] pendingIds:', pendingIds, 'officialMap keys:', Object.keys(officialMap), 'filteredIds:', filteredIds.slice(0,5));
-  if (pendingIds.length) {
-    const {data:pendingPronos} = await sb.from('pronos').select('event_id,data')
-      .eq('user_id', uid).in('event_id', pendingIds);
-    console.log('[S4F debug] pendingPronos for', pseudo, ':', pendingPronos);
-    pendingCards = (pendingPronos||[]).map(pr => {
-      const ev = EVENTS.find(e => e.id === Number(pr.event_id));
-      if (!ev) return null;
-      return { ev, data: pr.data, official: null, pts: null, max: null };
-    }).filter(Boolean);
-  }
+  (allUserPronos||[]).forEach(pr => {
+    const evId = Number(pr.event_id);
+    // Skip if already in scored section
+    if (scoredIds.includes(evId)) return;
+    // Skip events with a real official result
+    if (officialMap[evId]) return;
+    // Apply sport filter if active
+    if (sportFilter && pr.sport !== sportFilter) return;
+    // Try to find event definition in EVENTS array
+    const ev = EVENTS.find(e => e.id === evId) || {
+      id: evId, name: pr.event_name || ('Event #' + evId),
+      sport: pr.sport || '?', comp: '', emoji: '📋', type: 'unknown'
+    };
+    pendingCards.push({ ev, data: pr.data, official: null, pts: null, max: null });
+  });
 
   if (!displayed.length && !pendingCards.length) {
     body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No picks recorded for this filter.</div>';
