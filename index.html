@@ -3853,8 +3853,9 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     if (officialMap[evId]) return;               // has a result
     const ev = EVENTS.find(e => e.id === evId); // must exist in EVENTS
     if (!ev) return;
-    if (sport && ev.sport !== sport) return;     // sport filter
-    if (comp  && ev.comp  !== comp)  return;     // comp filter
+    if (sport && ev.sport !== sport) return;                          // sport filter
+    if (comp  && ev.comp  !== comp)  return;                          // comp filter
+    if (!ev.deadline || new Date() <= new Date(ev.deadline)) return;  // not closed yet
     pendingCards.push({ ev, data:pr.data, official:null, pts:null, max:null });
   });
   // 3 soonest-closed (deadline asc)
