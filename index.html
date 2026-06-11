@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="Score4Fun" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
-  <title>Score4Fun v56 — Think you know sport? Prove it.</title>
+  <title>Score4Fun v57 — Think you know sport? Prove it.</title>
 
   <!-- SEO -->
   <meta name="description" content="Think you know sport? Prove it. Pick the winners across football, F1, tennis &amp; more — challenge friends, rack up points, rule the leaderboard. Free. Fun. 30 seconds to join." />
@@ -1199,7 +1199,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'v56';
+const APP_VERSION = 'v57';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -2451,11 +2451,34 @@ function _botLog(msg, cls) {
 function _botRnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
 function _botRndResult() { return _botRnd(['1','X','2']); }
 
+const _TEAM_RANK = {
+  '🇧🇷 Brazil':10,'🇫🇷 France':9,'🇦🇷 Argentina':9,'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England':8,
+  '🇩🇪 Germany':8,'🇪🇸 Spain':8,'🇵🇹 Portugal':8,'🇳🇱 Netherlands':7,
+  '🇧🇪 Belgium':7,'🇳🇴 Norway':7,'🇺🇸 USA':7,'🇲🇽 Mexico':7,
+  '🇨🇦 Canada':6,'🇺🇾 Uruguay':6,'🇨🇴 Colombia':6,'🇲🇦 Morocco':6,
+  '🇭🇷 Croatia':6,'🇯🇵 Japan':5,'🇦🇺 Australia':5,'🇸🇳 Senegal':5,
+  '🇨🇭 Switzerland':5,'🇹🇷 Turkey':5,'🇩🇿 Algeria':5,'🇬🇭 Ghana':5,
+  '🇨🇮 Ivory Coast':5,'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland':5,'🇦🇹 Austria':5,'🇰🇷 South Korea':5,
+  '🇸🇦 Saudi Arabia':4,'🇵🇾 Paraguay':4,'🇧🇦 Bosnia':4,'🇪🇨 Ecuador':4,
+  '🇹🇳 Tunisia':4,'🇶🇦 Qatar':4,'🇨🇩 DR Congo':3,'🇺🇿 Uzbekistan':3,
+  '🇮🇷 Iran':3,'🇵🇦 Panama':3,'🇨🇻 Cape Verde':3,'🇮🇶 Iraq':3,
+  '🇯🇴 Jordan':3,'🇿🇦 South Africa':3,'🇨🇼 Curaçao':2,'🇭🇹 Haiti':2,
+  '🇳🇿 New Zealand':3
+};
+function _botFavResult(t1, t2) {
+  const diff = (_TEAM_RANK[t1]||5) - (_TEAM_RANK[t2]||5);
+  return diff >= 2 ? '1' : diff <= -2 ? '2' : '1';
+}
 function _botGenData(ev, bot) {
   if (bot === 'favorites') {
     if (ev.type==='tournament_bonus') return {champion:'🇧🇷 Brazil',finaliste:'🇫🇷 France',third:'🇦🇷 Argentina',fourth:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England',topScorer:'🇧🇷 Brazil',topGoals:'12-13 goals'};
     if (ev.type==='opening_match') return {result:'1',halftime:'1',firstScorer:'Mexico'};
-    if (ev.type==='multi_match') { const d={}; ev.matches.forEach(m=>{d[m.key]='1';}); return d; }
+    if (ev.type==='multi_match') {
+      const realEv = EVENTS.find(e => e.id === ev.id);
+      const d={};
+      (realEv?.matches || ev.matches).forEach(m => { d[m.key] = _botFavResult(m.team1||'', m.team2||''); });
+      return d;
+    }
     return {};
   }
   if (ev.type==='tournament_bonus') {
@@ -4181,41 +4204,4 @@ async function openGroupMemberProfile(uid, pseudo) {
            Add <strong>Score4Fun</strong> to your home screen for instant access — no app store needed!
          </div>
          <button id="s4f-install-btn" style="width:100%;padding:12px;background:var(--orange);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;">📲 Install Score4Fun</button>
-         <button id="s4f-install-later" style="width:100%;padding:10px;background:none;border:1px solid #ddd;border-radius:10px;font-size:14px;color:#888;cursor:pointer;">Maybe later</button>`;
-
-    modal.innerHTML = `<div style="background:white;border-radius:16px;padding:24px 20px;max-width:320px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2);">
-      <div style="font-size:36px;margin-bottom:10px;">📱</div>
-      <div style="font-size:18px;font-weight:800;margin-bottom:12px;">Play Score4Fun<br>on your phone</div>
-      ${content}
-    </div>`;
-
-    document.body.appendChild(modal);
-
-    const dismiss = () => { modal.remove(); sessionStorage.setItem('s4f-install-dismissed','1'); };
-
-    if (isIOS) {
-      document.getElementById('s4f-install-ok').onclick = dismiss;
-    } else {
-      document.getElementById('s4f-install-later').onclick = dismiss;
-      document.getElementById('s4f-install-btn').onclick = async () => {
-        dismiss();
-        if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
-      };
-    }
-    modal.addEventListener('click', e => { if (e.target === modal) dismiss(); });
-  }
-
-  if (isAndroid) {
-    window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      deferredPrompt = e;
-      setTimeout(showInstallModal, 2500);
-    });
-  } else if (isIOS) {
-    setTimeout(showInstallModal, 2500);
-  }
-})();
-</script>
-
-</body>
-</html>
+         <button id="s4f-install-later" style="width:100%;padding:10px;background:non
