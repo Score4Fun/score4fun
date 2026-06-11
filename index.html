@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="Score4Fun" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
-  <title>Score4Fun — Think you know sport? Prove it.</title>
+  <title>Score4Fun v55 — Think you know sport? Prove it.</title>
 
   <!-- SEO -->
   <meta name="description" content="Think you know sport? Prove it. Pick the winners across football, F1, tennis &amp; more — challenge friends, rack up points, rule the leaderboard. Free. Fun. 30 seconds to join." />
@@ -1199,7 +1199,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'v54';
+const APP_VERSION = 'v55';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -3803,7 +3803,7 @@ function showPage(name) {
       <div id="member-modal-header"></div>
       <button onclick="closeMemberModal()" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);line-height:1;">&#x2715;</button>
     </div>
-    <div id="member-modal-tabs" style="display:none;flex-shrink:0;border-bottom:0.5px solid var(--border);padding:0 16px;display:flex;gap:0;">
+    <div id="member-modal-tabs" style="display:none;flex-shrink:0;border-bottom:0.5px solid var(--border);padding:0 16px;gap:0;">
       <button id="mmtab-scored" onclick="switchMemberTab('scored')" style="flex:1;padding:10px 4px;border:none;background:none;font-size:13px;font-weight:700;color:var(--orange);border-bottom:2px solid var(--orange);cursor:pointer;">🎯 Scored</button>
       <button id="mmtab-pending" onclick="switchMemberTab('pending')" style="flex:1;padding:10px 4px;border:none;background:none;font-size:13px;font-weight:600;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer;">⏳ Awaiting</button>
     </div>
@@ -3927,6 +3927,9 @@ function switchMemberTab(tab) {
     tPending.style.borderBottom = tab==='pending' ? '2px solid var(--orange)' : '2px solid transparent';
     tPending.style.fontWeight   = tab==='pending' ? '700' : '600';
   }
+  // Update tab labels with counts
+  if (tScored)  tScored.textContent  = '🎯 Scored ('  + (window._mmScored||[]).length  + ')';
+  if (tPending) tPending.textContent = '⏳ Awaiting (' + (window._mmPending||[]).length + ')';
   const cards = tab==='scored' ? (window._mmScored||[]) : (window._mmPending||[]);
   if (!cards.length) {
     body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">'
@@ -3938,6 +3941,8 @@ function switchMemberTab(tab) {
 
 function closeMemberModal() {
   document.getElementById('member-modal').classList.remove('open');
+  window._mmScored  = [];
+  window._mmPending = [];
 }
 
 async function openGroupMemberProfile(uid, pseudo) {
@@ -3949,6 +3954,10 @@ async function openGroupMemberProfile(uid, pseudo) {
   const modal  = document.getElementById('member-modal');
   const header = document.getElementById('member-modal-header');
   const body   = document.getElementById('member-modal-body');
+  const tabBar2 = document.getElementById('member-modal-tabs');
+  window._mmScored  = [];
+  window._mmPending = [];
+  if (tabBar2) tabBar2.style.display = 'none';
   header.innerHTML = '';
   body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
   modal.classList.add('open');
