@@ -3717,12 +3717,50 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     + '</div>'
     + '</div>';
 
-  if (!displayed.length) {
+  // ── Pending picks: closed events with no official result yet ──────────────
+  const pendingEvents = filteredEvents.filter(ev =>
+    isTrulyClosed(ev) && !officialMap[ev.id]
+  );
+  const pendingIds = pendingEvents.map(ev => ev.id);
+  let pendingCards = [];
+  if (pendingIds.length) {
+    const {data:pendingPronos} = await sb.from('pronos').select('event_id,data')
+      .eq('user_id', uid).in('event_id', pendingIds);
+    pendingCards = (pendingPronos||[]).map(pr => {
+      const ev = EVENTS.find(e => e.id === Number(pr.event_id));
+      if (!ev) return null;
+      return { ev, data: pr.data, official: null, pts: null, max: null };
+    }).filter(Boolean);
+  }
+
+  if (!displayed.length && !pendingCards.length) {
     body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No picks recorded for this filter.</div>';
     return;
   }
 
-  renderMemberPronoCards(body, displayed);
+  body.innerHTML = '';
+
+  // Section scored picks
+  if (displayed.length) {
+    const scoredTitle = document.createElement('div');
+    scoredTitle.style.cssText = 'font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;';
+    scoredTitle.textContent = '🎯 Last scored picks';
+    body.appendChild(scoredTitle);
+    const scoredDiv = document.createElement('div');
+    body.appendChild(scoredDiv);
+    renderMemberPronoCards(scoredDiv, displayed);
+  }
+
+  // Section pending picks
+  if (pendingCards.length) {
+    const pendingTitle = document.createElement('div');
+    pendingTitle.style.cssText = 'font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin:' + (displayed.length?'16px':'') + ' 0 8px;';
+    pendingTitle.textContent = '⏳ Awaiting results';
+    body.appendChild(pendingTitle);
+    const pendingDiv = document.createElement('div');
+    body.appendChild(pendingDiv);
+    renderMemberPronoCards(pendingDiv, pendingCards);
+  }
 }
 
 function closeMemberModal() {
