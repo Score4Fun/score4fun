@@ -3874,11 +3874,9 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
       const evDef = EVENTS.find(e => e.id === evId);
       if (!evDef || evDef.comp !== comp) return;
     }
-    // Try to find event definition in EVENTS array
-    const ev = EVENTS.find(e => e.id === evId) || {
-      id: evId, name: pr.event_name || ('Event #' + evId),
-      sport: pr.sport || '?', comp: '', emoji: '📋', type: 'unknown'
-    };
+    // Skip picks for events no longer in the EVENTS array (deleted/obsolete)
+    const ev = EVENTS.find(e => e.id === evId);
+    if (!ev) return;
     pendingCards.push({ ev, data: pr.data, official: null, pts: null, max: null });
   });
 
