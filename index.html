@@ -552,6 +552,7 @@
       <div id="admin-list"></div>
     </div>
     <div id="admin-users-section" style="display:none;">
+      <button onclick="adminForceRecalc()" style="margin-bottom:12px;padding:9px 18px;background:#ff6b00;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">🔄 Recalculer tous les points</button>
       <div id="admin-users-list"></div>
     </div>
     <div id="admin-groups-section" style="display:none;">
@@ -1198,7 +1199,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'v52';
+const APP_VERSION = 'v54';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -2268,7 +2269,7 @@ function computeUserPoints(ev, p, official) {
     const correct = (ev.matches||[]).filter(m=>p[m.key]===official[m.key]).length;
     if (sc.bonus && sc.bonus[correct]) pts += sc.bonus[correct];
   } else if (ev.type === 'opening_match') {
-    if (p.result && p.result === official.result) pts += 4;
+    if (p.result && p.result === official.result) pts += (sc.result||5);
     if (p.halftime && p.halftime === official.halftime) pts += 3;
     if (p.firstScorer && p.firstScorer === official.firstScorer) pts += 3;
   } else if (ev.type === 'tournament_bonus') {
@@ -2512,6 +2513,13 @@ async function adminBotAction(action) {
 // ── END BOT helpers ────────────────────────────────────────────────────────
 
 // ── ADMIN: Enter pick for user ─────────────────────────────────────────────
+async function adminForceRecalc() {
+  showToast('⏳ Recalcul en cours...');
+  await recalculateAllPoints('adminForceRecalc');
+  showToast('✅ Points recalculés pour tous les membres !');
+  renderAdminUsers();
+}
+
 function adminPickForUser(uid, pseudo) {
   // Switch to Bots tab then open the pick entry pre-filled for this user
   setAdminTab('bots');
@@ -2643,7 +2651,8 @@ async function saveAdminPickForUser() {
     await sb.from('profiles').update({pronos_count:(prof?.pronos_count||0)+1}).eq('id',uid);
   }
 
-  showToast('✅ Prono enregistré pour cet utilisateur !');
+  await recalculateAllPoints('adminPickForUser evId='+evId);
+  showToast('✅ Prono enregistré + points recalculés !');
   // Reset form
   document.getElementById('apick-uid').value='';
   document.getElementById('apick-evid').value='';
