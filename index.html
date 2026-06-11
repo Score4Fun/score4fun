@@ -3640,6 +3640,10 @@ function showPage(name) {
       <div id="member-modal-header"></div>
       <button onclick="closeMemberModal()" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);line-height:1;">&#x2715;</button>
     </div>
+    <div id="member-modal-tabs" style="display:none;flex-shrink:0;border-bottom:0.5px solid var(--border);padding:0 16px;display:flex;gap:0;">
+      <button id="mmtab-scored" onclick="switchMemberTab('scored')" style="flex:1;padding:10px 4px;border:none;background:none;font-size:13px;font-weight:700;color:var(--orange);border-bottom:2px solid var(--orange);cursor:pointer;">🎯 Scored</button>
+      <button id="mmtab-pending" onclick="switchMemberTab('pending')" style="flex:1;padding:10px 4px;border:none;background:none;font-size:13px;font-weight:600;color:var(--text-muted);border-bottom:2px solid transparent;cursor:pointer;">⏳ Awaiting</button>
+    </div>
     <div id="member-modal-body" style="overflow-y:auto;padding:12px 16px;flex:1;"></div>
   </div>
 </div>
@@ -3738,29 +3742,42 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     return;
   }
 
+  // Store data on window for tab switching
+  window._mmScored  = displayed;
+  window._mmPending = pendingCards;
+
+  // Show tabs if there's content in both sections
+  const tabBar = document.getElementById('member-modal-tabs');
+  if (tabBar) {
+    tabBar.style.display = (displayed.length && pendingCards.length) ? 'flex' : 'none';
+  }
+
+  // Default tab: scored if available, else pending
+  switchMemberTab(displayed.length ? 'scored' : 'pending');
+}
+
+function switchMemberTab(tab) {
+  const body = document.getElementById('member-modal-body');
+  const scored  = window._mmScored  || [];
+  const pending = window._mmPending || [];
+
+  // Update tab styles
+  const tScored  = document.getElementById('mmtab-scored');
+  const tPending = document.getElementById('mmtab-pending');
+  if (tScored && tPending) {
+    const active = 'color:var(--orange);border-bottom:2px solid var(--orange);font-weight:700;';
+    const inactive = 'color:var(--text-muted);border-bottom:2px solid transparent;font-weight:600;';
+    tScored.style.cssText  = tScored.style.cssText.replace(/color:[^;]+;border-bottom:[^;]+;font-weight:[^;]+;/, tab==='scored'  ? active : inactive);
+    tPending.style.cssText = tPending.style.cssText.replace(/color:[^;]+;border-bottom:[^;]+;font-weight:[^;]+;/, tab==='pending' ? active : inactive);
+  }
+
   body.innerHTML = '';
-
-  // Section scored picks
-  if (displayed.length) {
-    const scoredTitle = document.createElement('div');
-    scoredTitle.style.cssText = 'font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;';
-    scoredTitle.textContent = '🎯 Last scored picks';
-    body.appendChild(scoredTitle);
-    const scoredDiv = document.createElement('div');
-    body.appendChild(scoredDiv);
-    renderMemberPronoCards(scoredDiv, displayed);
+  const cards = tab === 'scored' ? scored : pending;
+  if (!cards.length) {
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">' + (tab==='scored' ? 'No scored picks yet.' : 'No picks awaiting results.') + '</div>';
+    return;
   }
-
-  // Section pending picks
-  if (pendingCards.length) {
-    const pendingTitle = document.createElement('div');
-    pendingTitle.style.cssText = 'font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin:' + (displayed.length?'16px':'') + ' 0 8px;';
-    pendingTitle.textContent = '⏳ Awaiting results';
-    body.appendChild(pendingTitle);
-    const pendingDiv = document.createElement('div');
-    body.appendChild(pendingDiv);
-    renderMemberPronoCards(pendingDiv, pendingCards);
-  }
+  renderMemberPronoCards(body, cards);
 }
 
 function closeMemberModal() {
