@@ -3679,15 +3679,11 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   });
   const scoredIds = Object.keys(officialMap).map(Number);
 
-  if (!scoredIds.length) {
-    header.innerHTML = '<div style="font-size:15px;font-weight:700;">' + pseudo + '</div>';
-    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No scored picks yet for this filter.</div>';
-    return;
-  }
-
   const [profRes, pronosRes] = await Promise.all([
     sb.from('profiles').select('pseudo,points').eq('id', uid).maybeSingle(),
-    sb.from('pronos').select('event_id,data').eq('user_id', uid).in('event_id', scoredIds)
+    scoredIds.length
+      ? sb.from('pronos').select('event_id,data').eq('user_id', uid).in('event_id', scoredIds)
+      : Promise.resolve({data:[]})
   ]);
 
   const prof   = profRes.data || {pseudo, points:0};
