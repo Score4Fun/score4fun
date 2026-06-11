@@ -3790,41 +3790,44 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   const modal  = document.getElementById('member-modal');
   const header = document.getElementById('member-modal-header');
   const body   = document.getElementById('member-modal-body');
+  const tabBar = document.getElementById('member-modal-tabs');
   header.innerHTML = '';
   body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
+  if (tabBar) tabBar.style.display = 'none';
   modal.classList.add('open');
 
-  // Détermine les events scorés filtrés par sport/comp
+  // 1. Events filtered by sport/comp
   const filteredEvents = EVENTS.filter(ev => {
     if (sport && ev.sport !== sport) return false;
-    if (comp && ev.comp !== comp) return false;
+    if (comp  && ev.comp  !== comp)  return false;
     return true;
   });
   const filteredIds = filteredEvents.map(ev => ev.id);
 
-  // Résultats officiels pour ces events
+  // 2. Official results for filtered events
   const {data:resultsData} = filteredIds.length
-    ? await sb.from('results').select('event_id,result_data,entered_at').in('event_id', filteredIds).order('entered_at', {ascending:false})
+    ? await sb.from('results').select('event_id,result_data,entered_at').in('event_id', filteredIds).order('entered_at',{ascending:false})
     : {data:[]};
   const officialMap = {};
   const resultOrder = {};
-  (resultsData||[]).forEach((r, i) => {
-    if (r.result_data && r.result_data._cleared) return; // skip placeholder results
+  (resultsData||[]).forEach((r,i) => {
+    if (r.result_data && r.result_data._cleared) return;
     officialMap[Number(r.event_id)] = r.result_data;
-    resultOrder[Number(r.event_id)] = i; // 0 = most recently validated by admin
+    resultOrder[Number(r.event_id)] = i; // 0 = most recently entered
   });
   const scoredIds = Object.keys(officialMap).map(Number);
 
+  // 3. Profile + scored pronos in parallel
   const [profRes, pronosRes] = await Promise.all([
-    sb.from('profiles').select('pseudo,points').eq('id', uid).maybeSingle(),
+    sb.from('profiles').select('pseudo,points').eq('id',uid).maybeSingle(),
     scoredIds.length
-      ? sb.from('pronos').select('event_id,data').eq('user_id', uid).in('event_id', scoredIds)
-      : Promise.resolve({data:[]})
+      ? sb.from('pronos').select('event_id,data').eq('user_id',uid).in('event_id',scoredIds)
+      : Promise.resolve({data:[]}),
   ]);
-
-  const prof   = profRes.data || {pseudo, points:0};
+  const prof   = profRes.data  || {pseudo, points:0};
   const pronos = pronosRes.data || [];
 
+  // 4. Build scored cards
   let totalPts = 0, totalMax = 0;
   const pronoCards = pronos.map(pr => {
     const ev = EVENTS.find(e => e.id === Number(pr.event_id));
@@ -3833,88 +3836,72 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     if (!official) return null;
     const pts = computeUserPoints(ev, pr.data, official);
     const max = getMaxPts(ev);
-    totalPts += pts;
-    totalMax += max;
-    return { ev, data: pr.data, official, pts, max };
+    totalPts += pts; totalMax += max;
+    return { ev, data:pr.data, official, pts, max };
   }).filter(Boolean);
 
-  // Affichage : 3 derniers résultats validés par Admin (ordre entered_at desc)
-  const sorted = [...pronoCards].sort((a,b) => (resultOrder[a.ev.id]??999) - (resultOrder[b.ev.id]??999));
-  const displayed = sorted.slice(0, 3);
+  // Last 3 scored (sorted by most recently entered result)
+  const sortedScored = [...pronoCards].sort((a,b) => (resultOrder[a.ev.id]??999) - (resultOrder[b.ev.id]??999));
+  const displayed = sortedScored.slice(0, 3);
 
-  const initial = (pseudo||'?')[0].toUpperCase();
-  const accStr = totalMax > 0 ? Math.round(totalPts/totalMax*100) + '%' : '–%';
-  const scopeLabel = sport ? (comp || sport) : 'Overall';
-  header.innerHTML = '<div style="display:flex;align-items:center;gap:12px;padding-right:28px;">'
-    + '<div style="width:42px;height:42px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">' + initial + '</div>'
-    + '<div><div style="font-size:16px;font-weight:700;">' + pseudo + '</div>'
-    + '<div style="font-size:11px;color:var(--text-muted);">' + totalPts + ' pts · ' + accStr + ' accuracy · ' + scopeLabel + '</div>'
-    + (pronoCards.length > 3 ? '<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">Last 3 of ' + pronoCards.length + ' scored · Next 3 of ' + pendingCards.length + ' awaiting</div>' : pendingCards.length > 3 ? '<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">Next 3 of ' + pendingCards.length + ' awaiting results</div>' : '')
-    + '</div>'
-    + '</div>';
-
-  // ── Pending picks: all user pronos without an official real result ──────────
-  // Fetch ALL pronos for this user (not filtered by event) to catch picks
-  // for events that may have been removed from the EVENTS array
-  const sportFilter = sport || null;
-  const {data:allUserPronos} = await sb.from('pronos').select('event_id,event_name,sport,data')
-    .eq('user_id', uid);
-
-  let pendingCards = [];
+  // 5. Fetch all pronos for pending section
+  const {data:allUserPronos} = await sb.from('pronos').select('event_id,sport,data').eq('user_id',uid);
+  const pendingCards = [];
   (allUserPronos||[]).forEach(pr => {
     const evId = Number(pr.event_id);
-    // Skip if already in scored section
-    if (scoredIds.includes(evId)) return;
-    // Skip events with a real official result
-    if (officialMap[evId]) return;
-    // Apply sport filter if active
-    if (sportFilter && pr.sport !== sportFilter) return;
-    // Comp filter: only include if event matches current comp filter
-    if (comp) {
-      const evDef = EVENTS.find(e => e.id === evId);
-      if (!evDef || evDef.comp !== comp) return;
-    }
-    // Skip picks for events no longer in the EVENTS array (deleted/obsolete)
-    const ev = EVENTS.find(e => e.id === evId);
+    if (scoredIds.includes(evId)) return;        // already scored
+    if (officialMap[evId]) return;               // has a result
+    const ev = EVENTS.find(e => e.id === evId); // must exist in EVENTS
     if (!ev) return;
-    pendingCards.push({ ev, data: pr.data, official: null, pts: null, max: null });
+    if (sport && ev.sport !== sport) return;     // sport filter
+    if (comp  && ev.comp  !== comp)  return;     // comp filter
+    pendingCards.push({ ev, data:pr.data, official:null, pts:null, max:null });
   });
-
-  // Sort pending by deadline asc (soonest closed first) and cap at 3 — same logic as Scored
+  // 3 soonest-closed (deadline asc)
   pendingCards.sort((a,b) => new Date(a.ev.deadline||0) - new Date(b.ev.deadline||0));
   const displayedPending = pendingCards.slice(0, 3);
 
-  // Store for tab switching
+  // 6. Header — built AFTER all data is ready
+  const initial    = (pseudo||'?')[0].toUpperCase();
+  const accStr     = totalMax > 0 ? Math.round(totalPts/totalMax*100)+'%' : '–%';
+  const scopeLabel = sport ? (comp || sport) : 'Overall';
+  let extra = '';
+  if (pronoCards.length > 3) extra += 'Last 3 of '+pronoCards.length+' scored';
+  if (pendingCards.length > 3) extra += (extra?' · ':'')+'Next 3 of '+pendingCards.length+' awaiting';
+  header.innerHTML =
+    '<div style="display:flex;align-items:center;gap:12px;padding-right:28px;">'
+    +'<div style="width:42px;height:42px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">'+initial+'</div>'
+    +'<div>'
+    +'<div style="font-size:16px;font-weight:700;">'+pseudo+'</div>'
+    +'<div style="font-size:11px;color:var(--text-muted);">'+totalPts+' pts · '+accStr+' accuracy · '+scopeLabel+'</div>'
+    +(extra?'<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">'+extra+'</div>':'')
+    +'</div></div>';
+
+  // 7. Store & show
   window._mmScored  = displayed;
   window._mmPending = displayedPending;
-
-  // Always show both tabs
-  const tabBar = document.getElementById('member-modal-tabs');
   if (tabBar) tabBar.style.display = 'flex';
-
-  // Default: Awaiting first if pending picks exist, else Scored
   switchMemberTab(displayedPending.length ? 'pending' : 'scored');
 }
 
 function switchMemberTab(tab) {
-  const body = document.getElementById('member-modal-body');
-  const scored  = window._mmScored  || [];
-  const pending = window._mmPending || [];
-
-  // Update tab styles
+  const body     = document.getElementById('member-modal-body');
   const tScored  = document.getElementById('mmtab-scored');
   const tPending = document.getElementById('mmtab-pending');
-  if (tScored && tPending) {
-    const active = 'color:var(--orange);border-bottom:2px solid var(--orange);font-weight:700;';
-    const inactive = 'color:var(--text-muted);border-bottom:2px solid transparent;font-weight:600;';
-    tScored.style.cssText  = tScored.style.cssText.replace(/color:[^;]+;border-bottom:[^;]+;font-weight:[^;]+;/, tab==='scored'  ? active : inactive);
-    tPending.style.cssText = tPending.style.cssText.replace(/color:[^;]+;border-bottom:[^;]+;font-weight:[^;]+;/, tab==='pending' ? active : inactive);
+  if (tScored) {
+    tScored.style.color        = tab==='scored'  ? 'var(--orange)' : 'var(--text-muted)';
+    tScored.style.borderBottom = tab==='scored'  ? '2px solid var(--orange)' : '2px solid transparent';
+    tScored.style.fontWeight   = tab==='scored'  ? '700' : '600';
   }
-
-  body.innerHTML = '';
-  const cards = tab === 'scored' ? scored : pending;
+  if (tPending) {
+    tPending.style.color        = tab==='pending' ? 'var(--orange)' : 'var(--text-muted)';
+    tPending.style.borderBottom = tab==='pending' ? '2px solid var(--orange)' : '2px solid transparent';
+    tPending.style.fontWeight   = tab==='pending' ? '700' : '600';
+  }
+  const cards = tab==='scored' ? (window._mmScored||[]) : (window._mmPending||[]);
   if (!cards.length) {
-    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">' + (tab==='scored' ? 'No scored picks yet.' : 'No picks awaiting results.') + '</div>';
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">'
+      +(tab==='scored' ? 'No scored picks yet.' : 'No picks awaiting results.')+'</div>';
     return;
   }
   renderMemberPronoCards(body, cards);
