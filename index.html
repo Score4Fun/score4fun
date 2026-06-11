@@ -3849,7 +3849,7 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     + '<div style="width:42px;height:42px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">' + initial + '</div>'
     + '<div><div style="font-size:16px;font-weight:700;">' + pseudo + '</div>'
     + '<div style="font-size:11px;color:var(--text-muted);">' + totalPts + ' pts · ' + accStr + ' accuracy · ' + scopeLabel + '</div>'
-    + (pronoCards.length > 3 ? '<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">Last 3 of ' + pronoCards.length + ' scored picks</div>' : '')
+    + (pronoCards.length > 3 ? '<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">Last 3 of ' + pronoCards.length + ' scored · Next 3 of ' + pendingCards.length + ' awaiting</div>' : pendingCards.length > 3 ? '<div style="font-size:10px;color:var(--text-muted);margin-top:1px;">Next 3 of ' + pendingCards.length + ' awaiting results</div>' : '')
     + '</div>'
     + '</div>';
 
@@ -3882,16 +3882,20 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     pendingCards.push({ ev, data: pr.data, official: null, pts: null, max: null });
   });
 
+  // Sort pending by deadline asc (soonest closed first) and cap at 3 — same logic as Scored
+  pendingCards.sort((a,b) => new Date(a.ev.deadline||0) - new Date(b.ev.deadline||0));
+  const displayedPending = pendingCards.slice(0, 3);
+
   // Store for tab switching
   window._mmScored  = displayed;
-  window._mmPending = pendingCards;
+  window._mmPending = displayedPending;
 
   // Always show both tabs
   const tabBar = document.getElementById('member-modal-tabs');
   if (tabBar) tabBar.style.display = 'flex';
 
   // Default: Awaiting first if pending picks exist, else Scored
-  switchMemberTab(pendingCards.length ? 'pending' : 'scored');
+  switchMemberTab(displayedPending.length ? 'pending' : 'scored');
 }
 
 function switchMemberTab(tab) {
