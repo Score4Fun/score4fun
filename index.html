@@ -3674,6 +3674,7 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   const officialMap = {};
   const resultOrder = {};
   (resultsData||[]).forEach((r, i) => {
+    if (r.result_data && r.result_data._cleared) return; // skip placeholder results
     officialMap[Number(r.event_id)] = r.result_data;
     resultOrder[Number(r.event_id)] = i; // 0 = most recently validated by admin
   });
