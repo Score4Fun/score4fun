@@ -3723,9 +3723,11 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   );
   const pendingIds = pendingEvents.map(ev => ev.id);
   let pendingCards = [];
+  console.log('[S4F debug] pendingIds:', pendingIds, 'officialMap keys:', Object.keys(officialMap), 'filteredIds:', filteredIds.slice(0,5));
   if (pendingIds.length) {
     const {data:pendingPronos} = await sb.from('pronos').select('event_id,data')
       .eq('user_id', uid).in('event_id', pendingIds);
+    console.log('[S4F debug] pendingPronos for', pseudo, ':', pendingPronos);
     pendingCards = (pendingPronos||[]).map(pr => {
       const ev = EVENTS.find(e => e.id === Number(pr.event_id));
       if (!ev) return null;
