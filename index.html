@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="Score4Fun" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
-  <title>Score4Fun v59 — Think you know sport? Prove it.</title>
+  <title>Score4Fun v60 — Think you know sport? Prove it.</title>
 
   <!-- SEO -->
   <meta name="description" content="Think you know sport? Prove it. Pick the winners across football, F1, tennis &amp; more — challenge friends, rack up points, rule the leaderboard. Free. Fun. 30 seconds to join." />
@@ -1206,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'v59';
+const APP_VERSION = 'v60';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -2782,6 +2782,7 @@ async function renderAdminUsers() {
     const isMe = u.email === currentProfile?.email;
     const badge = isMe ? '<span style="font-size:11px;color:var(--text-muted);">👑 Admin</span>' :
       `<div style="display:flex;gap:6px;align-items:center;">
+        <button onclick="adminViewAllPronos('${u.id}','${u.pseudo}')" style="font-size:12px;padding:4px 10px;background:#0288d1;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">👁 Pronos</button>
         <button onclick="adminPickForUser('${u.id}','${u.pseudo}')" style="font-size:12px;padding:4px 10px;background:#7c4dff;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">✏️ Picks</button>
         <button onclick="deleteUser('${u.id}','${u.pseudo}')" style="font-size:12px;padding:4px 10px;background:#c62828;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🗑 Virer</button>
       </div>`;
@@ -2791,6 +2792,53 @@ async function renderAdminUsers() {
         <div style="font-size:11px;color:var(--text-muted);">${u.email} · ${u.points||0} pts · ${u.pronos_count||0} pronos</div>
       </div>
       ${badge}
+    </div>`;
+  }).join('');
+}
+
+async function adminViewAllPronos(uid, pseudo) {
+  // Reuse member-modal as a read-only all-picks viewer (admin only)
+  const modal  = document.getElementById('member-modal');
+  const header = document.getElementById('member-modal-header');
+  const body   = document.getElementById('member-modal-body');
+  const tabBar = document.getElementById('member-modal-tabs');
+  window._mmScored = []; window._mmPending = [];
+  if (tabBar) tabBar.style.display = 'none';
+  header.innerHTML = '';
+  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">⏳ Loading…</div>';
+  modal.classList.add('open');
+
+  const {data:pronos} = await sb.from('pronos').select('event_id,sport,data,created_at').eq('user_id', uid).order('event_id');
+
+  const initial = (pseudo||'?')[0].toUpperCase();
+  header.innerHTML = `<div style="display:flex;align-items:center;gap:12px;padding-right:28px;">
+    <div style="width:42px;height:42px;border-radius:50%;background:#0288d1;color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">${initial}</div>
+    <div>
+      <div style="font-size:16px;font-weight:700;">${pseudo}</div>
+      <div style="font-size:11px;color:var(--text-muted);">👁 Admin view — ${(pronos||[]).length} picks in DB</div>
+    </div></div>`;
+
+  if (!pronos || !pronos.length) {
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No picks in DB.</div>';
+    return;
+  }
+
+  body.innerHTML = (pronos||[]).map(pr => {
+    const ev = EVENTS.find(e => e.id === Number(pr.event_id));
+    const name = ev ? ev.name : `Event #${pr.event_id}`;
+    const phase = ev ? ev.phase||ev.comp||'' : pr.sport||'';
+    const dataStr = JSON.stringify(pr.data||{}, null, 0)
+      .replace(/[{}"]/g,'').replace(/,/g,' · ').replace(/:/g,': ');
+    const saved = pr.created_at ? new Date(pr.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '';
+    return `<div style="background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;">${name}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${phase} · event_id: ${pr.event_id}</div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);flex-shrink:0;">${saved}</div>
+      </div>
+      <div style="font-size:12px;color:var(--orange);margin-top:6px;line-height:1.6;">${dataStr||'—'}</div>
     </div>`;
   }).join('');
 }
@@ -4155,52 +4203,4 @@ async function openGroupMemberProfile(uid, pseudo) {
       inner += selectRow('Vainqueur', p.winner, official ? official.winner : null, 10);
       inner += selectRow('Nb sets', String(p.sets||''), String(official ? official.sets : ''), 6);
     } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
-      inner += selectRow('Vainqueur', p.winner, official ? official.winner : null, 10);
-      inner += selectRow('Nb sets', String(p.sets||''), String(official ? official.sets : ''), 6);
-      inner += selectRow('Gagnant 1er set', p.first_set, official ? official.first_set : null, 4);
-      inner += selectRow('Aces total', p.aces, official ? official.aces : null, 3);
-    } else if (ev.type === 'f1_race' || ev.type === 'top4') {
-      const myTop4 = p.top4 || [];
-      const offTop4 = official ? (official.top4 || []) : [];
-      [0,1,2,3].forEach(function(i) {
-        const myPick = myTop4[i], offPick = offTop4[i];
-        const j = myPick ? offTop4.indexOf(myPick) : -1;
-        const pPts = (myPick && j !== -1) ? Math.max(0, Math.min(POINTS_MAP[i]||0, POINTS_MAP[j]||0) - Math.abs(i-j)) : 0;
-        const cls = myPick === offPick ? 'correct' : (j !== -1 ? 'wrong' : '');
-        inner += '<div class="rd-select-row">'
-          + '<div class="rd-select-label">#' + (i+1) + ' · ' + (POINTS_MAP[i]||0) + 'pts</div>'
-          + '<div class="rd-select-val ' + cls + '">' + (myPick||'—') + '</div>'
-          + (myPick !== offPick && offPick ? '<div style="font-size:11px;color:var(--text-muted);">✓ ' + offPick + '</div>' : '')
-          + '<div class="rd-pts ' + (pPts===0?'zero':'') + '">' + (pPts>0?'+'+pPts+' pt':'') + '</div>'
-          + '</div>';
-      });
-      // Fastest lap
-      if (ev.type === 'f1_race') {
-        const myFL = p.fastest || '';
-        const offFL = official ? (official.fastest || '') : '';
-        const flMatch = myFL && myFL === offFL;
-        const flCls = !myFL ? '' : flMatch ? 'correct' : 'wrong';
-        inner += '<div class="rd-select-row">'
-          + '<div class="rd-select-label">⚡ Fastest Lap · 4pts</div>'
-          + '<div class="rd-select-val ' + flCls + '">' + (myFL||'—') + '</div>'
-          + (myFL !== offFL && offFL ? '<div style="font-size:11px;color:var(--text-muted);">✓ ' + offFL + '</div>' : '')
-          + '<div class="rd-pts ' + (flMatch?'':'zero') + '">' + (flMatch?'+4 pt':'') + '</div>'
-          + '</div>';
-      }
-    }
-
-    return '<div style="background:white;border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
-      + '<div><div style="font-weight:700;font-size:13px;">' + ev.emoji + ' ' + ev.name + '</div>'
-      + '<div style="font-size:11px;color:var(--text-muted);">' + ev.comp + '</div></div>'
-      + '<div style="font-weight:800;font-size:14px;color:' + ptsColor + ';">' + ptsStr + '</div>'
-      + '</div>'
-      + inner
-      + '</div>';
-  }).join('');
-}
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
-<script>
-  // Remplace les e                                                                       
+      inner += se
