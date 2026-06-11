@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="Score4Fun" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon-192.png" />
-  <title>Score4Fun v55 — Think you know sport? Prove it.</title>
+  <title>Score4Fun v56 — Think you know sport? Prove it.</title>
 
   <!-- SEO -->
   <meta name="description" content="Think you know sport? Prove it. Pick the winners across football, F1, tennis &amp; more — challenge friends, rack up points, rule the leaderboard. Free. Fun. 30 seconds to join." />
@@ -1199,7 +1199,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'v55';
+const APP_VERSION = 'v56';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -2550,7 +2550,7 @@ async function showAdminPickEntry() {
     <div id="apick-form" style="margin-top:8px;"></div>`;
 }
 
-function renderAdminPickForm() {
+async function renderAdminPickForm() {
   const uid = document.getElementById('apick-uid')?.value;
   const evId = parseInt(document.getElementById('apick-evid')?.value);
   const wrap = document.getElementById('apick-form');
@@ -2558,7 +2558,15 @@ function renderAdminPickForm() {
   const ev = EVENTS.find(e=>e.id===evId);
   if (!ev) { wrap.innerHTML='<div style="color:#f44336;font-size:12px;">Event inconnu</div>'; return; }
 
-  let html = '';
+  // Fetch existing prono from DB
+  wrap.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px 0;">⏳ Vérification DB…</div>';
+  const {data:existing} = await sb.from('pronos').select('data').eq('user_id',uid).eq('event_id',evId).maybeSingle();
+  const ex = existing?.data || null;
+  const statusBanner = ex
+    ? '<div style="background:#e8f5e9;color:#2e7d32;font-size:11px;padding:6px 10px;border-radius:6px;margin-bottom:10px;font-weight:600;">✅ Prono existant trouvé en DB — pré-rempli</div>'
+    : '<div style="background:#fff3e0;color:#e65100;font-size:11px;padding:6px 10px;border-radius:6px;margin-bottom:10px;font-weight:600;">⚠️ Aucun prono en DB pour cet user/event — nouveau</div>';
+
+  let html = statusBanner;
   if (ev.type === 'tournament_bonus') {
     const fields = [['champion','🥇 Champion'],['finaliste','🥈 Finaliste'],['third','🥉 3e'],['fourth','4e'],['topScorer','Top Scorer (pays)']];
     html += fields.map(([k,label])=>`
@@ -2566,14 +2574,14 @@ function renderAdminPickForm() {
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div>
         <select id="apf-${k}" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;">
           <option value="">— Sélectionner —</option>
-          ${TEAMS_CDM2026.map(t=>`<option value="${t}">${t}</option>`).join('')}
+          ${TEAMS_CDM2026.map(t=>`<option value="${t}" ${ex&&ex[k]===t?'selected':''}>${t}</option>`).join('')}
         </select>
       </div>`).join('');
     html += `<div style="margin-bottom:8px;">
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Nombre de buts (top scorer)</div>
       <select id="apf-topGoals" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;">
         <option value="">— Sélectionner —</option>
-        ${['Under 6 goals','6-8 goals','9-11 goals','12-13 goals'].map(v=>`<option value="${v}">${v}</option>`).join('')}
+        ${['Under 6 goals','6-8 goals','9-11 goals','12-13 goals'].map(v=>`<option value="${v}" ${ex&&ex.topGoals===v?'selected':''}>${v}</option>`).join('')}
       </select></div>`;
   } else if (ev.type === 'opening_match') {
     html += _apickBtns('result','Résultat final',['1','X','2']);
@@ -2590,6 +2598,28 @@ function renderAdminPickForm() {
   }
   html += `<button onclick="saveAdminPickForUser()" style="margin-top:12px;padding:10px 20px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;width:100%;">💾 Enregistrer le prono</button>`;
   wrap.innerHTML = html;
+
+  // Pre-fill button picks (opening/multi types) AFTER innerHTML set
+  if (ex) {
+    const keys = ev.type==='opening_match' ? ['result','halftime','firstScorer']
+                : ev.type==='multi_match' ? (ev.matches||[]).map(m=>m.key)
+                : ev.type==='1x2' ? ['result'] : [];
+    keys.forEach(k => {
+      if (ex[k]) {
+        const h = document.getElementById('apf-'+k);
+        if (h) {
+          h.value = ex[k];
+          // highlight the matching button
+          const btns = h.parentElement?.querySelectorAll('button[type="button"]');
+          if (btns) btns.forEach(b => {
+            if (b.textContent === ex[k]) {
+              b.style.background='var(--orange)'; b.style.borderColor='var(--orange)'; b.style.color='white';
+            }
+          });
+        }
+      }
+    });
+  }
 }
 
 function _apickBtns(key, label, opts) {
