@@ -3743,7 +3743,7 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   });
 
   if (!displayed.length && !pendingCards.length) {
-    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No picks recorded for this filter.</div>';
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">No picks recorded.<br><small style=\'color:#999;font-size:11px;\'>uid:'+uid+'<br>allPronos:'+(allUserPronos||[]).length+'<br>scoredIds:'+JSON.stringify(scoredIds.slice(0,5))+'<br>officialMap:'+JSON.stringify(Object.keys(officialMap).slice(0,5))+'</small></div>';
     return;
   }
 
