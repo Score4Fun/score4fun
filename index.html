@@ -1206,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V67';
+const APP_VERSION = 'V68';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -1351,7 +1351,7 @@ function unlockBadge(icon) {
 // =====================
 // SPORT TABS + EVENTS
 // =====================
-const ADMIN_ONLY_SPORTS = ['cyclisme', 'athletisme'];
+const ADMIN_ONLY_SPORTS = ['tennis', 'f1', 'hippisme', 'cyclisme', 'athletisme'];
 
 function renderSportTabs() {
   const isAdmin = currentProfile?.id === ADMIN_UID;
@@ -3265,7 +3265,7 @@ async function recalculateAllPoints(triggerLabel) {
     for (const prono of (pronos||[])) {
       const ev = EVENTS.find(e => e.id === prono.event_id);
       const official = officialMap[prono.event_id];
-      if (!ev || !official) continue;
+      if (!ev || ev.sport !== 'football' || !official) continue; // WC only
       const pts = computeUserPoints(ev, prono.data, official);
       userTotals[prono.user_id] = (userTotals[prono.user_id] || 0) + pts;
     }
