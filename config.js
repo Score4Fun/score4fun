@@ -1,2 +1,0 @@
-const SUPABASE_URL = 'https://rcvgnazubkaaioxplvqa.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjdmduYXp1YmthYWlveHBsdnFhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDU5NzA4MCwiZXhwIjoyMDk2MTczMDgwfQ.Evd0FpzVpXr5hJD5LwP4b7rzQpiaQcPnWrqBs5H1xGY';
