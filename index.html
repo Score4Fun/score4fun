@@ -982,21 +982,21 @@ const EVENTS = [
 
 
   // Finale Hommes
-  { id:22, sport:'tennis', comp:'Roland Garros 2026', phase:'Finals', emoji:'🎾',
+  { id:22, adminOnly:true, sport:'tennis', comp:'Roland Garros 2026', phase:'Finals', emoji:'🎾',
     name:'Men\'s Final', sub:'Roland Garros 2026',
     type:'tennis_final_h',
     finalists: ['Alexander Zverev', 'Flavio Cobolli'],
     status:'open', urgency:true, cutoff:'Dimanche', deadline:'2026-06-07T13:00:00Z' },
 
   // Finale Dames
-  { id:23, sport:'tennis', comp:'Roland Garros 2026', phase:'Finals', emoji:'🎾',
+  { id:23, adminOnly:true, sport:'tennis', comp:'Roland Garros 2026', phase:'Finals', emoji:'🎾',
     name:'Women\'s Final', sub:'Roland Garros 2026',
     type:'tennis_final_f',
     candidates:['Mirra Andreeva','Maja Chwalinska'],
     status:'open', urgency:true, cutoff:'Sam. 15h', deadline:'2026-06-06T13:00:00Z' },
 
   // ===== F1 =====
-  { id:30, sport:'f1', comp:'Season 2026', phase:'June 2026', emoji:'🏎️',
+  { id:30, adminOnly:true, sport:'f1', comp:'Season 2026', phase:'June 2026', emoji:'🏎️',
     name:'Monaco GP 2026', sub:'Monaco Circuit · Monte Carlo',
     type:'f1_race',
     candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
@@ -1017,7 +1017,7 @@ const EVENTS = [
 
   // ===== F1 - Saison 2026 (prochaines courses) =====
 
-  { id:32, sport:'f1', comp:'Season 2026', phase:'July 2026', emoji:'🏎️',
+  { id:32, adminOnly:true, sport:'f1', comp:'Season 2026', phase:'July 2026', emoji:'🏎️',
     name:'British GP 2026', sub:'Silverstone · Northamptonshire',
     type:'f1_race',
     candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
@@ -1206,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V66';
+const APP_VERSION = 'V67';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
