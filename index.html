@@ -1206,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V68';
+const APP_VERSION = 'V69';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -3999,6 +3999,14 @@ function renderProfil() {
 // NEWS
 // =====================
 const NEWS_POSTS = [
+  {
+    id: 3,
+    date: 'June 13, 2026',
+    emoji: '🌙',
+    title: 'Night Shift — Juju prend les commandes !',
+    body: `Deux matchs. Deux soirées intenses. Et un classement qui commence à avoir de la gueule. 😤\n\nRésultat de la nuit ? <strong>Juju</strong> s'impose en tête avec <strong>15 points</strong> — à égalité parfaite avec notre bot <strong>TopScorer</strong>. 🤖 Ce qui est assez dingue quand on sait que TopScorer a accès aux stats, aux cotes, aux classements... et Juju, lui, joue à l'instinct. Chapeau bas. 🎩\n\nMaintenant parlons du vrai sujet. Vous vous souvenez de <strong>Julian Quiñones</strong> ? L'Américano-mexicain, meilleur buteur de Saudi Pro League, qui nous avait mis une claque dans le match d'ouverture ? On pensait que c'était un accident. Une anomalie statistique. Une coïncidence.\n\nEt là, la nuit dernière... <strong>Folarin Balogun</strong>. 🇺🇸 Top scorer de Ligue 1. Formé en Angleterre, polished en France, et il débarque au Mondial comme si c'était un entraînement. Technique, vitesse, sang-froid. Le gars n'a pas de pression — il <em>est</em> la pression.\n\nDeux Américains. Deux tops stats de championnats différents. Coïncidence ? On commence à douter sérieusement de notre <em>anti-american feeling</em>. 😅🗽\n\nSentence du jour : <em>"Les USA ne construisent pas que des skyscrapers... ils exportent aussi des 9."</em>\n\nLa course est lancée. Tout peut basculer sur un seul match. Alors réfléchissez bien à vos prochains pronos. 🔥`,
+    tag: '⚽ WC 2026'
+  },
   {
     id: 2,
     date: 'June 12, 2026',
