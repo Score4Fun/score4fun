@@ -1206,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V78';
+const APP_VERSION = 'V79';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -3177,6 +3177,24 @@ function renderAdminForm(ev, existing) {
     </div>
     <button onclick="saveResult(${ev.id},'1x2')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
+  // top4 (hippisme, cyclisme, etc.)
+  if (ev.type === 'top4') {
+    const candidates = ev.candidates || [];
+    const existingTop4 = existing ? (existing.top4 || []) : [];
+    const cOpts = (pos) => candidates.map(c => `<option value="${c}" ${existingTop4[pos]===c?'selected':''}>${c}</option>`).join('');
+    const positions = [['p1',0,'🥇 1st'],['p2',1,'🥈 2nd'],['p3',2,'🥉 3rd'],['p4',3,'4th']];
+    return `
+      <div style="font-size:12px;display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+        ${positions.map(([k,pos,label]) => `
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:60px;font-weight:500;">${label}</span>
+          <select id="admin-${ev.id}-${k}" style="font-size:12px;flex:1;">
+            <option value="">— Select —</option>${cOpts(pos)}
+          </select>
+        </div>`).join('')}
+      </div>
+      <button onclick="saveResult(${ev.id},'top4')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
+  }
   // Autres types : JSON brut
   return `<textarea id="admin-${ev.id}-json" style="width:100%;font-size:11px;font-family:monospace;height:60px;border:1px solid var(--border);border-radius:4px;padding:4px;">${existing?JSON.stringify(existing,null,2):''}</textarea>
     <button onclick="saveResult(${ev.id},'json')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
@@ -3224,6 +3242,10 @@ async function saveResult(eventId, type) {
     if (!top4[0]) { showToast('⚠️ Select at least 1st place!'); return; }
     const fastest = document.getElementById(`admin-${eventId}-fastest`)?.value || '';
     result_data = { top4, fastest };
+  } else if (type === 'top4') {
+    const top4 = ['p1','p2','p3','p4'].map(k => document.getElementById(`admin-${eventId}-${k}`)?.value || '');
+    if (!top4[0]) { showToast('⚠️ Select at least 1st place!'); return; }
+    result_data = { top4 };
   } else {
     if (type === 'tennis') {
       ['winner','sets','first_set','aces'].forEach(k => {
