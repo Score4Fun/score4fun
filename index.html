@@ -1025,7 +1025,7 @@ const EVENTS = [
 
 
   // ===== CYCLISME =====
-  { id:40, sport:'cyclisme', comp:'Tour de France 2026', phase:'General Classification', emoji:'🚴',
+  { id:40, adminOnly:true, sport:'cyclisme', comp:'Tour de France 2026', phase:'General Classification', emoji:'🚴',
     name:'TDF 2026 Winner', sub:'Tour de France 2026 · Top 4', type:'top4',
     candidates:['Tadej Pogacar','Jonas Vingegaard','Remco Evenepoel','Primoz Roglic','Adam Yates','Egan Bernal'],
     status:'soon', urgency:false, cutoff:'End of June', deadline:'2026-06-27T08:00:00Z' },
@@ -1206,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V79';
+const APP_VERSION = 'V80';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
