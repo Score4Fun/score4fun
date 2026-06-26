@@ -1206,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V80';
+const APP_VERSION = 'V81';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -4021,6 +4021,14 @@ function renderProfil() {
 // NEWS
 // =====================
 const NEWS_POSTS = [
+  {
+    id: 4,
+    date: 'June 26, 2026',
+    emoji: '😱',
+    title: 'Ecuador stole the show. Nobody saw it coming.',
+    body: `Yesterday's Ecuador vs Germany had one of those moments. \n\nThree brave souls dared to pick the draw — <strong>Juju</strong>, <strong>Mervin</strong> and <strong>jackellis02</strong>. Everyone else? Germany all the way. Seemed obvious, right? \n\nAnd then... Ecuador won. Full on upset. No draws, no Germany. Just Ecuador, the chaos, and a leaderboard that barely moved. Nobody took points. Not even the draw-pickers. 😅\n\nSometimes the World Cup just laughs at all of us equally. \n\n— — —\n\n⚠️ <strong>Tonight</strong> — last matches of the Group Stage Matchday 3. Make sure your picks are in.\n\n🔥 <strong>From Sunday</strong> — it's the Round of 16. Knockout football. One mistake and you're out. The picks open soon — <strong>don't sleep on it.</strong> Come back before Sunday or you'll miss your shot. ⏰`,
+    tag: '⚽ WC 2026'
+  },
   {
     id: 3,
     date: 'June 13, 2026',
