@@ -1060,7 +1060,7 @@ const EVENTS = [
     name:'The Barbé Cup G1', sub:'Mauritius · Top 4',
     type:'top4',
     candidates:['1 - MERIDIUS','2 - AT MY COMMAND','3 - GOOD COUNCIL','4 - SELUKWE','5 - UNDERWORLD','6 - XAVION','7 - PORT LOUIS','8 - CAPTAIN LANNISTER','9 - ZIL MORIS','10 - RAPIDASH','11 - BUGALUGS','12 - GIMMEANOTHERCHANCE'],
-    status:'open', urgency:true, cutoff:'June 27', deadline:'2026-06-27T08:00:00Z' },
+    status:'open', urgency:true, cutoff:'June 27 13:30', deadline:'2026-06-27T11:30:00Z' },
 
   { id:62, sport:'hippisme', comp:'Mauritius 2026', phase:'September 2026', emoji:'🏇',
     name:'The Maiden Cup G1', sub:'Mauritius · 2400m · Top 4',
@@ -1206,7 +1206,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V77';
+const APP_VERSION = 'V78';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -1351,7 +1351,7 @@ function unlockBadge(icon) {
 // =====================
 // SPORT TABS + EVENTS
 // =====================
-const ADMIN_ONLY_SPORTS = ['tennis', 'f1', 'hippisme', 'cyclisme', 'athletisme'];
+const ADMIN_ONLY_SPORTS = ['tennis', 'f1', 'cyclisme', 'athletisme'];
 
 function renderSportTabs() {
   const isAdmin = currentProfile?.id === ADMIN_UID;
