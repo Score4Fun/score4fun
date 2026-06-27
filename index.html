@@ -964,7 +964,7 @@ const EVENTS = [
 
   // ── Phase finale (placeholders)
   { id:109, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'⚽',
-    name:'Seizièmes · Batch 1', sub:'28–29 juin · 36 pts max',
+    name:'Last 32 · Batch 1', sub:'June 28–29 · 36 pts max',
     type:'ko_block', status:'open', urgency:true, cutoff:'June 28', deadline:'2026-06-28T09:00:00Z',
     scoring:{result:4, qualified:3, how:2},
     matches:[
@@ -1825,22 +1825,22 @@ function openPronoModal(eventId) {
       const btnHow = (v,lbl) => `<div class="btn-sm-1x2 ko-btn ${sel.how===v?'selected':''}" data-ko-match="${m.key}" data-ko-q="how" data-val="${v}" onclick="selectKoBtn('${m.key}','how',this)" style="flex:1;font-size:10px;font-weight:600;padding:6px 4px;">${lbl}</div>`;
       return `<div style="border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:10px;">
         <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:8px;text-align:center;">${t1} vs ${t2}</div>
-        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">⏱ Résultat 90 min · <span style="color:var(--orange);">${sc.result} pts</span></div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">⏱ 90-min result · <span style="color:var(--orange);">${sc.result} pts</span></div>
         <div style="display:flex;gap:6px;margin-bottom:8px;">
-          ${btnRes('1',t1)}${btnRes('X','Nul')}${btnRes('2',t2)}
+          ${btnRes('1',t1)}${btnRes('X','Draw')}${btnRes('2',t2)}
         </div>
-        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">🏆 Qui se qualifie ? · <span style="color:var(--orange);">${sc.qualified} pts</span></div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">🏆 Who qualifies? · <span style="color:var(--orange);">${sc.qualified} pts</span></div>
         <div style="display:flex;gap:6px;margin-bottom:8px;">
           ${btnTeam(t1)}${btnTeam(t2)}
         </div>
-        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">🔄 Comment ? · <span style="color:var(--orange);">${sc.how} pts</span></div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">🔄 How do they qualify? · <span style="color:var(--orange);">${sc.how} pts</span></div>
         <div style="display:flex;gap:6px;">
-          ${btnHow('TR','90 min')}${btnHow('PROL','Prol.')}${btnHow('TAB','T.A.B.')}
+          ${btnHow('TR','90 min')}${btnHow('PROL','Extra T.')}${btnHow('TAB','Penalties')}
         </div>
       </div>`;
     }).join('');
     const maxKo = (currentEvent.matches||[]).length * ((sc.result||4)+(sc.qualified||3)+(sc.how||2));
-    content.innerHTML = koHtml + `<div class="points-info" style="text-align:center;margin-top:4px;">⚠️ 1X2 = résultat à 90 min seulement (sans prol. ni TAB)<br>🎯 Total max : <strong>${maxKo} pts</strong></div>`;
+    content.innerHTML = koHtml + `<div class="points-info" style="text-align:center;margin-top:4px;">⚠️ 1X2 = 90-min result only (no extra time, no penalties)<br>🎯 Total max : <strong>${maxKo} pts</strong></div>`;
     setTimeout(()=>applyTwemoji&&applyTwemoji(), 60);
 
   } else if (currentEvent.type === 'multi_match') {
@@ -1941,7 +1941,8 @@ function selectOpeningBtn(question, el) {
 }
 
 function selectKoBtn(matchKey, question, el) {
-  el.closest('[data-ko-q]').querySelectorAll('.ko-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll(`.ko-btn[data-ko-match="${matchKey}"][data-ko-q="${question}"]`)
+    .forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
 }
 
@@ -2059,7 +2060,7 @@ async function submitProno() {
       if (!result || !qualified || !how) { missing = true; break; }
       matchData[m.key] = { result, qualified, how };
     }
-    if (missing) { showToast('⚠️ Complète les 3 questions pour chaque match !'); return; }
+    if (missing) { showToast('⚠️ Answer all 3 questions for each match!'); return; }
     pronoData = matchData;
 
   } else if (currentEvent.type==='multi_match') {
@@ -2269,7 +2270,7 @@ function openResultDetail(eventId) {
       html += pr('Goals range', p.topGoals, sc.topGoals||4);
     } else if (ev.type === 'ko_block') {
       const sc2 = ev.scoring||{result:4,qualified:3,how:2};
-      const howLbl = v => v==='TR'?'90 min':v==='PROL'?'Prol.':v==='TAB'?'T.A.B.':v||'—';
+      const howLbl = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'—';
       (ev.matches||[]).forEach(m => {
         const pm2 = p[m.key]||{};
         html += `<div class="rd-section">${m.team1} vs ${m.team2}</div>`;
@@ -2363,7 +2364,7 @@ function openResultDetail(eventId) {
     html += selectRow('Goals range', p.topGoals, official.topGoals, sc.topGoals||4);
   } else if (ev.type === 'ko_block') {
     const sc3 = ev.scoring||{result:4,qualified:3,how:2};
-    const howLbl2 = v => v==='TR'?'90 min':v==='PROL'?'Prolongations':v==='TAB'?'Tirs au but':v||'—';
+    const howLbl2 = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'—';
     (ev.matches||[]).forEach(m => {
       const pm3 = p[m.key]||{}; const om3 = official[m.key]||{};
       html += `<div class="rd-section">${m.team1} vs ${m.team2}</div>`;
@@ -3315,7 +3316,7 @@ function renderAdminForm(ev, existing) {
   // ko_block — per-match result + qualified + how
   if (ev.type === 'ko_block') {
     const sc = ev.scoring || {result:4, qualified:3, how:2};
-    const howOpts = (key,val) => ['TR','PROL','TAB'].map(v=>`<option value="${v}" ${val===v?'selected':''}>${v==='TR'?'90 min (TR)':v==='PROL'?'Prolongations':'Tirs au but'}</option>`).join('');
+    const howOpts = (key,val) => ['TR','PROL','TAB'].map(v=>`<option value="${v}" ${val===v?'selected':''}>${v==='TR'?'90 min':v==='PROL'?'Extra time':'Penalties'}</option>`).join('');
     const matchForms = (ev.matches||[]).map(m => {
       const em = ex[m.key] || {};
       return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;font-size:12px;">
