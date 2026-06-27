@@ -2656,18 +2656,49 @@ async function showAdminPickEntry() {
   const {data:allProfiles} = await sb.from('profiles').select('id,pseudo,email').order('pseudo');
   const profiles = (allProfiles||[]).filter(p => !p.email?.includes('fake-s4f') || p.pseudo === 'TopScorer');
   const userOpts = (profiles||[]).map(p=>`<option value="${p.id}">${p.pseudo}</option>`).join('');
-  const evOpts = EVENTS.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  const sportOpts = SPORTS.map(s=>`<option value="${s.key}">${s.label}</option>`).join('');
+  const sel = (id,ph,opts,onch) => `<select id="${id}" onchange="${onch}" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;"><option value="">${ph}</option>${opts}</select>`;
   wrap.innerHTML = `
     <div style="font-size:13px;font-weight:700;margin-bottom:10px;">👤 Saisir un pronostic pour un user</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-      <select id="apick-uid" onchange="renderAdminPickForm()" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;">
-        <option value="">— Choisir un user —</option>${userOpts}
-      </select>
-      <select id="apick-evid" onchange="renderAdminPickForm()" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;">
-        <option value="">— Choisir un event —</option>${evOpts}
-      </select>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+      ${sel('apick-uid','— Choisir un pseudo —',userOpts,'apickFilterSport()')}
+      ${sel('apick-sport','— Sport —',sportOpts,'apickFilterComp()')}
+      ${sel('apick-comp','— Compétition —','','apickFilterEvent()')}
+      ${sel('apick-evid','— Pick —','','renderAdminPickForm()')}
     </div>
     <div id="apick-form" style="margin-top:8px;"></div>`;
+}
+
+function apickFilterSport() {
+  // Reset downstream
+  ['apick-sport','apick-comp','apick-evid'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; if (id !== 'apick-sport') el.innerHTML = '<option value="">—</option>'; }
+  });
+  document.getElementById('apick-form').innerHTML = '';
+}
+
+function apickFilterComp() {
+  const sport = document.getElementById('apick-sport')?.value;
+  const compEl = document.getElementById('apick-comp');
+  const evEl = document.getElementById('apick-evid');
+  if (!compEl || !evEl) return;
+  evEl.innerHTML = '<option value="">— Pick —</option>';
+  document.getElementById('apick-form').innerHTML = '';
+  if (!sport) { compEl.innerHTML = '<option value="">— Compétition —</option>'; return; }
+  const comps = [...new Set(EVENTS.filter(e=>e.sport===sport).map(e=>e.comp))];
+  compEl.innerHTML = '<option value="">— Compétition —</option>' + comps.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+function apickFilterEvent() {
+  const sport = document.getElementById('apick-sport')?.value;
+  const comp  = document.getElementById('apick-comp')?.value;
+  const evEl  = document.getElementById('apick-evid');
+  if (!evEl) return;
+  document.getElementById('apick-form').innerHTML = '';
+  if (!sport || !comp) { evEl.innerHTML = '<option value="">— Pick —</option>'; return; }
+  const evs = EVENTS.filter(e=>e.sport===sport && e.comp===comp);
+  evEl.innerHTML = '<option value="">— Pick —</option>' + evs.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
 }
 
 async function renderAdminPickForm() {
