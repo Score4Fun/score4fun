@@ -2653,7 +2653,8 @@ async function showAdminPickEntry() {
   if (!wrap) return;
   wrap.style.display = 'block';
   wrap.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">⏳ Loading users…</div>';
-  const {data:profiles} = await sb.from('profiles').select('id,pseudo').not('email','like','%fake-s4f%').order('pseudo');
+  const {data:allProfiles} = await sb.from('profiles').select('id,pseudo,email').order('pseudo');
+  const profiles = (allProfiles||[]).filter(p => !p.email?.includes('fake-s4f') || p.pseudo === 'TopScorer');
   const userOpts = (profiles||[]).map(p=>`<option value="${p.id}">${p.pseudo}</option>`).join('');
   const evOpts = EVENTS.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
   wrap.innerHTML = `
@@ -2712,6 +2713,13 @@ async function renderAdminPickForm() {
     });
   } else if (ev.type === '1x2') {
     html += _apickBtns('result','Résultat',['1','X','2']);
+  } else if (ev.type === 'top4' || ev.type === 'f1_race') {
+    const cands = ev.candidates || [];
+    const exTop4 = ex?.top4 || [];
+    [0,1,2,3].forEach(pos => {
+      const label = ['🥇 1st','🥈 2nd','🥉 3rd','4️⃣ 4th'][pos];
+      html += `<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div><select id="apf-top4-${pos}" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;"><option value="">— Select —</option>${cands.map(c=>`<option value="${c}" ${exTop4[pos]===c?'selected':''}>${c}</option>`).join('')}</select></div>`;
+    });
   } else {
     html += '<div style="color:#aaa;font-size:12px;">Type non supporté: '+ev.type+'</div>';
   }
@@ -2781,6 +2789,10 @@ async function saveAdminPickForUser() {
   } else if (ev.type === '1x2') {
     const el=document.getElementById('apf-result'); if(el) data.result=el.value;
     if (!data.result) { showToast('⚠️ Sélectionner 1, X ou 2 !'); return; }
+  } else if (ev.type === 'top4' || ev.type === 'f1_race') {
+    const top4 = [0,1,2,3].map(pos => document.getElementById('apf-top4-'+pos)?.value || '');
+    if (!top4[0]) { showToast('⚠️ Sélectionner au moins la 1ère place !'); return; }
+    data = { top4 };
   }
 
   // Check if prono already exists
