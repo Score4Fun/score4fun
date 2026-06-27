@@ -750,7 +750,16 @@ function renderMemberPronoCards(body, pronoCards) {
       inner += selectRow('Sets played', String(p.sets||''), String(official ? official.sets : ''), 6);
       inner += selectRow('1st Set Winner', p.first_set, official ? official.first_set : null, 4);
       inner += selectRow('Aces total', p.aces, official ? official.aces : null, 3);
-    } else if (ev.type === 'f1_race' || ev.type === 'top4') {
+    } else if (ev.type === 'ko_block') {
+    const sc = ev.scoring || {result:4, qualified:3, how:2};
+    (ev.matches||[]).forEach(m => {
+      const pm2 = p[m.key] || {};
+      const om  = official[m.key] || {};
+      if (pm2.result    && pm2.result    === om.result)    pts += (sc.result||4);
+      if (pm2.qualified && pm2.qualified === om.qualified) pts += (sc.qualified||3);
+      if (pm2.how       && pm2.how       === om.how)       pts += (sc.how||2);
+    });
+  } else if (ev.type === 'f1_race' || ev.type === 'top4') {
       const myTop4 = p.top4 || [];
       const offTop4 = official ? (official.top4 || []) : [];
       [0,1,2,3].forEach(function(i) {
@@ -955,8 +964,16 @@ const EVENTS = [
 
   // ── Phase finale (placeholders)
   { id:109, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'⚽',
-    name:'Round of 32 · Part 1', sub:'June 29 – July 1',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'June 29', deadline:'2026-06-29T13:00:00Z' },
+    name:'Seizièmes · Batch 1', sub:'28–29 juin · 36 pts max',
+    type:'ko_block', status:'open', urgency:true, cutoff:'June 28', deadline:'2026-06-28T09:00:00Z',
+    scoring:{result:4, qualified:3, how:2},
+    matches:[
+      {key:'m1', team1:'🇿🇦 South Africa', team2:'🇨🇦 Canada'},
+      {key:'m2', team1:'🇧🇷 Brazil',       team2:'🇯🇵 Japan'},
+      {key:'m3', team1:'🇩🇪 Germany',      team2:'🇵🇾 Paraguay'},
+      {key:'m4', team1:'🇳🇱 Netherlands',  team2:'🇲🇦 Morocco'},
+    ]
+  },
   { id:110, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'⚽',
     name:'Round of 32 · Part 2', sub:'July 1–4',
     type:'upcoming', status:'soon', urgency:false, cutoff:'July 1', deadline:'2026-07-01T13:00:00Z' },
@@ -1525,6 +1542,22 @@ function renderEventCard(ev) {
           ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Edit</button>`
           : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pick →</button>`
         : `<button class="prono-btn view">Fermé 🔒</button>`}`;
+    } else if (ev.type === 'ko_block') {
+    const ex = userPronos[ev.id] || {};
+    const nbDone = (ev.matches||[]).filter(m => ex[m.key]?.result && ex[m.key]?.qualified && ex[m.key]?.how).length;
+    const allDone = nbDone === (ev.matches||[]).length;
+    const closed = isClosed(ev);
+    inner = `
+      <div class="event-status">
+        <div class="status-dot ${allDone?'done-dot':closed?'closed':''}"></div>
+        <span class="status-text">${allDone?'🎯 Picks saved!':nbDone>0?`${nbDone}/${(ev.matches||[]).length} matchs pronostiqués`:`${(ev.matches||[]).length} matchs knockout · 36 pts max`}</span>
+      </div>
+      ${!closed
+        ? allDone
+          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Edit</button>`
+          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pick →</button>`
+        : `<button class="prono-btn view">Fermé 🔒</button>`}`;
+    if (allDone && !done) { /* tile shows as done if all matches filled */ }
     } else if (ev.type === '1x2') {
     const closed = isClosed(ev);
     const sel = userPronos[ev.id]?.result;
@@ -1782,6 +1815,34 @@ function openPronoModal(eventId) {
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Podium 10-8-6-4 (partial if close) · Scorer nationality = 7 pts · Goal range = 4 pts · Max: 39 pts</div>`;
     setTimeout(() => applyTwemoji(), 80);
+  } else if (currentEvent.type === 'ko_block') {
+    const sc = currentEvent.scoring || {result:4, qualified:3, how:2};
+    const koHtml = (currentEvent.matches||[]).map(m => {
+      const sel = ex[m.key] || {};
+      const t1 = m.team1; const t2 = m.team2;
+      const btnRes = (v,lbl) => `<div class="btn-sm-1x2 ko-btn ${sel.result===v?'selected':''}" data-ko-match="${m.key}" data-ko-q="result" data-val="${v}" onclick="selectKoBtn('${m.key}','result',this)" style="flex:1;flex-direction:column;gap:2px;height:50px;"><span style="font-size:16px;font-weight:800;">${v}</span><small style="font-size:9px;opacity:.75;white-space:nowrap;overflow:hidden;">${lbl}</small></div>`;
+      const btnTeam = (t) => `<div class="btn-sm-1x2 ko-btn ${sel.qualified===t?'selected':''}" data-ko-match="${m.key}" data-ko-q="qualified" data-val="${t}" onclick="selectKoBtn('${m.key}','qualified',this)" style="flex:1;font-size:11px;font-weight:600;padding:6px 4px;">${t}</div>`;
+      const btnHow = (v,lbl) => `<div class="btn-sm-1x2 ko-btn ${sel.how===v?'selected':''}" data-ko-match="${m.key}" data-ko-q="how" data-val="${v}" onclick="selectKoBtn('${m.key}','how',this)" style="flex:1;font-size:10px;font-weight:600;padding:6px 4px;">${lbl}</div>`;
+      return `<div style="border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:8px;text-align:center;">${t1} vs ${t2}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">⏱ Résultat 90 min · <span style="color:var(--orange);">${sc.result} pts</span></div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          ${btnRes('1',t1)}${btnRes('X','Nul')}${btnRes('2',t2)}
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">🏆 Qui se qualifie ? · <span style="color:var(--orange);">${sc.qualified} pts</span></div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          ${btnTeam(t1)}${btnTeam(t2)}
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">🔄 Comment ? · <span style="color:var(--orange);">${sc.how} pts</span></div>
+        <div style="display:flex;gap:6px;">
+          ${btnHow('TR','90 min')}${btnHow('PROL','Prol.')}${btnHow('TAB','T.A.B.')}
+        </div>
+      </div>`;
+    }).join('');
+    const maxKo = (currentEvent.matches||[]).length * ((sc.result||4)+(sc.qualified||3)+(sc.how||2));
+    content.innerHTML = koHtml + `<div class="points-info" style="text-align:center;margin-top:4px;">⚠️ 1X2 = résultat à 90 min seulement (sans prol. ni TAB)<br>🎯 Total max : <strong>${maxKo} pts</strong></div>`;
+    setTimeout(()=>applyTwemoji&&applyTwemoji(), 60);
+
   } else if (currentEvent.type === 'multi_match') {
     const ex = userPronos[currentEvent.id] || {};
     const matchHtml = currentEvent.matches.map(m => {
@@ -1877,6 +1938,11 @@ function selectOpeningBtn(question, el) {
   const wasSelected = el.classList.contains('selected');
   el.closest('[data-q]').querySelectorAll('.btn-sm-1x2').forEach(b=>b.classList.remove('selected'));
   if (!wasSelected) el.classList.add('selected');
+}
+
+function selectKoBtn(matchKey, question, el) {
+  el.closest('[data-ko-q]').querySelectorAll('.ko-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
 }
 
 function updateSelects() {
@@ -1983,6 +2049,19 @@ async function submitProno() {
     const podium = [obj.champion,obj.finaliste,obj.third,obj.fourth];
     if (new Set(podium).size < 4) { showToast('⚠️ Pas de doublon dans le podium !'); return; }
     pronoData = obj;
+  } else if (currentEvent.type==='ko_block') {
+    const matchData = {};
+    let missing = false;
+    for (const m of (currentEvent.matches||[])) {
+      const result    = document.querySelector(`.ko-btn[data-ko-match="${m.key}"][data-ko-q="result"].selected`)?.dataset.val;
+      const qualified = document.querySelector(`.ko-btn[data-ko-match="${m.key}"][data-ko-q="qualified"].selected`)?.dataset.val;
+      const how       = document.querySelector(`.ko-btn[data-ko-match="${m.key}"][data-ko-q="how"].selected`)?.dataset.val;
+      if (!result || !qualified || !how) { missing = true; break; }
+      matchData[m.key] = { result, qualified, how };
+    }
+    if (missing) { showToast('⚠️ Complète les 3 questions pour chaque match !'); return; }
+    pronoData = matchData;
+
   } else if (currentEvent.type==='multi_match') {
     const pronoObj = {};
     let missing = false;
@@ -2093,6 +2172,9 @@ async function renderPronos() {
         pronoSummary = `Final: ${ex.result||'?'} · MT: ${ex.halftime||'?'} · 1er: ${ex.firstScorer||'?'}`;
       } else if (ev.type==='tournament_bonus') {
         pronoSummary = `🥇 ${ex.champion||'?'}`;
+      } else if (ev.type==='ko_block') {
+        const nb = (ev.matches||[]).filter(m=>ex[m.key]?.result).length;
+        pronoSummary = `${nb}/${(ev.matches||[]).length} matchs`;
       } else if (ev.type==='f1_race'||ev.type==='top4') {
         pronoSummary = ex.top4 ? ex.top4.filter(Boolean).join(' · ') : '';
       } else if (ex.winner) {
@@ -2185,6 +2267,16 @@ function openResultDetail(eventId) {
       html += `<div class="rd-section">Buteur & buts</div>`;
       html += pr('Top scorer', p.topScorer, sc.topScorer||7);
       html += pr('Goals range', p.topGoals, sc.topGoals||4);
+    } else if (ev.type === 'ko_block') {
+      const sc2 = ev.scoring||{result:4,qualified:3,how:2};
+      const howLbl = v => v==='TR'?'90 min':v==='PROL'?'Prol.':v==='TAB'?'T.A.B.':v||'—';
+      (ev.matches||[]).forEach(m => {
+        const pm2 = p[m.key]||{};
+        html += `<div class="rd-section">${m.team1} vs ${m.team2}</div>`;
+        html += pm(`1X2 90 min`, pm2.result, sc2.result||4);
+        html += pr(`Qualifié`, pm2.qualified, sc2.qualified||3);
+        html += pr(`Comment`, howLbl(pm2.how), sc2.how||2);
+      });
     } else if (ev.type === '1x2') {
       html += pm('Résultat (1/X/2)', p.result, 10);
     } else if (ev.type === 'tennis_sf') {
@@ -2269,6 +2361,16 @@ function openResultDetail(eventId) {
     html += `<div class="rd-section">Buteur & buts</div>`;
     html += selectRow('Top scorer nationality', p.topScorer, official.topScorer, sc.topScorer||7);
     html += selectRow('Goals range', p.topGoals, official.topGoals, sc.topGoals||4);
+  } else if (ev.type === 'ko_block') {
+    const sc3 = ev.scoring||{result:4,qualified:3,how:2};
+    const howLbl2 = v => v==='TR'?'90 min':v==='PROL'?'Prolongations':v==='TAB'?'Tirs au but':v||'—';
+    (ev.matches||[]).forEach(m => {
+      const pm3 = p[m.key]||{}; const om3 = official[m.key]||{};
+      html += `<div class="rd-section">${m.team1} vs ${m.team2}</div>`;
+      html += match1x2(`⏱ 1X2 90 min`, pm3.result, om3.result, sc3.result||4);
+      html += selectRow(`🏆 Qualifié`, pm3.qualified, om3.qualified, sc3.qualified||3);
+      html += selectRow(`🔄 Comment`, howLbl2(pm3.how), howLbl2(om3.how), sc3.how||2);
+    });
   } else if (ev.type === '1x2') {
     html += `<div class="rd-section">Résultat du match · 10 pts</div>`;
     html += match1x2('Résultat (1/X/2)', p.result, official.result, 4);
@@ -2403,6 +2505,7 @@ function getMaxPts(ev) {
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return 23;
   if (ev.type === 'tennis_sf') return 16;
   if (ev.type === '1x2') return 4;
+  if (ev.type === 'ko_block') { const sc=ev.scoring||{result:4,qualified:3,how:2}; return (ev.matches?.length||0)*((sc.result||4)+(sc.qualified||3)+(sc.how||2)); }
   if (ev.type === 'f1_race') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0) + 4;
   if (ev.type === 'top4') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0);
   return 10;
@@ -2416,6 +2519,7 @@ function getMaxFormula(ev) {
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return '10 + 6 + 4 + 3';
   if (ev.type === 'tennis_sf') return '10 + 6';
   if (ev.type === '1x2') return '4';
+  if (ev.type === 'ko_block') { const n=ev.matches?.length||0,sc=ev.scoring||{result:4,qualified:3,how:2}; return `${n} × (${sc.result||4}+${sc.qualified||3}+${sc.how||2})`; }
   if (ev.type === 'f1_race') return `${partial} + 4`;
   if (ev.type === 'top4') return partial;
   return '';
@@ -3208,6 +3312,40 @@ function renderAdminForm(ev, existing) {
       </div>
       <button onclick="saveResult(${ev.id},'f1_race')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
+  // ko_block — per-match result + qualified + how
+  if (ev.type === 'ko_block') {
+    const sc = ev.scoring || {result:4, qualified:3, how:2};
+    const howOpts = (key,val) => ['TR','PROL','TAB'].map(v=>`<option value="${v}" ${val===v?'selected':''}>${v==='TR'?'90 min (TR)':v==='PROL'?'Prolongations':'Tirs au but'}</option>`).join('');
+    const matchForms = (ev.matches||[]).map(m => {
+      const em = ex[m.key] || {};
+      return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;font-size:12px;">
+        <div style="font-weight:700;margin-bottom:6px;color:var(--orange);">${m.team1} vs ${m.team2}</div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">
+          <span style="width:90px;">⏱ 90 min</span>
+          <select id="admin-${ev.id}-${m.key}-result" style="font-size:11px;flex:1;">
+            <option value="">—</option>
+            ${['1','X','2'].map(v=>`<option value="${v}" ${em.result===v?'selected':''}>${v}</option>`).join('')}
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">
+          <span style="width:90px;">🏆 Qualifié</span>
+          <select id="admin-${ev.id}-${m.key}-qualified" style="font-size:11px;flex:1;">
+            <option value="">—</option>
+            <option value="${m.team1}" ${em.qualified===m.team1?'selected':''}>${m.team1}</option>
+            <option value="${m.team2}" ${em.qualified===m.team2?'selected':''}>${m.team2}</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="width:90px;">🔄 Comment</span>
+          <select id="admin-${ev.id}-${m.key}-how" style="font-size:11px;flex:1;">
+            <option value="">—</option>
+            ${howOpts(m.key, em.how)}
+          </select>
+        </div>
+      </div>`;
+    }).join('');
+    return matchForms + `<button onclick="saveResult(${ev.id},'ko_block')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
+  }
   // 1x2 match — simple 3-button select
   if (ev.type === '1x2') {
     return `<div style="font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
@@ -3275,6 +3413,14 @@ async function saveResult(eventId, type) {
     ['champion','finaliste','third','fourth','topScorer','topGoals'].forEach(k => {
       result_data[k] = document.getElementById(`admin-${eventId}-${k}`)?.value || '';
     });
+  } else if (type === 'ko_block') {
+    for (const m of (ev.matches||[])) {
+      const result    = document.getElementById(`admin-${eventId}-${m.key}-result`)?.value || '';
+      const qualified = document.getElementById(`admin-${eventId}-${m.key}-qualified`)?.value || '';
+      const how       = document.getElementById(`admin-${eventId}-${m.key}-how`)?.value || '';
+      result_data[m.key] = { result, qualified, how };
+    }
+    if (!Object.values(result_data).some(v=>v.result)) { showToast('⚠️ Entre au moins un résultat !'); return; }
   } else if (type === '1x2') {
     const hidden = document.getElementById(`admin-${eventId}-1x2-val`);
     const val = hidden ? hidden.value : '';
