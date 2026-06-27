@@ -3330,7 +3330,7 @@ async function recalculateAllPoints(triggerLabel) {
     for (const prono of (pronos||[])) {
       const ev = EVENTS.find(e => e.id === prono.event_id);
       const official = officialMap[prono.event_id];
-      if (!ev || ev.sport !== 'football' || !official) continue; // WC only
+      if (!ev || ev.adminOnly || !official) continue; // skip admin-only events
       const pts = computeUserPoints(ev, prono.data, official);
       userTotals[prono.user_id] = (userTotals[prono.user_id] || 0) + pts;
     }
