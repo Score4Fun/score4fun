@@ -589,6 +589,7 @@
       <div id="admin-bots-log" style="background:#0d0d1a;color:#eee;font-family:monospace;font-size:12px;line-height:1.6;padding:12px;border-radius:8px;max-height:300px;overflow-y:auto;margin-bottom:10px;display:none;"></div>
       <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0;">
         <button onclick="adminBotAction('topscore')" style="padding:10px 16px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🤖 Créer TopScorer</button>
+        <button onclick="runTopScorerOpenEvents()" style="padding:10px 16px;background:#1565c0;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">⚡ TopScorer · Pick Open Events</button>
         <button onclick="adminBotAction('seed')" style="padding:10px 16px;background:#4caf50;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🌱 Créer tous les faux users</button>
         <button onclick="adminBotAction('delete')" style="padding:10px 16px;background:#e53935;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🗑️ Supprimer les faux users (sauf TopScorer)</button>
         <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
@@ -2987,7 +2988,7 @@ const _TEAM_RANK = {
   '🇨🇦 Canada':6,'🇺🇾 Uruguay':6,'🇨🇴 Colombia':6,'🇲🇦 Morocco':6,
   '🇭🇷 Croatia':6,'🇯🇵 Japan':5,'🇦🇺 Australia':5,'🇸🇳 Senegal':5,
   '🇨🇭 Switzerland':5,'🇹🇷 Turkey':5,'🇩🇿 Algeria':5,'🇬🇭 Ghana':5,
-  '🇨🇮 Ivory Coast':5,'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland':5,'🇦🇹 Austria':5,'🇰🇷 South Korea':5,
+  '🇨🇮 Ivory Coast':5,'🇨🇮 Côte d\'Ivoire':5,'🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland':5,'🇦🇹 Austria':5,'🇰🇷 South Korea':5,
   '🇸🇦 Saudi Arabia':4,'🇵🇾 Paraguay':4,'🇧🇦 Bosnia':4,'🇪🇨 Ecuador':4,
   '🇹🇳 Tunisia':4,'🇶🇦 Qatar':4,'🇨🇩 DR Congo':3,'🇺🇿 Uzbekistan':3,
   '🇮🇷 Iran':3,'🇵🇦 Panama':3,'🇨🇻 Cape Verde':3,'🇮🇶 Iraq':3,
@@ -3006,6 +3007,36 @@ function _botGenData(ev, bot) {
       const realEv = EVENTS.find(e => e.id === ev.id);
       const d={};
       (realEv?.matches || ev.matches).forEach(m => { d[m.key] = _botFavResult(m.team1||'', m.team2||''); });
+      return d;
+    }
+    if (ev.type==='ko_block') {
+      const realEv = EVENTS.find(e=>e.id===ev.id)||ev;
+      const d={};
+      (realEv.matches||[]).forEach(m=>{
+        const r1=_TEAM_RANK[m.team1]||5, r2=_TEAM_RANK[m.team2]||5, diff=r1-r2;
+        const result = diff>=2?'1':diff<=-2?'2':'X';
+        const qualified = diff>=0 ? m.team1 : m.team2;
+        const how = Math.abs(diff)>=3?'TR':Math.abs(diff)>=1?_botRnd(['TR','PROL']):_botRnd(['PROL','TAB']);
+        d[m.key]={result,qualified,how};
+      });
+      return d;
+    }
+    if (ev.type==='bracket') {
+      const realEv = EVENTS.find(e=>e.id===ev.id)||ev;
+      const d={};
+      const rank=t=>_TEAM_RANK[t]||5;
+      const favOf=(t1,t2)=>rank(t1)>=rank(t2)?t1:t2;
+      const howFor=(t1,t2)=>Math.abs(rank(t1)-rank(t2))>=3?'TR':Math.abs(rank(t1)-rank(t2))>=1?_botRnd(['TR','PROL']):_botRnd(['PROL','TAB']);
+      (realEv.r16||[]).forEach(m=>{d[m.key]=favOf(m.t1,m.t2);if(realEv.enhanced)d[m.key+'_how']=howFor(m.t1,m.t2);});
+      (realEv.qf||[]).forEach(q=>{const t1=d[q.src[0]],t2=d[q.src[1]];if(t1&&t2){d[q.key]=favOf(t1,t2);if(realEv.enhanced)d[q.key+'_how']=howFor(t1,t2);}});
+      (realEv.sf||[]).forEach(s=>{const t1=d[s.src[0]],t2=d[s.src[1]];if(t1&&t2){d[s.key]=favOf(t1,t2);if(realEv.enhanced)d[s.key+'_how']=howFor(t1,t2);}});
+      const ft1=d['sa'],ft2=d['sb'];
+      if(ft1&&ft2){d['final']=favOf(ft1,ft2);if(realEv.enhanced)d['final_how']=howFor(ft1,ft2);}
+      if(realEv.sf&&realEv.sf[0]&&realEv.sf[1]){
+        const sl1=d['sa']===d[realEv.sf[0].src[0]]?d[realEv.sf[0].src[1]]:d[realEv.sf[0].src[0]];
+        const sl2=d['sb']===d[realEv.sf[1].src[0]]?d[realEv.sf[1].src[1]]:d[realEv.sf[1].src[0]];
+        if(sl1&&sl2){d['third']=favOf(sl1,sl2);if(realEv.enhanced)d['third_how']=howFor(sl1,sl2);}
+      }
       return d;
     }
     return {};
@@ -3033,6 +3064,32 @@ async function _botCreateOne(u) {
   }
   await sb.from('profiles').update({pronos_count:count}).eq('id',id);
   _botLog('  → '+count+' pronos');
+}
+
+async function runTopScorerOpenEvents() {
+  const logEl = document.getElementById('admin-bots-log');
+  if (logEl) { logEl.innerHTML=''; logEl.style.display='block'; }
+  document.querySelectorAll('#admin-bots-section button').forEach(b=>b.disabled=true);
+  _botLog('⚡ Looking for TopScorer in DB…');
+  const {data:tsProf} = await sb.from('profiles').select('id,pronos_count').eq('pseudo','TopScorer').single();
+  if (!tsProf) { _botLog('❌ TopScorer not found — create them first!','err'); document.querySelectorAll('#admin-bots-section button').forEach(b=>b.disabled=false); return; }
+  const tsId = tsProf.id;
+  const {data:existing} = await sb.from('pronos').select('event_id').eq('user_id',tsId);
+  const picked = new Set((existing||[]).map(p=>Number(p.event_id)));
+  const openEvs = EVENTS.filter(ev => ev.status==='open' && !ev.adminOnly && !picked.has(ev.id) && !isTrulyClosed(ev));
+  _botLog(`📋 ${openEvs.length} open event(s) without TopScorer pick`);
+  let count=0;
+  for (const ev of openEvs) {
+    const data = _botGenData(ev,'favorites');
+    if (!data||!Object.keys(data).length) { _botLog(`⚠️ Skipped: ${ev.name} (type:${ev.type})`); continue; }
+    const {error} = await sb.from('pronos').insert({user_id:tsId,event_id:ev.id,event_name:ev.name,sport:ev.sport,data,created_at:new Date().toISOString()});
+    if (error) _botLog(`❌ ${ev.name}: `+error.message,'err');
+    else { count++; _botLog(`✅ ${ev.name}`,'ok'); }
+  }
+  const {data:allP} = await sb.from('pronos').select('id').eq('user_id',tsId);
+  await sb.from('profiles').update({pronos_count:(allP||[]).length}).eq('id',tsId);
+  _botLog(`✅ Done — ${count} pick(s) added!`,'ok');
+  document.querySelectorAll('#admin-bots-section button').forEach(b=>b.disabled=false);
 }
 
 async function adminBotAction(action) {
