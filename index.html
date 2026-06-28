@@ -3470,7 +3470,7 @@ async function adminViewAllPronos(uid, pseudo) {
       const res = {1:'Home wins','X':'Draw',2:'Away wins'};
       if (d.result) lines.push('Result: ' + (res[d.result]||d.result));
     } else if (ev.type === 'bracket') {
-      const howLbl = v => v==='TR'?'90'':v==='PROL'?'ET':v==='TAB'?'Pen.':'';
+      const howLbl = v => v==='TR'?"90'":v==='PROL'?'ET':v==='TAB'?'Pen.':'';
       const fmt = (key) => { const t=d[key]; if(!t) return '?'; const h=ev.enhanced&&d[key+'_how']?` (${howLbl(d[key+'_how'])})`:''; return t+h; };
       const r16picks = (ev.r16||[]).map(m=>d[m.key]?fmt(m.key):null).filter(Boolean);
       if (r16picks.length) lines.push('⚽ R16: ' + r16picks.join(' · '));
