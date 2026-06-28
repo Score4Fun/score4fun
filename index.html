@@ -333,6 +333,8 @@
     .bv-how { flex:1;font-size:8px;font-weight:700;text-align:center;padding:2px 1px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--bg);color:var(--text-muted);transition:all .12s; }
     .bv-how.bv-how-live { cursor:pointer;color:var(--text); }
     .bv-how.bv-how-sel { background:var(--orange-dark);color:white;border-color:var(--orange-dark); }
+    .bv-r16-card { background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 7px;display:flex;flex-direction:column;gap:3px; }
+    .bv-r16-num { font-size:8px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:1px; }
     .match-pts { font-size:10px; color:var(--text-muted); margin-left:4px; flex-shrink:0; }
   /* Custom team select — flag-friendly dropdown */
   .cs-wrap { position:relative; margin-bottom:8px; }
@@ -1078,14 +1080,14 @@ const EVENTS = [
     type:'bracket', enhanced:true, status:'open', urgency:false, cutoff:'July 4', deadline:'2026-07-04T11:00:00Z',
     scoring:{r16:4, qf:3, sf:3, third:3, champion:3, how:2},
     r16:[
-      {key:'ra', t1:'Team A', t2:'Team B'},
-      {key:'rb', t1:'Team C', t2:'Team D'},
-      {key:'rc', t1:'Team E', t2:'Team F'},
-      {key:'rd', t1:'Team G', t2:'Team H'},
-      {key:'re', t1:'Team I', t2:'Team J'},
-      {key:'rf', t1:'Team K', t2:'Team L'},
-      {key:'rg', t1:'Team M', t2:'Team N'},
-      {key:'rh', t1:'Team O', t2:'Team P'},
+      {key:'ra', t1:'🇧🇷 Brazil', t2:'🇩🇪 Germany'},
+      {key:'rb', t1:'🇫🇷 France', t2:'🇵🇹 Portugal'},
+      {key:'rc', t1:'🇳🇱 Netherlands', t2:'🇦🇷 Argentina'},
+      {key:'rd', t1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England', t2:'🇪🇸 Spain'},
+      {key:'re', t1:'🇺🇸 USA', t2:'🇯🇵 Japan'},
+      {key:'rf', t1:'🇲🇦 Morocco', t2:'🇧🇪 Belgium'},
+      {key:'rg', t1:'🇨🇴 Colombia', t2:'🇸🇳 Senegal'},
+      {key:'rh', t1:'🇲🇽 Mexico', t2:'🇺🇾 Uruguay'},
     ],
     qf:[
       {key:'qa', src:['ra','rb']},
@@ -2133,7 +2135,6 @@ function _renderBracketEnhanced() {
   const sc = ev.scoring || {r16:4,qf:3,sf:3,third:3,champion:3,how:2};
   const w = k => p[k] || null;
   const wh = k => p[k+'_how'] || null;
-  const BV_H = 78; // px per R16 slot (fixed height for alignment)
 
   const teamBtn = (matchKey, team) => {
     if (!team) return `<div class="bv-tbd">TBD</div>`;
@@ -2148,73 +2149,78 @@ function _renderBracketEnhanced() {
     return `<div class="bv-how-row">${hBtn('TR',"90'")}${hBtn('PROL','E.T.')}${hBtn('TAB','Pen.')}</div>`;
   };
 
-  const matchBox = (matchKey, t1, t2) => `<div class="bv-box">${teamBtn(matchKey,t1)}${teamBtn(matchKey,t2)}${howRow(matchKey)}</div>`;
+  // ── R16 : liste verticale 2 cartes par ligne ──────────────────────────
+  const r16Cards = (ev.r16||[]).map((m,i) => `<div class="bv-r16-card">
+    <div class="bv-r16-num">M${i+1}</div>
+    ${teamBtn(m.key,m.t1)}
+    ${teamBtn(m.key,m.t2)}
+    ${howRow(m.key)}
+  </div>`).join('');
 
-  const sfLoser = (sfKey, sfSrc) => {
-    const win = w(sfKey); if (!win) return null;
-    const t1 = w(sfSrc[0]), t2 = w(sfSrc[1]);
-    if (!t1||!t2) return null; return win===t1?t2:t1;
+  const r16Sec = `<div style="margin-bottom:14px;">
+    <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">
+      ⚽ Round of 16 · ${sc.r16}pt <span style="font-weight:400;color:var(--text-muted;">+ ${sc.how}pt bonus How</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">${r16Cards}</div>
+  </div>`;
+
+  // ── Bracket QF→Final : 3 colonnes ────────────────────────────────────
+  const sfLoser = (sfKey,sfSrc) => {
+    const win=w(sfKey); if(!win) return null;
+    const t1=w(sfSrc[0]),t2=w(sfSrc[1]);
+    if(!t1||!t2) return null; return win===t1?t2:t1;
   };
 
-  // R16 column — 8 pairs, each BV_H px, with bracket border on right per pair
-  let r16 = `<div class="bv-col" style="width:90px;flex-shrink:0;">
-    <div class="bv-rnd-hd">R16·${sc.r16}pt</div>`;
-  for (let i=0;i<8;i++) {
-    const m = ev.r16[i];
-    const top = i%2===0, bot = i%2===1;
-    const brd = top
-      ? 'border-right:2px solid var(--border);border-top:2px solid var(--border);border-top-right-radius:6px;'
-      : 'border-right:2px solid var(--border);border-bottom:2px solid var(--border);border-bottom-right-radius:6px;';
-    r16 += `<div style="height:${BV_H}px;box-sizing:border-box;display:flex;align-items:center;${brd}padding:4px 6px 4px 2px;">${matchBox(m.key,m.t1,m.t2)}</div>`;
-  }
-  r16 += `</div>`;
+  const BV_H = 78;
 
-  // QF column — 4 slots, each 2×BV_H px
-  let qf = `<div class="bv-col" style="width:90px;flex-shrink:0;margin-left:8px;">
-    <div class="bv-rnd-hd">QF·${sc.qf}pt</div>`;
-  for (let i=0;i<4;i++) {
-    const q = ev.qf[i];
-    const top=i%2===0, bot=i%2===1;
-    const brd = top
-      ? 'border-right:2px solid var(--border);border-top:2px solid var(--border);border-top-right-radius:6px;'
-      : 'border-right:2px solid var(--border);border-bottom:2px solid var(--border);border-bottom-right-radius:6px;';
-    qf += `<div style="height:${BV_H*2}px;box-sizing:border-box;display:flex;align-items:center;${brd}padding:4px 6px 4px 2px;">${matchBox(q.key,w(q.src[0]),w(q.src[1]))}</div>`;
-  }
-  qf += `</div>`;
+  const bvBox = (matchKey,t1,t2) => `<div class="bv-box">${teamBtn(matchKey,t1)}${teamBtn(matchKey,t2)}${howRow(matchKey)}</div>`;
 
-  // SF column — 2 slots, each 4×BV_H px
-  let sf = `<div class="bv-col" style="width:90px;flex-shrink:0;margin-left:8px;">
-    <div class="bv-rnd-hd">SF·${sc.sf}pt</div>`;
-  for (let i=0;i<2;i++) {
-    const s = ev.sf[i];
-    const brd = i===0
-      ? 'border-right:2px solid var(--border);border-top:2px solid var(--border);border-top-right-radius:6px;'
-      : 'border-right:2px solid var(--border);border-bottom:2px solid var(--border);border-bottom-right-radius:6px;';
-    sf += `<div style="height:${BV_H*4}px;box-sizing:border-box;display:flex;align-items:center;${brd}padding:4px 6px 4px 2px;">${matchBox(s.key,w(s.src[0]),w(s.src[1]))}</div>`;
+  // QF — 4 slots BV_H chacun
+  let qfHtml = `<div class="bv-col" style="width:95px;flex-shrink:0;"><div class="bv-rnd-hd">QF · ${sc.qf}pt</div>`;
+  for(let i=0;i<4;i++){
+    const q=ev.qf[i];
+    const brd=i%2===0
+      ?'border-right:2px solid var(--border);border-top:2px solid var(--border);border-top-right-radius:6px;'
+      :'border-right:2px solid var(--border);border-bottom:2px solid var(--border);border-bottom-right-radius:6px;';
+    qfHtml+=`<div style="height:${BV_H}px;box-sizing:border-box;display:flex;align-items:center;${brd}padding:4px 8px 4px 2px;">${bvBox(q.key,w(q.src[0]),w(q.src[1]))}</div>`;
   }
-  sf += `</div>`;
+  qfHtml+=`</div>`;
 
-  // Final + 3rd column
-  const thirdT1=sfLoser('sa',ev.sf[0].src), thirdT2=sfLoser('sb',ev.sf[1].src);
-  let fin = `<div class="bv-col" style="width:90px;flex-shrink:0;margin-left:8px;">
-    <div class="bv-rnd-hd">Final·${sc.champion}pt</div>
+  // SF — 2 slots 2×BV_H chacun
+  let sfHtml = `<div class="bv-col" style="width:95px;flex-shrink:0;margin-left:10px;"><div class="bv-rnd-hd">SF · ${sc.sf}pt</div>`;
+  for(let i=0;i<2;i++){
+    const s=ev.sf[i];
+    const brd=i===0
+      ?'border-right:2px solid var(--border);border-top:2px solid var(--border);border-top-right-radius:6px;'
+      :'border-right:2px solid var(--border);border-bottom:2px solid var(--border);border-bottom-right-radius:6px;';
+    sfHtml+=`<div style="height:${BV_H*2}px;box-sizing:border-box;display:flex;align-items:center;${brd}padding:4px 8px 4px 2px;">${bvBox(s.key,w(s.src[0]),w(s.src[1]))}</div>`;
+  }
+  sfHtml+=`</div>`;
+
+  // Final + 3rd — 1 slot 4×BV_H
+  const th1=sfLoser('sa',ev.sf[0].src), th2=sfLoser('sb',ev.sf[1].src);
+  const finHtml=`<div class="bv-col" style="width:95px;flex-shrink:0;margin-left:10px;">
+    <div class="bv-rnd-hd">🏆 Final · ${sc.champion}pt</div>
     <div style="height:${BV_H*4}px;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:4px 2px;">
-      ${matchBox('final',w('sa'),w('sb'))}
-      <div style="font-size:9px;color:var(--text-muted);text-align:center;font-weight:700;border-top:1px dashed var(--border);padding-top:6px;">🥉 3rd·${sc.third}pt</div>
-      ${matchBox('third',thirdT1,thirdT2)}
+      ${bvBox('final',w('sa'),w('sb'))}
+      <div style="font-size:9px;color:var(--text-muted);text-align:center;font-weight:700;border-top:1px dashed var(--border);padding-top:6px;">🥉 3rd · ${sc.third}pt</div>
+      ${bvBox('third',th1,th2)}
     </div>
   </div>`;
 
-  const maxPts = getMaxPts(ev);
-  const html = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;">
-    <div style="display:flex;align-items:flex-start;padding:4px 2px;">${r16}${qf}${sf}${fin}</div>
-  </div>
-  <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:8px;padding:6px;background:var(--orange-bg);border-radius:8px;">
-    🎯 <strong>${maxPts} pts max</strong> · Pick winner + how (90'/E.T./Pen. = +${sc.how||2}pt bonus each)
+  const brkSec=`<div>
+    <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🏆 Knockout Bracket</div>
+    <div style="display:flex;align-items:flex-start;">${qfHtml}${sfHtml}${finHtml}</div>
   </div>`;
 
-  const c = document.getElementById('brk-container');
-  if (c) c.innerHTML = html;
+  const maxPts=getMaxPts(ev);
+  const html=`${r16Sec}${brkSec}
+  <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:12px;padding:6px;background:var(--orange-bg);border-radius:8px;">
+    🎯 <strong>${maxPts} pts max</strong> · Winner + How (90'/E.T./Pen. = +${sc.how||2}pt chacun)
+  </div>`;
+
+  const c=document.getElementById('brk-container');
+  if(c) c.innerHTML=html;
 }
 
 function selectKoBtn(matchKey, question, el) {
@@ -3641,9 +3647,43 @@ function renderAdminForm(ev, existing) {
       <button onclick="saveResult(${ev.id},'f1_race')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
   if (ev.type === 'bracket') {
-    return `<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">JSON · keys: ra–rh (R16), qa–qd (QF), sa–sb (SF), final, third</div>
-      <textarea id="admin-${ev.id}-json" style="width:100%;font-size:11px;font-family:monospace;height:100px;border:1px solid var(--border);border-radius:4px;padding:4px;">${existing?JSON.stringify(existing,null,2):''}</textarea>
-      <button onclick="saveResult(${ev.id},'json')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
+    const isEnh = !!ev.enhanced;
+    const howHidden = (key,val) => `<input type="hidden" id="admin-${ev.id}-${key}-how" value="${val||''}">`;
+    const howBtns = (key,val) => !isEnh ? '' : `<div style="display:flex;gap:4px;align-items:center;margin-top:4px;">
+      <span style="font-size:9px;color:var(--text-muted);width:32px;">How:</span>
+      ${['TR','PROL','TAB'].map(v=>`<button type="button" id="admin-${ev.id}-${key}-how-${v}" data-eid="${ev.id}" data-key="${key}" data-how="${v}" onclick="adminBrkHow(this)"
+        style="padding:3px 7px;font-size:10px;border:1.5px solid ${val===v?'var(--orange)':'var(--border)'};border-radius:5px;cursor:pointer;background:${val===v?'var(--orange)':'white'};color:${val===v?'white':'var(--text)'};">${v==='TR'?"90'":v==='PROL'?'E.T.':'Pen.'}</button>`).join('')}
+      ${howHidden(key,val)}</div>`;
+    const r16Row = (m) => {
+      const exW=ex[m.key]||'', exH=ex[m.key+'_how']||'';
+      return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;">
+        <div style="font-size:10px;font-weight:700;color:var(--orange);margin-bottom:5px;">${m.t1} <span style="color:var(--text-muted)">vs</span> ${m.t2}</div>
+        <div style="display:flex;gap:4px;">
+          <input type="hidden" id="admin-${ev.id}-${m.key}" value="${exW.replace(/"/g,'&quot;')}">
+          ${[m.t1,m.t2].map(t=>`<button type="button" data-eid="${ev.id}" data-key="${m.key}" data-team="${t.replace(/"/g,'&quot;')}" onclick="adminBrkWin(this)"
+            style="flex:1;padding:4px 2px;font-size:10px;border:1.5px solid ${exW===t?'var(--orange)':'var(--border)'};border-radius:5px;cursor:pointer;background:${exW===t?'var(--orange)':'white'};color:${exW===t?'white':'var(--text)'};">${t}</button>`).join('')}
+        </div>${howBtns(m.key,exH)}</div>`;
+    };
+    const freeRow = (key,label) => {
+      const exW=ex[key]||'', exH=ex[key+'_how']||'';
+      return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;">
+        <div style="font-size:10px;font-weight:700;color:var(--orange);margin-bottom:5px;">${label}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:9px;color:var(--text-muted);flex-shrink:0;">Winner:</span>
+          <input type="text" id="admin-${ev.id}-${key}" value="${exW.replace(/"/g,'&quot;')}" placeholder="Team name…" style="flex:1;font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;">
+        </div>${howBtns(key,exH)}</div>`;
+    };
+    let form = `<div style="font-size:10px;font-weight:700;color:var(--orange);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Round of 16</div>`;
+    (ev.r16||[]).forEach(m=>{ form+=r16Row(m); });
+    form+=`<div style="font-size:10px;font-weight:700;color:var(--orange);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;">Quarter Finals</div>`;
+    (ev.qf||[]).forEach((q,i)=>{ form+=freeRow(q.key,`QF${i+1}`); });
+    form+=`<div style="font-size:10px;font-weight:700;color:var(--orange);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;">Semi Finals</div>`;
+    (ev.sf||[]).forEach((s,i)=>{ form+=freeRow(s.key,`SF${i+1}`); });
+    form+=`<div style="font-size:10px;font-weight:700;color:var(--orange);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;">Final & 3rd Place</div>`;
+    form+=freeRow('final','🏆 Final');
+    form+=freeRow('third','🥉 3rd Place');
+    form+=`<button onclick="saveResult(${ev.id},'bracket')" style="margin-top:6px;font-size:12px;padding:6px 0;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;width:100%;font-weight:700;">💾 Save & Calculate</button>`;
+    return form;
   }
   // ko_block — per-match result + qualified + how
   if (ev.type === 'ko_block') {
@@ -3714,6 +3754,26 @@ function renderAdminForm(ev, existing) {
     <button onclick="saveResult(${ev.id},'json')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
 }
 
+function adminBrkWin(btn) {
+  const evId=btn.dataset.eid, key=btn.dataset.key, team=btn.dataset.team;
+  const h=document.getElementById('admin-'+evId+'-'+key); if(h) h.value=team;
+  document.querySelectorAll(`[data-eid="${evId}"][data-key="${key}"][data-team]`).forEach(b=>{
+    const sel=b.dataset.team===team;
+    b.style.background=sel?'var(--orange)':'white';
+    b.style.color=sel?'white':'var(--text)';
+    b.style.borderColor=sel?'var(--orange)':'var(--border)';
+  });
+}
+function adminBrkHow(btn) {
+  const evId=btn.dataset.eid, key=btn.dataset.key, how=btn.dataset.how;
+  const h=document.getElementById('admin-'+evId+'-'+key+'-how'); if(h) h.value=how;
+  document.querySelectorAll(`[data-eid="${evId}"][data-key="${key}"][data-how]`).forEach(b=>{
+    const sel=b.dataset.how===how;
+    b.style.background=sel?'var(--orange)':'white';
+    b.style.color=sel?'white':'var(--text)';
+    b.style.borderColor=sel?'var(--orange)':'var(--border)';
+  });
+}
 function admin1x2Select(evId, val) {
   const hidden = document.getElementById('admin-'+evId+'-1x2-val');
   if (hidden) hidden.value = val;
@@ -3759,6 +3819,19 @@ async function saveResult(eventId, type) {
     const val = hidden ? hidden.value : '';
     if (!val) { showToast('⚠️ Sélectionne 1, X ou 2 !'); return; }
     result_data = { result: val };
+  } else if (type === 'bracket') {
+    const ev2 = EVENTS.find(e=>e.id===eventId);
+    if (!ev2) return;
+    const allKeys = [...(ev2.r16||[]).map(m=>m.key), ...(ev2.qf||[]).map(q=>q.key), ...(ev2.sf||[]).map(s=>s.key), 'final','third'];
+    for(const key of allKeys){
+      const val=(document.getElementById('admin-'+eventId+'-'+key)?.value||'').trim();
+      if(val) result_data[key]=val;
+      if(ev2.enhanced||ev2.scoring?.how){
+        const how=(document.getElementById('admin-'+eventId+'-'+key+'-how')?.value||'').trim();
+        if(how) result_data[key+'_how']=how;
+      }
+    }
+    if(!result_data.final){showToast('⚠️ Enter at least the Final winner!');return;}
   } else if (type === 'f1_race') {
     const top4 = ['p1','p2','p3','p4'].map(k => document.getElementById(`admin-${eventId}-${k}`)?.value || '');
     if (!top4[0]) { showToast('⚠️ Select at least 1st place!'); return; }
