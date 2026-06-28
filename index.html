@@ -313,6 +313,15 @@
     .btn-sm-1x2 { width:32px; height:28px; border:1.5px solid var(--border); border-radius:5px; font-size:12px; font-weight:700; cursor:pointer; background:white; display:flex; align-items:center; justify-content:center; transition:all 0.15s; color:var(--text); }
     .btn-sm-1x2:hover { border-color:var(--orange); color:var(--orange); }
     .btn-sm-1x2.selected { background:var(--orange); color:white; border-color:var(--orange); }
+    .brk-match-row { display:flex;align-items:center;gap:5px;margin-bottom:6px; }
+    .brk-btn { flex:1;padding:6px 4px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;font-weight:600;text-align:center;cursor:pointer;background:white;color:var(--text);transition:all .15s;line-height:1.3; }
+    .brk-btn:hover { border-color:var(--orange);color:var(--orange); }
+    .brk-btn.brk-sel { background:var(--orange);color:white;border-color:var(--orange); }
+    .brk-btn.brk-tbd { background:var(--bg);color:var(--text-muted);cursor:default;border-style:dashed;font-style:italic; }
+    .brk-vs { font-size:9px;color:var(--text-muted);flex-shrink:0; }
+    .brk-match-pts { font-size:10px;color:var(--orange);font-weight:700;flex-shrink:0;min-width:22px;text-align:right; }
+    .brk-section { display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--text);margin:14px 0 6px;padding-bottom:4px;border-bottom:1.5px solid var(--border); }
+    .brk-sec-pts { font-size:10px;font-weight:600;color:var(--orange);background:var(--orange-bg);padding:2px 7px;border-radius:8px; }
     .match-pts { font-size:10px; color:var(--text-muted); margin-left:4px; flex-shrink:0; }
   /* Custom team select — flag-friendly dropdown */
   .cs-wrap { position:relative; margin-bottom:8px; }
@@ -750,7 +759,30 @@ function renderMemberPronoCards(body, pronoCards) {
       inner += selectRow('Sets played', String(p.sets||''), String(official ? official.sets : ''), 6);
       inner += selectRow('1st Set Winner', p.first_set, official ? official.first_set : null, 4);
       inner += selectRow('Aces total', p.aces, official ? official.aces : null, 3);
-    } else if (ev.type === 'ko_block') {
+    } else if (ev.type === 'bracket') {
+    const ex = userPronos[ev.id] || {};
+    const r16done = (ev.r16||[]).filter(m=>ex[m.key]).length;
+    const totalR16 = (ev.r16||[]).length;
+    const fullDone = !!(ex.final && ex.third);
+    const closed = isClosed(ev);
+    inner = `
+      <div class="event-status">
+        <div class="status-dot ${fullDone?'done-dot':closed?'closed':''}"></div>
+        <span class="status-text">${fullDone?'🎯 Full bracket saved!':r16done>0?`R16: ${r16done}/${totalR16} · In progress…`:'Pick every round!'}</span>
+      </div>
+      ${!closed
+        ? fullDone
+          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Edit</button>`
+          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pick →</button>`
+        : `<button class="prono-btn view">Fermé 🔒</button>`}`;
+    } else if (ev.type === 'bracket') {
+    const sc = ev.scoring || {r16:1, qf:2, sf:3, third:4, champion:5};
+    (ev.r16||[]).forEach(m => { if (p[m.key] && p[m.key]===official[m.key]) pts += sc.r16||1; });
+    (ev.qf||[]).forEach(q => { if (p[q.key] && p[q.key]===official[q.key]) pts += sc.qf||2; });
+    (ev.sf||[]).forEach(s => { if (p[s.key] && p[s.key]===official[s.key]) pts += sc.sf||3; });
+    if (p.third && p.third===official.third) pts += sc.third||4;
+    if (p.final && p.final===official.final) pts += sc.champion||5;
+  } else if (ev.type === 'ko_block') {
     const sc = ev.scoring || {result:4, qualified:3, how:2};
     (ev.matches||[]).forEach(m => {
       const pm2 = p[m.key] || {};
@@ -1008,6 +1040,33 @@ const EVENTS = [
   { id:115, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'⚽',
     name:'⭐ World Cup Final 2026', sub:'July 19',
     type:'upcoming', status:'soon', urgency:false, cutoff:'July 19', deadline:'2026-07-19T13:00:00Z' },
+
+  // ===== BRACKET PREDICTION =====
+  { id:116, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🏆',
+    name:'Full Bracket · R16 → Final', sub:'Pick every round · 31 pts max',
+    type:'bracket', status:'open', urgency:false, cutoff:'July 4', deadline:'2026-07-04T11:00:00Z',
+    scoring:{r16:1, qf:2, sf:3, third:4, champion:5},
+    r16:[
+      {key:'ra', t1:'Team A', t2:'Team B'},
+      {key:'rb', t1:'Team C', t2:'Team D'},
+      {key:'rc', t1:'Team E', t2:'Team F'},
+      {key:'rd', t1:'Team G', t2:'Team H'},
+      {key:'re', t1:'Team I', t2:'Team J'},
+      {key:'rf', t1:'Team K', t2:'Team L'},
+      {key:'rg', t1:'Team M', t2:'Team N'},
+      {key:'rh', t1:'Team O', t2:'Team P'},
+    ],
+    qf:[
+      {key:'qa', src:['ra','rb']},
+      {key:'qb', src:['rc','rd']},
+      {key:'qc', src:['re','rf']},
+      {key:'qd', src:['rg','rh']},
+    ],
+    sf:[
+      {key:'sa', src:['qa','qb']},
+      {key:'sb', src:['qc','qd']},
+    ],
+  },
 
   // ===== TENNIS - Roland Garros =====
   // Demi-finales Hommes
@@ -1831,6 +1890,12 @@ function openPronoModal(eventId) {
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:12px;">🎯 Podium 10-8-6-4 (partial if close) · Scorer nationality = 7 pts · Goal range = 4 pts · Max: 39 pts</div>`;
     setTimeout(() => applyTwemoji(), 80);
+  } else if (currentEvent.type === 'bracket') {
+    window._brkPicks = Object.assign({}, ex);
+    content.innerHTML = `<div id="brk-container"></div>
+      <div class="points-info" style="margin-top:10px;">🎯 Max : <strong>${getMaxPts(currentEvent)} pts</strong> · Each correct winner scores</div>`;
+    setTimeout(_renderBracket, 10);
+
   } else if (currentEvent.type === 'ko_block') {
     const sc = currentEvent.scoring || {result:4, qualified:3, how:2};
     const koHtml = (currentEvent.matches||[]).map(m => {
@@ -1956,6 +2021,73 @@ function selectOpeningBtn(question, el) {
   if (!wasSelected) el.classList.add('selected');
 }
 
+function _renderBracket() {
+  const ev = currentEvent;
+  if (!ev || ev.type !== 'bracket') return;
+  const p = window._brkPicks || {};
+  const sc = ev.scoring || {r16:1, qf:2, sf:3, third:4, champion:5};
+  const w = k => p[k] || null;
+  const sfLoser = (sfKey, sfSrc) => {
+    const win = w(sfKey); if (!win) return null;
+    const t1 = w(sfSrc[0]), t2 = w(sfSrc[1]);
+    if (!t1 || !t2) return null;
+    return win === t1 ? t2 : t1;
+  };
+  const matchRow = (key, t1, t2, pts) => {
+    const sel = w(key);
+    const btn = t => !t
+      ? `<div class="brk-btn brk-tbd">TBD</div>`
+      : `<div class="brk-btn${sel===t?' brk-sel':''}" data-bk="${key}" data-bt="${t.replace(/"/g,'&quot;')}" onclick="selectBrk(this.dataset.bk,this.dataset.bt)">${t}</div>`;
+    return `<div class="brk-match-row">${btn(t1)}<span class="brk-vs">vs</span>${btn(t2)}<span class="brk-match-pts">${pts}pt</span></div>`;
+  };
+  const sec = (title, sub) => `<div class="brk-section"><span>${title}</span><span class="brk-sec-pts">${sub}</span></div>`;
+  let html = '';
+  html += sec('Round of 16', `×${sc.r16||1} pt`);
+  (ev.r16||[]).forEach(m => { html += matchRow(m.key, m.t1, m.t2, sc.r16||1); });
+  html += sec('Quarter-finals', `×${sc.qf||2} pts`);
+  (ev.qf||[]).forEach(q => { html += matchRow(q.key, w(q.src[0]), w(q.src[1]), sc.qf||2); });
+  html += sec('Semi-finals', `×${sc.sf||3} pts`);
+  (ev.sf||[]).forEach(s => { html += matchRow(s.key, w(s.src[0]), w(s.src[1]), sc.sf||3); });
+  html += sec('🏆 Final', `${sc.champion||5} pts`);
+  html += matchRow('final', w('sa'), w('sb'), sc.champion||5);
+  html += sec('🥉 3rd Place', `${sc.third||4} pts`);
+  const th1 = sfLoser('sa', ev.sf[0].src), th2 = sfLoser('sb', ev.sf[1].src);
+  html += matchRow('third', th1, th2, sc.third||4);
+  const c = document.getElementById('brk-container');
+  if (c) c.innerHTML = html;
+}
+
+function selectBrk(key, team) {
+  if (!window._brkPicks) window._brkPicks = {};
+  const ev = currentEvent; if (!ev) return;
+  const old = window._brkPicks[key];
+  window._brkPicks[key] = team;
+  if (old && old !== team) {
+    const p = window._brkPicks;
+    const isR16 = (ev.r16||[]).some(m=>m.key===key);
+    const isQF  = (ev.qf||[]).some(q=>q.key===key);
+    const isSF  = (ev.sf||[]).some(s=>s.key===key);
+    if (isR16) {
+      (ev.qf||[]).forEach(q => {
+        if (!q.src.includes(key)||p[q.key]!==old) return;
+        const qOld=p[q.key]; delete p[q.key];
+        (ev.sf||[]).forEach(s => {
+          if (!s.src.includes(q.key)||p[s.key]!==qOld) return;
+          delete p[s.key]; delete p.final; delete p.third;
+        });
+      });
+    }
+    if (isQF) {
+      (ev.sf||[]).forEach(s => {
+        if (!s.src.includes(key)||p[s.key]!==old) return;
+        delete p[s.key]; delete p.final; delete p.third;
+      });
+    }
+    if (isSF) { delete p.final; delete p.third; }
+  }
+  _renderBracket();
+}
+
 function selectKoBtn(matchKey, question, el) {
   document.querySelectorAll(`.ko-btn[data-ko-match="${matchKey}"][data-ko-q="${question}"]`)
     .forEach(b => b.classList.remove('selected'));
@@ -2066,6 +2198,16 @@ async function submitProno() {
     const podium = [obj.champion,obj.finaliste,obj.third,obj.fourth];
     if (new Set(podium).size < 4) { showToast('⚠️ Pas de doublon dans le podium !'); return; }
     pronoData = obj;
+  } else if (currentEvent.type==='bracket') {
+    const brkP = window._brkPicks || {};
+    const bEv = currentEvent;
+    if (!(bEv.r16||[]).every(m=>brkP[m.key])) { showToast('⚠️ Pick all Round of 16 winners!'); return; }
+    if (!(bEv.qf||[]).every(q=>brkP[q.key]))  { showToast('⚠️ Pick all Quarter-final winners!'); return; }
+    if (!(bEv.sf||[]).every(s=>brkP[s.key]))  { showToast('⚠️ Pick both Semi-final winners!'); return; }
+    if (!brkP.final) { showToast('⚠️ Pick the Final winner!'); return; }
+    if (!brkP.third) { showToast('⚠️ Pick the 3rd place winner!'); return; }
+    pronoData = Object.assign({}, brkP);
+
   } else if (currentEvent.type==='ko_block') {
     const matchData = {};
     let missing = false;
@@ -2189,6 +2331,8 @@ async function renderPronos() {
         pronoSummary = `Final: ${ex.result||'?'} · MT: ${ex.halftime||'?'} · 1er: ${ex.firstScorer||'?'}`;
       } else if (ev.type==='tournament_bonus') {
         pronoSummary = `🥇 ${ex.champion||'?'}`;
+      } else if (ev.type==='bracket') {
+        pronoSummary = ex.final ? `🏆 ${ex.final}` : `R16: ${(ev.r16||[]).filter(m=>ex[m.key]).length}/${(ev.r16||[]).length}`;
       } else if (ev.type==='ko_block') {
         const nb = (ev.matches||[]).filter(m=>ex[m.key]?.result).length;
         pronoSummary = `${nb}/${(ev.matches||[]).length} matchs`;
@@ -2284,6 +2428,18 @@ function openResultDetail(eventId) {
       html += `<div class="rd-section">Buteur & buts</div>`;
       html += pr('Top scorer', p.topScorer, sc.topScorer||7);
       html += pr('Goals range', p.topGoals, sc.topGoals||4);
+    } else if (ev.type === 'bracket') {
+      const sc2b = ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5};
+      html += `<div class="rd-section">R16 · ${sc2b.r16||1}pt each</div>`;
+      (ev.r16||[]).forEach(m => { html += pm(`${m.t1} vs ${m.t2}`, p[m.key], sc2b.r16||1); });
+      html += `<div class="rd-section">QF · ${sc2b.qf||2}pts each</div>`;
+      (ev.qf||[]).forEach((q,i) => { html += pr(`QF${i+1}`, p[q.key], sc2b.qf||2); });
+      html += `<div class="rd-section">SF · ${sc2b.sf||3}pts each</div>`;
+      (ev.sf||[]).forEach((s,i) => { html += pr(`SF${i+1}`, p[s.key], sc2b.sf||3); });
+      html += `<div class="rd-section">🏆 Final · ${sc2b.champion||5}pts</div>`;
+      html += pr('Champion', p.final, sc2b.champion||5);
+      html += `<div class="rd-section">🥉 3rd · ${sc2b.third||4}pts</div>`;
+      html += pr('3rd Place', p.third, sc2b.third||4);
     } else if (ev.type === 'ko_block') {
       const sc2 = ev.scoring||{result:4,qualified:3,how:2};
       const howLbl = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'—';
@@ -2378,6 +2534,18 @@ function openResultDetail(eventId) {
     html += `<div class="rd-section">Buteur & buts</div>`;
     html += selectRow('Top scorer nationality', p.topScorer, official.topScorer, sc.topScorer||7);
     html += selectRow('Goals range', p.topGoals, official.topGoals, sc.topGoals||4);
+  } else if (ev.type === 'bracket') {
+    const sc3b = ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5};
+    html += `<div class="rd-section">Round of 16 · ${sc3b.r16||1}pt each</div>`;
+    (ev.r16||[]).forEach(m => { html += match1x2(`${m.t1} vs ${m.t2}`, p[m.key], official[m.key], sc3b.r16||1); });
+    html += `<div class="rd-section">Quarter-finals · ${sc3b.qf||2}pts each</div>`;
+    (ev.qf||[]).forEach((q,i) => { html += selectRow(`QF${i+1}`, p[q.key], official[q.key], sc3b.qf||2); });
+    html += `<div class="rd-section">Semi-finals · ${sc3b.sf||3}pts each</div>`;
+    (ev.sf||[]).forEach((s,i) => { html += selectRow(`SF${i+1}`, p[s.key], official[s.key], sc3b.sf||3); });
+    html += `<div class="rd-section">🏆 Final · ${sc3b.champion||5}pts</div>`;
+    html += selectRow('Champion', p.final, official.final, sc3b.champion||5);
+    html += `<div class="rd-section">🥉 3rd Place · ${sc3b.third||4}pts</div>`;
+    html += selectRow('3rd Place', p.third, official.third, sc3b.third||4);
   } else if (ev.type === 'ko_block') {
     const sc3 = ev.scoring||{result:4,qualified:3,how:2};
     const howLbl2 = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'—';
@@ -2522,6 +2690,7 @@ function getMaxPts(ev) {
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return 23;
   if (ev.type === 'tennis_sf') return 16;
   if (ev.type === '1x2') return 4;
+  if (ev.type === 'bracket') { const sc=ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5}; return (ev.r16?.length||8)*(sc.r16||1)+(ev.qf?.length||4)*(sc.qf||2)+(ev.sf?.length||2)*(sc.sf||3)+(sc.third||4)+(sc.champion||5); }
   if (ev.type === 'ko_block') { const sc=ev.scoring||{result:4,qualified:3,how:2}; return (ev.matches?.length||0)*((sc.result||4)+(sc.qualified||3)+(sc.how||2)); }
   if (ev.type === 'f1_race') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0) + 4;
   if (ev.type === 'top4') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0);
@@ -2536,6 +2705,7 @@ function getMaxFormula(ev) {
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return '10 + 6 + 4 + 3';
   if (ev.type === 'tennis_sf') return '10 + 6';
   if (ev.type === '1x2') return '4';
+  if (ev.type === 'bracket') { const sc=ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5}; return `8×${sc.r16||1} + 4×${sc.qf||2} + 2×${sc.sf||3} + ${sc.third||4} + ${sc.champion||5}`; }
   if (ev.type === 'ko_block') { const n=ev.matches?.length||0,sc=ev.scoring||{result:4,qualified:3,how:2}; return `${n} × (${sc.result||4}+${sc.qualified||3}+${sc.how||2})`; }
   if (ev.type === 'f1_race') return `${partial} + 4`;
   if (ev.type === 'top4') return partial;
@@ -3100,6 +3270,10 @@ async function adminViewAllPronos(uid, pseudo) {
     } else if (ev.type === '1x2') {
       const res = {1:'Home wins','X':'Draw',2:'Away wins'};
       if (d.result) lines.push('Result: ' + (res[d.result]||d.result));
+    } else if (ev.type === 'bracket') {
+      if (d.final) lines.push('🏆 ' + d.final);
+      if (d.third) lines.push('🥉 ' + d.third);
+      lines.push(`R16: ${(ev.r16||[]).filter(m=>d[m.key]).length}/${(ev.r16||[]).length} picked`);
     } else if (ev.type === 'ko_block') {
       const howLbl = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'?';
       (ev.matches||[]).forEach(m => {
@@ -3336,6 +3510,11 @@ function renderAdminForm(ev, existing) {
         </div>
       </div>
       <button onclick="saveResult(${ev.id},'f1_race')" style="font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
+  }
+  if (ev.type === 'bracket') {
+    return `<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">JSON · keys: ra–rh (R16), qa–qd (QF), sa–sb (SF), final, third</div>
+      <textarea id="admin-${ev.id}-json" style="width:100%;font-size:11px;font-family:monospace;height:100px;border:1px solid var(--border);border-radius:4px;padding:4px;">${existing?JSON.stringify(existing,null,2):''}</textarea>
+      <button onclick="saveResult(${ev.id},'json')" style="margin-top:4px;font-size:12px;padding:5px 14px;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;">💾 Save & Calculate</button>`;
   }
   // ko_block — per-match result + qualified + how
   if (ev.type === 'ko_block') {
