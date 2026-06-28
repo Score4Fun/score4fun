@@ -1049,7 +1049,7 @@ const EVENTS = [
 
   // ===== BRACKET PREDICTION =====
   { id:116, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🏆',
-    name:'🧪 Full Bracket [Beta™ · Bugs may qualify]', sub:'R16 → Final · 56 pts · Work in progress 🚧',
+    name:'🧪 Full Bracket · ⚠️ Do NOT Pick This 😏', sub:'Seriously. Don\'t. (Bugs may qualify as champion 🐛 · 56pts tho 👀)',
     type:'bracket', status:'open', urgency:false, cutoff:'July 4', deadline:'2026-07-04T11:00:00Z',
     scoring:{r16:4, qf:3, sf:3, third:3, champion:3},
     r16:[
@@ -1077,17 +1077,17 @@ const EVENTS = [
   // ===== BRACKET ADMIN LAB =====
   { id:117, adminOnly:true, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🏟️',
     name:'🏟️ WC 2026 Bracket · Visual Lab', sub:'R16→Final · Winner + How · 88 pts max',
-    type:'bracket', enhanced:true, status:'open', urgency:false, cutoff:'July 4', deadline:'2026-07-04T11:00:00Z',
+    type:'bracket', enhanced:true, status:'open', urgency:true, cutoff:'Tonight 20h', deadline:'2026-06-28T18:00:00Z',
     scoring:{r16:4, qf:3, sf:3, third:3, champion:3, how:2},
     r16:[
-      {key:'ra', t1:'🇧🇷 Brazil', t2:'🇩🇪 Germany'},
-      {key:'rb', t1:'🇫🇷 France', t2:'🇵🇹 Portugal'},
-      {key:'rc', t1:'🇳🇱 Netherlands', t2:'🇦🇷 Argentina'},
-      {key:'rd', t1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England', t2:'🇪🇸 Spain'},
-      {key:'re', t1:'🇺🇸 USA', t2:'🇯🇵 Japan'},
-      {key:'rf', t1:'🇲🇦 Morocco', t2:'🇧🇪 Belgium'},
-      {key:'rg', t1:'🇨🇴 Colombia', t2:'🇸🇳 Senegal'},
-      {key:'rh', t1:'🇲🇽 Mexico', t2:'🇺🇾 Uruguay'},
+      {key:'ra', t1:'🇩🇪 Germany', t2:'🇫🇷 France'},
+      {key:'rb', t1:'🇨🇦 Canada', t2:'🇲🇦 Morocco'},
+      {key:'rc', t1:'🇭🇷 Croatia', t2:'🇪🇸 Spain'},
+      {key:'rd', t1:'🇺🇸 USA', t2:'🇸🇳 Senegal'},
+      {key:'re', t1:'🇧🇷 Brazil', t2:'🇨🇮 Côte d\'Ivoire'},
+      {key:'rf', t1:'🇲🇽 Mexico', t2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England'},
+      {key:'rg', t1:'🇦🇷 Argentina', t2:'🇪🇬 Egypt'},
+      {key:'rh', t1:'🇩🇿 Algeria', t2:'🇨🇴 Colombia'},
     ],
     qf:[
       {key:'qa', src:['ra','rb']},
