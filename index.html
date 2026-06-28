@@ -568,8 +568,9 @@
     </div>
     <div id="admin-results-section">
       <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-        <button id="admin-filter-all" onclick="setAdminFilter('all')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">All</button>
-        <button id="admin-filter-pending" onclick="setAdminFilter('pending')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">⏳ Awaiting result</button>
+        <button id="admin-filter-all" onclick="setAdminFilter('all')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--orange);color:white;cursor:pointer;font-weight:600;">🟢 In Progress</button>
+        <button id="admin-filter-pending" onclick="setAdminFilter('pending')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">⏳ Awaiting Result</button>
+        <button id="admin-filter-done" onclick="setAdminFilter('done')" style="font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:white;color:var(--text);cursor:pointer;">✅ Done</button>
       </div>
       <div id="admin-list"></div>
     </div>
@@ -3497,10 +3498,14 @@ async function deleteUser(uid, pseudo) {
 
 function setAdminFilter(f) {
   _adminFilter = f;
-  document.getElementById('admin-filter-all').style.background = f==='all' ? 'var(--orange)' : 'white';
-  document.getElementById('admin-filter-all').style.color = f==='all' ? 'white' : 'var(--text)';
-  document.getElementById('admin-filter-pending').style.background = f==='pending' ? 'var(--orange)' : 'white';
-  document.getElementById('admin-filter-pending').style.color = f==='pending' ? 'white' : 'var(--text)';
+  ['all','pending','done'].forEach(id => {
+    const btn = document.getElementById('admin-filter-'+id);
+    if (!btn) return;
+    const sel = f === id;
+    btn.style.background = sel ? 'var(--orange)' : 'white';
+    btn.style.color = sel ? 'white' : 'var(--text)';
+    btn.style.fontWeight = sel ? '600' : '400';
+  });
   renderAdmin();
 }
 
@@ -3512,13 +3517,22 @@ async function renderAdmin() {
   adminResults = {};
   if (data) data.forEach(r => { adminResults[r.event_id] = r.result_data; });
 
-  let events = EVENTS.filter(ev => ev.status === 'open').sort((a,b) => {
-    const da = a.deadline ? new Date(a.deadline) : new Date('9999');
-    const db = b.deadline ? new Date(b.deadline) : new Date('9999');
-    return da - db;
+  let events;
+  if (_adminFilter === 'done') {
+    events = EVENTS.filter(ev => adminResults[ev.id]);
+  } else {
+    events = EVENTS.filter(ev => ev.status === 'open');
+  }
+  // Most recent first (descending by deadline)
+  events = events.sort((a,b) => {
+    const da = a.deadline ? new Date(a.deadline) : new Date(0);
+    const db = b.deadline ? new Date(b.deadline) : new Date(0);
+    return db - da;
   });
   if (_adminFilter === 'pending') {
     events = events.filter(ev => isTrulyClosed(ev) && !adminResults[ev.id]);
+  } else if (_adminFilter === 'all') {
+    events = events.filter(ev => !isTrulyClosed(ev));
   }
 
   list.innerHTML = events.map(ev => {
