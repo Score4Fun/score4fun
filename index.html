@@ -975,11 +975,27 @@ const EVENTS = [
     ]
   },
   { id:110, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'⚽',
-    name:'Round of 32 · Part 2', sub:'July 1–4',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'July 1', deadline:'2026-07-01T13:00:00Z' },
+    name:'Last 32 · Batch 2', sub:'36 pts max',
+    type:'ko_block', status:'open', urgency:true, cutoff:'June 29', deadline:'2026-06-29T19:00:00Z',
+    scoring:{result:4, qualified:3, how:2},
+    matches:[
+      {key:'m1', team1:'🇫🇷 France',    team2:'🇸🇪 Sweden'},
+      {key:'m2', team1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England',   team2:'🇨🇩 DR Congo'},
+      {key:'m3', team1:'🇧🇪 Belgium',   team2:'🇸🇳 Senegal'},
+      {key:'m4', team1:'🇺🇸 USA',       team2:'🇧🇦 Bosnia'},
+    ]
+  },
   { id:111, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'⚽',
-    name:'Round of 16', sub:'July 4–7',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'July 4', deadline:'2026-07-04T13:00:00Z' },
+    name:'Last 32 · Batch 3', sub:'36 pts max',
+    type:'ko_block', status:'open', urgency:true, cutoff:'June 30', deadline:'2026-06-30T19:00:00Z',
+    scoring:{result:4, qualified:3, how:2},
+    matches:[
+      {key:'m1', team1:'🇪🇸 Spain',     team2:'🇦🇹 Austria'},
+      {key:'m2', team1:'🇦🇺 Australia', team2:'🇪🇬 Egypt'},
+      {key:'m3', team1:'🇦🇷 Argentina', team2:'🇨🇻 Cape Verde'},
+      {key:'m4', team1:'🇨🇴 Colombia',  team2:'🇬🇭 Ghana'},
+    ]
+  },
   { id:112, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'⚽',
     name:'Quarter-finals', sub:'July 9–12',
     type:'upcoming', status:'soon', urgency:false, cutoff:'July 9', deadline:'2026-07-09T13:00:00Z' },
