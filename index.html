@@ -2214,7 +2214,13 @@ function _renderBracketEnhanced() {
   </div>`;
 
   const maxPts=getMaxPts(ev);
-  const html=`${r16Sec}${brkSec}
+  const instr=`<div style="font-size:11px;color:var(--text-muted);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.5;">
+    Pick the <strong style="color:var(--text);">winner</strong> of each match, then how they qualify:
+    <span style="color:var(--orange);font-weight:600;">90'</span> (regular time) ·
+    <span style="color:var(--orange);font-weight:600;">E.T.</span> (extra time) ·
+    <span style="color:var(--orange);font-weight:600;">Pen.</span> (penalties) — +${sc.how}pt bonus each.
+  </div>`;
+  const html=`${instr}${r16Sec}${brkSec}
   <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:12px;padding:6px;background:var(--orange-bg);border-radius:8px;">
     🎯 <strong>${maxPts} pts max</strong> · Winner + How (90'/E.T./Pen. = +${sc.how||2}pt chacun)
   </div>`;
