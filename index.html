@@ -3084,6 +3084,14 @@ async function adminViewAllPronos(uid, pseudo) {
     } else if (ev.type === '1x2') {
       const res = {1:'Home wins','X':'Draw',2:'Away wins'};
       if (d.result) lines.push('Result: ' + (res[d.result]||d.result));
+    } else if (ev.type === 'ko_block') {
+      const howLbl = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'?';
+      (ev.matches||[]).forEach(m => {
+        const pm = d[m.key];
+        if (!pm) return;
+        const res = pm.result==='1' ? m.team1 : pm.result==='2' ? m.team2 : pm.result==='X' ? 'Draw' : '?';
+        lines.push(`${m.team1} vs ${m.team2} → ${res} | Qualifies: ${pm.qualified||'?'} | ${howLbl(pm.how)}`);
+      });
     } else {
       lines.push(JSON.stringify(d));
     }
