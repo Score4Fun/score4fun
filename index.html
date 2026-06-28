@@ -1060,6 +1060,33 @@ const EVENTS = [
     ],
   },
 
+  // ===== BRACKET ADMIN LAB =====
+  { id:117, adminOnly:true, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🔬',
+    name:'[ADMIN LAB] Full Bracket · WIP', sub:'R16 → Final · sandbox',
+    type:'bracket', status:'open', urgency:false, cutoff:'July 4', deadline:'2026-07-04T11:00:00Z',
+    scoring:{r16:4, qf:3, sf:3, third:3, champion:3},
+    r16:[
+      {key:'ra', t1:'Team A', t2:'Team B'},
+      {key:'rb', t1:'Team C', t2:'Team D'},
+      {key:'rc', t1:'Team E', t2:'Team F'},
+      {key:'rd', t1:'Team G', t2:'Team H'},
+      {key:'re', t1:'Team I', t2:'Team J'},
+      {key:'rf', t1:'Team K', t2:'Team L'},
+      {key:'rg', t1:'Team M', t2:'Team N'},
+      {key:'rh', t1:'Team O', t2:'Team P'},
+    ],
+    qf:[
+      {key:'qa', src:['ra','rb']},
+      {key:'qb', src:['rc','rd']},
+      {key:'qc', src:['re','rf']},
+      {key:'qd', src:['rg','rh']},
+    ],
+    sf:[
+      {key:'sa', src:['qa','qb']},
+      {key:'sb', src:['qc','qd']},
+    ],
+  },
+
   // ===== TENNIS - Roland Garros =====
   // Demi-finales Hommes
 
