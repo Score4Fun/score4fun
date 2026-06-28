@@ -322,6 +322,17 @@
     .brk-match-pts { font-size:10px;color:var(--orange);font-weight:700;flex-shrink:0;min-width:22px;text-align:right; }
     .brk-section { display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--text);margin:14px 0 6px;padding-bottom:4px;border-bottom:1.5px solid var(--border); }
     .brk-sec-pts { font-size:10px;font-weight:600;color:var(--orange);background:var(--orange-bg);padding:2px 7px;border-radius:8px; }
+    .bv-col { display:flex;flex-direction:column; }
+    .bv-rnd-hd { font-size:9px;font-weight:700;text-align:center;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;padding:0 0 4px;margin-bottom:2px;border-bottom:1.5px solid var(--orange); }
+    .bv-box { display:flex;flex-direction:column;gap:2px; }
+    .bv-team { font-size:10px;font-weight:600;padding:3px 4px;border:1.5px solid var(--border);border-radius:5px;cursor:pointer;background:white;text-align:center;line-height:1.3;transition:all .12s;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .bv-team:hover { border-color:var(--orange);color:var(--orange); }
+    .bv-team.bv-sel { background:var(--orange);color:white;border-color:var(--orange);font-weight:700; }
+    .bv-tbd { font-size:9px;color:var(--text-muted);text-align:center;padding:3px;border:1.5px dashed var(--border);border-radius:5px;font-style:italic; }
+    .bv-how-row { display:flex;gap:2px;margin-top:2px; }
+    .bv-how { flex:1;font-size:8px;font-weight:700;text-align:center;padding:2px 1px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--bg);color:var(--text-muted);transition:all .12s; }
+    .bv-how.bv-how-live { cursor:pointer;color:var(--text); }
+    .bv-how.bv-how-sel { background:var(--orange-dark);color:white;border-color:var(--orange-dark); }
     .match-pts { font-size:10px; color:var(--text-muted); margin-left:4px; flex-shrink:0; }
   /* Custom team select — flag-friendly dropdown */
   .cs-wrap { position:relative; margin-bottom:8px; }
@@ -777,11 +788,12 @@ function renderMemberPronoCards(body, pronoCards) {
         : `<button class="prono-btn view">Fermé 🔒</button>`}`;
     } else if (ev.type === 'bracket') {
     const sc = ev.scoring || {r16:1, qf:2, sf:3, third:4, champion:5};
-    (ev.r16||[]).forEach(m => { if (p[m.key] && p[m.key]===official[m.key]) pts += sc.r16||1; });
-    (ev.qf||[]).forEach(q => { if (p[q.key] && p[q.key]===official[q.key]) pts += sc.qf||2; });
-    (ev.sf||[]).forEach(s => { if (p[s.key] && p[s.key]===official[s.key]) pts += sc.sf||3; });
-    if (p.third && p.third===official.third) pts += sc.third||4;
-    if (p.final && p.final===official.final) pts += sc.champion||5;
+    const addHow = (key) => { if (sc.how && p[key+'_how'] && p[key+'_how']===official[key+'_how']) pts += sc.how; };
+    (ev.r16||[]).forEach(m => { if (p[m.key] && p[m.key]===official[m.key]) pts += sc.r16||1; addHow(m.key); });
+    (ev.qf||[]).forEach(q => { if (p[q.key] && p[q.key]===official[q.key]) pts += sc.qf||2; addHow(q.key); });
+    (ev.sf||[]).forEach(s => { if (p[s.key] && p[s.key]===official[s.key]) pts += sc.sf||3; addHow(s.key); });
+    if (p.third && p.third===official.third) pts += sc.third||4; addHow('third');
+    if (p.final && p.final===official.final) pts += sc.champion||5; addHow('final');
   } else if (ev.type === 'ko_block') {
     const sc = ev.scoring || {result:4, qualified:3, how:2};
     (ev.matches||[]).forEach(m => {
@@ -1061,10 +1073,10 @@ const EVENTS = [
   },
 
   // ===== BRACKET ADMIN LAB =====
-  { id:117, adminOnly:true, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🔬',
-    name:'[ADMIN LAB] Full Bracket · WIP', sub:'R16 → Final · sandbox',
-    type:'bracket', status:'open', urgency:false, cutoff:'July 4', deadline:'2026-07-04T11:00:00Z',
-    scoring:{r16:4, qf:3, sf:3, third:3, champion:3},
+  { id:117, adminOnly:true, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🏟️',
+    name:'🏟️ WC 2026 Bracket · Visual Lab', sub:'R16→Final · Winner + How · 88 pts max',
+    type:'bracket', enhanced:true, status:'open', urgency:false, cutoff:'July 4', deadline:'2026-07-04T11:00:00Z',
+    scoring:{r16:4, qf:3, sf:3, third:3, champion:3, how:2},
     r16:[
       {key:'ra', t1:'Team A', t2:'Team B'},
       {key:'rb', t1:'Team C', t2:'Team D'},
@@ -2043,6 +2055,7 @@ function selectOpeningBtn(question, el) {
 function _renderBracket() {
   const ev = currentEvent;
   if (!ev || ev.type !== 'bracket') return;
+  if (ev.enhanced) { _renderBracketEnhanced(); return; }
   const p = window._brkPicks || {};
   const sc = ev.scoring || {r16:1, qf:2, sf:3, third:4, champion:5};
   const w = k => p[k] || null;
@@ -2105,6 +2118,103 @@ function selectBrk(key, team) {
     if (isSF) { delete p.final; delete p.third; }
   }
   _renderBracket();
+}
+
+function selectBrkHow(matchKey, how) {
+  if (!window._brkPicks) window._brkPicks = {};
+  window._brkPicks[matchKey+'_how'] = how;
+  _renderBracket();
+}
+
+function _renderBracketEnhanced() {
+  const ev = currentEvent;
+  if (!ev || ev.type !== 'bracket') return;
+  const p = window._brkPicks || {};
+  const sc = ev.scoring || {r16:4,qf:3,sf:3,third:3,champion:3,how:2};
+  const w = k => p[k] || null;
+  const wh = k => p[k+'_how'] || null;
+  const BV_H = 78; // px per R16 slot (fixed height for alignment)
+
+  const teamBtn = (matchKey, team) => {
+    if (!team) return `<div class="bv-tbd">TBD</div>`;
+    const sel = w(matchKey) === team;
+    return `<div class="bv-team${sel?' bv-sel':''}" data-bk="${matchKey}" data-bt="${team.replace(/"/g,'&quot;')}" onclick="selectBrk(this.dataset.bk,this.dataset.bt)">${team}</div>`;
+  };
+
+  const howRow = (matchKey) => {
+    const winner = w(matchKey);
+    const h = wh(matchKey);
+    const hBtn = (v,lbl) => `<div class="bv-how${h===v?' bv-how-sel':winner?' bv-how-live':''}" data-bk="${matchKey}" data-bh="${v}" onclick="${winner?`selectBrkHow(this.dataset.bk,this.dataset.bh)`:''}">${lbl}</div>`;
+    return `<div class="bv-how-row">${hBtn('TR',"90'")}${hBtn('PROL','E.T.')}${hBtn('TAB','Pen.')}</div>`;
+  };
+
+  const matchBox = (matchKey, t1, t2) => `<div class="bv-box">${teamBtn(matchKey,t1)}${teamBtn(matchKey,t2)}${howRow(matchKey)}</div>`;
+
+  const sfLoser = (sfKey, sfSrc) => {
+    const win = w(sfKey); if (!win) return null;
+    const t1 = w(sfSrc[0]), t2 = w(sfSrc[1]);
+    if (!t1||!t2) return null; return win===t1?t2:t1;
+  };
+
+  // R16 column — 8 pairs, each BV_H px, with bracket border on right per pair
+  let r16 = `<div class="bv-col" style="width:90px;flex-shrink:0;">
+    <div class="bv-rnd-hd">R16·${sc.r16}pt</div>`;
+  for (let i=0;i<8;i++) {
+    const m = ev.r16[i];
+    const top = i%2===0, bot = i%2===1;
+    const brd = top
+      ? 'border-right:2px solid var(--border);border-top:2px solid var(--border);border-top-right-radius:6px;'
+      : 'border-right:2px solid var(--border);border-bottom:2px solid var(--border);border-bottom-right-radius:6px;';
+    r16 += `<div style="height:${BV_H}px;box-sizing:border-box;display:flex;align-items:center;${brd}padding:4px 6px 4px 2px;">${matchBox(m.key,m.t1,m.t2)}</div>`;
+  }
+  r16 += `</div>`;
+
+  // QF column — 4 slots, each 2×BV_H px
+  let qf = `<div class="bv-col" style="width:90px;flex-shrink:0;margin-left:8px;">
+    <div class="bv-rnd-hd">QF·${sc.qf}pt</div>`;
+  for (let i=0;i<4;i++) {
+    const q = ev.qf[i];
+    const top=i%2===0, bot=i%2===1;
+    const brd = top
+      ? 'border-right:2px solid var(--border);border-top:2px solid var(--border);border-top-right-radius:6px;'
+      : 'border-right:2px solid var(--border);border-bottom:2px solid var(--border);border-bottom-right-radius:6px;';
+    qf += `<div style="height:${BV_H*2}px;box-sizing:border-box;display:flex;align-items:center;${brd}padding:4px 6px 4px 2px;">${matchBox(q.key,w(q.src[0]),w(q.src[1]))}</div>`;
+  }
+  qf += `</div>`;
+
+  // SF column — 2 slots, each 4×BV_H px
+  let sf = `<div class="bv-col" style="width:90px;flex-shrink:0;margin-left:8px;">
+    <div class="bv-rnd-hd">SF·${sc.sf}pt</div>`;
+  for (let i=0;i<2;i++) {
+    const s = ev.sf[i];
+    const brd = i===0
+      ? 'border-right:2px solid var(--border);border-top:2px solid var(--border);border-top-right-radius:6px;'
+      : 'border-right:2px solid var(--border);border-bottom:2px solid var(--border);border-bottom-right-radius:6px;';
+    sf += `<div style="height:${BV_H*4}px;box-sizing:border-box;display:flex;align-items:center;${brd}padding:4px 6px 4px 2px;">${matchBox(s.key,w(s.src[0]),w(s.src[1]))}</div>`;
+  }
+  sf += `</div>`;
+
+  // Final + 3rd column
+  const thirdT1=sfLoser('sa',ev.sf[0].src), thirdT2=sfLoser('sb',ev.sf[1].src);
+  let fin = `<div class="bv-col" style="width:90px;flex-shrink:0;margin-left:8px;">
+    <div class="bv-rnd-hd">Final·${sc.champion}pt</div>
+    <div style="height:${BV_H*4}px;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:4px 2px;">
+      ${matchBox('final',w('sa'),w('sb'))}
+      <div style="font-size:9px;color:var(--text-muted);text-align:center;font-weight:700;border-top:1px dashed var(--border);padding-top:6px;">🥉 3rd·${sc.third}pt</div>
+      ${matchBox('third',thirdT1,thirdT2)}
+    </div>
+  </div>`;
+
+  const maxPts = getMaxPts(ev);
+  const html = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;">
+    <div style="display:flex;align-items:flex-start;padding:4px 2px;">${r16}${qf}${sf}${fin}</div>
+  </div>
+  <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:8px;padding:6px;background:var(--orange-bg);border-radius:8px;">
+    🎯 <strong>${maxPts} pts max</strong> · Pick winner + how (90'/E.T./Pen. = +${sc.how||2}pt bonus each)
+  </div>`;
+
+  const c = document.getElementById('brk-container');
+  if (c) c.innerHTML = html;
 }
 
 function selectKoBtn(matchKey, question, el) {
@@ -2709,7 +2819,7 @@ function getMaxPts(ev) {
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return 23;
   if (ev.type === 'tennis_sf') return 16;
   if (ev.type === '1x2') return 4;
-  if (ev.type === 'bracket') { const sc=ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5}; return (ev.r16?.length||8)*(sc.r16||1)+(ev.qf?.length||4)*(sc.qf||2)+(ev.sf?.length||2)*(sc.sf||3)+(sc.third||4)+(sc.champion||5); }
+  if (ev.type === 'bracket') { const sc=ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5}; const base=(ev.r16?.length||8)*(sc.r16||1)+(ev.qf?.length||4)*(sc.qf||2)+(ev.sf?.length||2)*(sc.sf||3)+(sc.third||4)+(sc.champion||5); const howPts=sc.how?((ev.r16?.length||8)+(ev.qf?.length||4)+(ev.sf?.length||2)+2)*(sc.how):0; return base+howPts; }
   if (ev.type === 'ko_block') { const sc=ev.scoring||{result:4,qualified:3,how:2}; return (ev.matches?.length||0)*((sc.result||4)+(sc.qualified||3)+(sc.how||2)); }
   if (ev.type === 'f1_race') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0) + 4;
   if (ev.type === 'top4') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0);
