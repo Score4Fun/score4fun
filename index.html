@@ -4524,7 +4524,7 @@ async function renderGroupClassement(groupId) {
     : {data:[]};
   const officialMap = {};
   (results||[]).forEach(r => { officialMap[Number(r.event_id)] = r.result_data; });
-  const scoredIds = Object.keys(officialMap).map(Number);
+  const scoredIds = Object.keys(officialMap).map(Number).filter(id=>{ const ev=EVENTS.find(e=>e.id===id); return ev&&!ev.adminOnly; });
 
   // Profils : essayer .in() d'abord, sinon un par un, sinon pseudo = début de l'uuid
   let profiles = [];
@@ -4547,7 +4547,7 @@ async function renderGroupClassement(groupId) {
       (pronos||[]).forEach(prono => {
         const ev = EVENTS.find(e => e.id === prono.event_id);
         const official = officialMap[prono.event_id];
-        if (!ev || !official) return;
+        if (!ev || !official || ev.adminOnly) return;
         groupPts += computeUserPoints(ev, prono.data, official);
       });
       scoredIds.forEach(eid => {
@@ -4865,7 +4865,7 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     officialMap[Number(r.event_id)] = r.result_data;
     resultOrder[Number(r.event_id)] = i; // 0 = most recently entered
   });
-  const scoredIds = Object.keys(officialMap).map(Number);
+  const scoredIds = Object.keys(officialMap).map(Number).filter(id=>{ const ev=EVENTS.find(e=>e.id===id); return ev&&!ev.adminOnly; });
 
   // 3. Profile + scored pronos in parallel
   const [profRes, pronosRes] = await Promise.all([
@@ -4881,7 +4881,7 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
   let totalPts = 0, totalMax = 0;
   const pronoCards = pronos.map(pr => {
     const ev = EVENTS.find(e => e.id === Number(pr.event_id));
-    if (!ev) return null;
+    if (!ev || ev.adminOnly) return null;
     const official = officialMap[Number(pr.event_id)];
     if (!official) return null;
     const pts = computeUserPoints(ev, pr.data, official);
@@ -4902,7 +4902,7 @@ async function openMemberProfile(uid, pseudo, sport, comp) {
     if (scoredIds.includes(evId)) return;        // already scored
     if (officialMap[evId]) return;               // has a result
     const ev = EVENTS.find(e => e.id === evId); // must exist in EVENTS
-    if (!ev) return;
+    if (!ev || ev.adminOnly) return;
     if (sport && ev.sport !== sport) return;                          // sport filter
     if (comp  && ev.comp  !== comp)  return;                          // comp filter
     if (!isTrulyClosed(ev)) return;  // only show truly closed events (deadline past, not 'soon')
@@ -4995,7 +4995,7 @@ async function openGroupMemberProfile(uid, pseudo) {
   let totalPts = 0, scoredCount = 0;
   const pronoCards = pronos.map(pr => {
     const ev = EVENTS.find(e => e.id === Number(pr.event_id));
-    if (!ev) return null;
+    if (!ev || ev.adminOnly) return null;
     const official = officialMap[Number(pr.event_id)];
     let pts = null, max = null;
     if (official) {
