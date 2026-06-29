@@ -2805,6 +2805,24 @@ function computeUserPoints(ev, p, official) {
     if (p.sets   && p.sets  == official.sets)    pts += 6;
   } else if (ev.type === '1x2') {
     if (p.result && p.result === official.result) pts += 4;
+  } else if (ev.type === 'ko_block') {
+    const sc = ev.scoring || {result:4, qualified:3, how:2};
+    (ev.matches||[]).forEach(m => {
+      const pm = p[m.key] || {};
+      const om = official[m.key] || {};
+      if (!om.result) return; // match pas encore officiel (résultat partiel)
+      if (pm.result    && pm.result    === om.result)    pts += (sc.result   ||4);
+      if (pm.qualified && pm.qualified === om.qualified) pts += (sc.qualified||3);
+      if (pm.how       && pm.how       === om.how)       pts += (sc.how      ||2);
+    });
+  } else if (ev.type === 'bracket') {
+    const sc = ev.scoring || {r16:1, qf:2, sf:3, third:4, champion:5, how:0};
+    const addHow = key => { if (sc.how && p[key+'_how'] && official[key+'_how'] && p[key+'_how']===official[key+'_how']) pts += sc.how; };
+    (ev.r16||[]).forEach(m => { if (p[m.key] && official[m.key] && p[m.key]===official[m.key]) { pts += sc.r16||1; addHow(m.key); } });
+    (ev.qf ||[]).forEach(m => { if (p[m.key] && official[m.key] && p[m.key]===official[m.key]) { pts += sc.qf ||2; addHow(m.key); } });
+    (ev.sf ||[]).forEach(m => { if (p[m.key] && official[m.key] && p[m.key]===official[m.key]) { pts += sc.sf ||3; addHow(m.key); } });
+    if (p.final && official.final && p.final===official.final) { pts += sc.champion||5; addHow('final'); }
+    if (p.third && official.third && p.third===official.third) { pts += sc.third   ||4; addHow('third'); }
   } else if (ev.type === 'f1_race' || ev.type === 'top4') {
     const top4 = p.top4 || [];
     const off4 = official.top4 || [];
