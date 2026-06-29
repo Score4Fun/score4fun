@@ -2926,8 +2926,10 @@ function deleteEventPronos(eventId, eventName) {
     }
     showToast('✅ Picks deleted, recalculating…');
     await recalculateAllPoints('deleteEventPronos id='+eventId);
+    delete userPronos[eventId];  // clear local cache so Home tile disappears
     renderAdminPronos();
     renderAdmin();
+    renderHomeEvents();
   });
 }
 // ── END Admin Pronostiques tab ─────────────────────────────────────────────
