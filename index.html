@@ -4787,6 +4787,7 @@ function showPage(name) {
   const navEl = document.getElementById('nav-'+name);
   if (navEl) navEl.classList.add('active');
   if (name==='classements') { document.querySelectorAll('#rank-tabs-inner .rank-tab').forEach(t=>t.classList.remove('active')); const first=document.querySelector('#rank-tabs-inner .rank-tab'); if(first){first.classList.add('active');} _rankSport=''; _rankComp=null; const ct=document.getElementById('rank-comp-tabs'); if(ct){ct.style.display='none';ct.innerHTML='';} loadRankings('',null); }
+  if (name==='pronos') renderPronos();
   if (name==='groupes') renderGroupes();
   if (name==='admin') renderAdmin();
   if (name==='news') renderNews();
