@@ -775,39 +775,38 @@ function renderMemberPronoCards(body, pronoCards) {
       inner += selectRow('1st Set Winner', p.first_set, official ? official.first_set : null, 4);
       inner += selectRow('Aces total', p.aces, official ? official.aces : null, 3);
     } else if (ev.type === 'bracket') {
-    const ex = userPronos[ev.id] || {};
-    const r16done = (ev.r16||[]).filter(m=>ex[m.key]).length;
-    const totalR16 = (ev.r16||[]).length;
-    const fullDone = !!(ex.final && ex.third);
-    const closed = isClosed(ev);
-    inner = `
-      <div class="event-status">
-        <div class="status-dot ${fullDone?'done-dot':closed?'closed':''}"></div>
-        <span class="status-text">${fullDone?'🎯 Full bracket saved!':r16done>0?`R16: ${r16done}/${totalR16} · In progress…`:'Pick every round!'}</span>
-      </div>
-      ${!closed
-        ? fullDone
-          ? `<button class="prono-btn modify" onclick="openPronoModal(${ev.id})">✏️ Edit</button>`
-          : `<button class="prono-btn" onclick="openPronoModal(${ev.id})">Pick →</button>`
-        : `<button class="prono-btn view">Fermé 🔒</button>`}`;
-    } else if (ev.type === 'bracket') {
-    const sc = ev.scoring || {r16:1, qf:2, sf:3, third:4, champion:5};
-    const addHow = (key) => { if (sc.how && p[key+'_how'] && p[key+'_how']===official[key+'_how']) pts += sc.how; };
-    (ev.r16||[]).forEach(m => { if (p[m.key] && p[m.key]===official[m.key]) pts += sc.r16||1; addHow(m.key); });
-    (ev.qf||[]).forEach(q => { if (p[q.key] && p[q.key]===official[q.key]) pts += sc.qf||2; addHow(q.key); });
-    (ev.sf||[]).forEach(s => { if (p[s.key] && p[s.key]===official[s.key]) pts += sc.sf||3; addHow(s.key); });
-    if (p.third && p.third===official.third) pts += sc.third||4; addHow('third');
-    if (p.final && p.final===official.final) pts += sc.champion||5; addHow('final');
-  } else if (ev.type === 'ko_block') {
-    const sc = ev.scoring || {result:4, qualified:3, how:2};
-    (ev.matches||[]).forEach(m => {
-      const pm2 = p[m.key] || {};
-      const om  = official[m.key] || {};
-      if (pm2.result    && pm2.result    === om.result)    pts += (sc.result||4);
-      if (pm2.qualified && pm2.qualified === om.qualified) pts += (sc.qualified||3);
-      if (pm2.how       && pm2.how       === om.how)       pts += (sc.how||2);
-    });
-  } else if (ev.type === 'f1_race' || ev.type === 'top4') {
+      const sc = ev.scoring || {r16:1,qf:2,sf:3,third:3,champion:3};
+      const howL = v => v==='TR'?"90'":v==='PROL'?'E.T.':v==='TAB'?'Pen.':v||'';
+      const brkRow = (label, myPick, offPick, rowPts, myHow, offHow) => {
+        const pending = !official || offPick===undefined;
+        const correct = !pending && myPick && myPick===offPick;
+        const cls = pending?(myPick?'pending':''):(!myPick?'':correct?'correct':'wrong');
+        const howOk = sc.how && myHow && offHow && myHow===offHow;
+        const totalPt = (correct?rowPts:0)+(howOk?sc.how:0);
+        const dispPick = myPick?(myPick+(myHow?' ('+howL(myHow)+')':'')):'—';
+        return '<div class="rd-select-row">'
+          +'<div class="rd-select-label">'+label+'</div>'
+          +'<div class="rd-select-val '+cls+'" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;">'+dispPick+'</div>'
+          +(!pending&&myPick!==offPick&&offPick?'<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;">✓ '+offPick+'</div>':'')
+          +'<div class="rd-pts '+(totalPt===0?'zero':'')+'">'+( totalPt>0?'+'+totalPt+' pt':'' )+'</div>'
+          +'</div>';
+      };
+      (ev.r16||[]).forEach(m => { inner += brkRow(m.t1+' vs '+m.t2, p[m.key], official?official[m.key]:undefined, sc.r16||1, p[m.key+'_how'], official?official[m.key+'_how']:undefined); });
+      (ev.qf||[]).forEach((q,i) => { inner += brkRow('QF'+(i+1), p[q.key], official?official[q.key]:undefined, sc.qf||2, p[q.key+'_how'], official?official[q.key+'_how']:undefined); });
+      (ev.sf||[]).forEach((s,i) => { inner += brkRow('SF'+(i+1), p[s.key], official?official[s.key]:undefined, sc.sf||3, p[s.key+'_how'], official?official[s.key+'_how']:undefined); });
+      inner += brkRow('🥉 3rd Place', p.third, official?official.third:undefined, sc.third||3, p.third_how, official?official.third_how:undefined);
+      inner += brkRow('🏆 Final', p.final, official?official.final:undefined, sc.champion||3, p.final_how, official?official.final_how:undefined);
+    } else if (ev.type === 'ko_block') {
+      const sc = ev.scoring || {result:4, qualified:3, how:2};
+      const howL2 = v => v==='TR'?"90'":v==='PROL'?'E.T.':v==='TAB'?'Pen.':v||'?';
+      (ev.matches||[]).forEach(m => {
+        const pm2 = p[m.key] || {};
+        const om  = official ? (official[m.key]||{}) : {};
+        inner += match1x2(m.team1+' vs '+m.team2, pm2.result, official?om.result:null, sc.result||4);
+        inner += selectRow('Qualifies', pm2.qualified, official?om.qualified:null, sc.qualified||3);
+        inner += selectRow('How', pm2.how?howL2(pm2.how):null, official&&om.how?howL2(om.how):null, sc.how||2);
+      });
+    } else if (ev.type === 'f1_race' || ev.type === 'top4') {
       const myTop4 = p.top4 || [];
       const offTop4 = official ? (official.top4 || []) : [];
       [0,1,2,3].forEach(function(i) {
