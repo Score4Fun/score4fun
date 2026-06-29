@@ -674,7 +674,7 @@
 <div class="toast" id="toast"></div>
 
 <!-- DETAIL RESULTAT MODAL -->
-<div class="modal-overlay" id="result-modal">
+<div class="modal-overlay" id="result-modal" onclick="if(event.target===this)document.getElementById('result-modal').classList.remove('open')">
   <div class="modal">
     <div class="modal-title" id="result-modal-title"></div>
     <div class="modal-sub" id="result-modal-sub"></div>
