@@ -1102,6 +1102,33 @@ const EVENTS = [
     ],
   },
 
+  // ===== BRACKET PUBLIC =====
+  { id:118, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🏟️',
+    name:'⚡ Road to the Final · WC 2026', sub:'R16 → Final · Pick who qualifies + How they make it · 88 pts',
+    type:'bracket', enhanced:true, status:'open', urgency:false, cutoff:'July 4 · 19h', deadline:'2026-07-04T17:00:00Z',
+    scoring:{r16:4, qf:3, sf:3, third:3, champion:3, how:2},
+    r16:[
+      {key:'ra', t1:'🇩🇪 Germany', t2:'🇫🇷 France'},
+      {key:'rb', t1:'🇨🇦 Canada', t2:'🇲🇦 Morocco'},
+      {key:'rc', t1:'🇭🇷 Croatia', t2:'🇪🇸 Spain'},
+      {key:'rd', t1:'🇺🇸 USA', t2:'🇸🇳 Senegal'},
+      {key:'re', t1:'🇧🇷 Brazil', t2:'🇨🇮 Côte d\'Ivoire'},
+      {key:'rf', t1:'🇲🇽 Mexico', t2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England'},
+      {key:'rg', t1:'🇦🇷 Argentina', t2:'🇪🇬 Egypt'},
+      {key:'rh', t1:'🇩🇿 Algeria', t2:'🇨🇴 Colombia'},
+    ],
+    qf:[
+      {key:'qa', src:['ra','rb']},
+      {key:'qb', src:['rc','rd']},
+      {key:'qc', src:['re','rf']},
+      {key:'qd', src:['rg','rh']},
+    ],
+    sf:[
+      {key:'sa', src:['qa','qb']},
+      {key:'sb', src:['qc','qd']},
+    ],
+  },
+
   // ===== TENNIS - Roland Garros =====
   // Demi-finales Hommes
 
