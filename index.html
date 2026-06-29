@@ -3747,24 +3747,34 @@ function renderAdminForm(ev, existing) {
             style="flex:1;padding:4px 2px;font-size:10px;border:1.5px solid ${exW===t?'var(--orange)':'var(--border)'};border-radius:5px;cursor:pointer;background:${exW===t?'var(--orange)':'white'};color:${exW===t?'white':'var(--text)'};">${t}</button>`).join('')}
         </div>${howBtns(m.key,exH)}</div>`;
     };
-    const freeRow = (key,label) => {
+    // Candidates for each round (teams that could reach that match)
+    const r16Cands = (r16Key) => { const m=ev.r16.find(x=>x.key===r16Key); return m?[m.t1,m.t2]:[]; };
+    const qfCands  = (q) => [...new Set(q.src.flatMap(r=>r16Cands(r)))];
+    const sfCands  = (s) => [...new Set(s.src.flatMap(r=>{ const q=ev.qf.find(x=>x.key===r); return q?qfCands(q):[]; }))];
+    const allTeams = [...new Set((ev.r16||[]).flatMap(m=>[m.t1,m.t2]))];
+
+    const selectRow2 = (key, label, candidates) => {
       const exW=ex[key]||'', exH=ex[key+'_how']||'';
+      const opts = candidates.map(t=>`<option value="${t.replace(/"/g,'&quot;')}" ${exW===t?'selected':''}>${t}</option>`).join('');
       return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;">
         <div style="font-size:10px;font-weight:700;color:var(--orange);margin-bottom:5px;">${label}</div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:9px;color:var(--text-muted);flex-shrink:0;">Winner:</span>
-          <input type="text" id="admin-${ev.id}-${key}" value="${exW.replace(/"/g,'&quot;')}" placeholder="Team name…" style="flex:1;font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;">
+          <select id="admin-${ev.id}-${key}" style="flex:1;font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--text);">
+            <option value="">— Select —</option>${opts}
+          </select>
         </div>${howBtns(key,exH)}</div>`;
     };
+    const freeRow = (key,label) => selectRow2(key,label,allTeams);
     let form = `<div style="font-size:10px;font-weight:700;color:var(--orange);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Round of 16</div>`;
     (ev.r16||[]).forEach(m=>{ form+=r16Row(m); });
     form+=`<div style="font-size:10px;font-weight:700;color:var(--orange);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;">Quarter Finals</div>`;
-    (ev.qf||[]).forEach((q,i)=>{ form+=freeRow(q.key,`QF${i+1}`); });
+    (ev.qf||[]).forEach((q,i)=>{ form+=selectRow2(q.key,`QF${i+1}`,qfCands(q)); });
     form+=`<div style="font-size:10px;font-weight:700;color:var(--orange);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;">Semi Finals</div>`;
-    (ev.sf||[]).forEach((s,i)=>{ form+=freeRow(s.key,`SF${i+1}`); });
+    (ev.sf||[]).forEach((s,i)=>{ form+=selectRow2(s.key,`SF${i+1}`,sfCands(s)); });
     form+=`<div style="font-size:10px;font-weight:700;color:var(--orange);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;">Final & 3rd Place</div>`;
-    form+=freeRow('final','🏆 Final');
-    form+=freeRow('third','🥉 3rd Place');
+    form+=selectRow2('final','🏆 Final',allTeams);
+    form+=selectRow2('third','🥉 3rd Place',allTeams);
     form+=`<button onclick="saveResult(${ev.id},'bracket')" style="margin-top:6px;font-size:12px;padding:6px 0;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;width:100%;font-weight:700;">💾 Save & Calculate</button>`;
     return form;
   }
@@ -3938,6 +3948,8 @@ async function saveResult(eventId, type) {
   const {error} = await sb.from('results').upsert({event_id:eventId, result_data, entered_at:new Date().toISOString()}, {onConflict:'event_id'});
   if (error) { showToast('❌ Erreur: '+error.message); return; }
   adminResults[eventId] = result_data;
+  window._officialResults = window._officialResults || {};
+  window._officialResults[eventId] = result_data;
   showToast('⏳ Saving & recalculating…');
   await calculatePoints(eventId, ev, result_data);
   renderAdmin();
