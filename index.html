@@ -3260,6 +3260,82 @@ async function renderAdminPickForm() {
       const label = ['🥇 1st','🥈 2nd','🥉 3rd','4️⃣ 4th'][pos];
       html += `<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div><select id="apf-top4-${pos}" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;"><option value="">— Select —</option>${cands.map(c=>`<option value="${c}" ${exTop4[pos]===c?'selected':''}>${c}</option>`).join('')}</select></div>`;
     });
+  } else if (ev.type === 'bracket') {
+    const sc3 = ev.scoring || {r16:4,qf:3,sf:3,third:3,champion:3,how:2};
+    const hasHow = !!(sc3.how);
+    const allTeams = [...new Set((ev.r16||[]).flatMap(m=>[m.t1,m.t2]))];
+    const howSel = (key) => !hasHow ? '' : `
+      <div style="margin-top:3px;display:flex;gap:4px;">
+        ${['TR','PROL','TAB'].map(v=>`<button type="button" onclick="apickSelect('${key}_how','${v}',this)" style="flex:1;padding:3px;border:1.5px solid var(--border);border-radius:5px;background:var(--card);color:var(--text);font-size:10px;cursor:pointer;">${v==='TR'?'90min':v==='PROL'?'ET':'Pen.'}</button>`).join('')}
+        <input type="hidden" id="apf-${key}_how" value="">
+      </div>`;
+    // R16
+    html += '<div style="font-weight:700;font-size:11px;color:var(--orange);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Round of 16</div>';
+    (ev.r16||[]).forEach(m => {
+      const sel = ex?.[m.key]||'';
+      const t1e = m.t1.replace(/'/g,"\'"); const t2e = m.t2.replace(/'/g,"\'");
+      html += `<div style="margin-bottom:7px;">
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">${m.t1} vs ${m.t2}</div>
+        <div style="display:flex;gap:5px;">
+          <button type="button" onclick="apickSelect('${m.key}','${t1e}',this)" style="flex:1;padding:5px 3px;border:2px solid ${sel===m.t1?'var(--orange)':'var(--border)'};border-radius:7px;background:${sel===m.t1?'var(--orange)':'var(--card)'};color:${sel===m.t1?'white':'var(--text)'};font-size:10px;font-weight:600;cursor:pointer;">${m.t1}</button>
+          <button type="button" onclick="apickSelect('${m.key}','${t2e}',this)" style="flex:1;padding:5px 3px;border:2px solid ${sel===m.t2?'var(--orange)':'var(--border)'};border-radius:7px;background:${sel===m.t2?'var(--orange)':'var(--card)'};color:${sel===m.t2?'white':'var(--text)'};font-size:10px;font-weight:600;cursor:pointer;">${m.t2}</button>
+        </div>
+        <input type="hidden" id="apf-${m.key}" value="${sel}">
+        ${howSel(m.key)}
+      </div>`;
+    });
+    // QF / SF
+    [['Quarter-finals', ev.qf||[], (q)=>{const src=q.src.flatMap(rk=>{const m=(ev.r16||[]).find(x=>x.key===rk);return m?[m.t1,m.t2]:[];}); return src;}],
+     ['Semi-finals',   ev.sf||[], ()=>allTeams]].forEach(([label, rounds, getCands]) => {
+      html += `<div style="font-weight:700;font-size:11px;color:var(--orange);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.5px;">${label}</div>`;
+      rounds.forEach((r,i) => {
+        const cands = getCands(r);
+        html += `<div style="margin-bottom:7px;">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">${label.slice(0,-1)} ${i+1}</div>
+          <select id="apf-${r.key}" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:var(--card);color:var(--text);">
+            <option value="">— pick —</option>
+            ${cands.map(t=>`<option value="${t}" ${ex&&ex[r.key]===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+          ${howSel(r.key)}
+        </div>`;
+      });
+    });
+    // Final & 3rd
+    html += '<div style="font-weight:700;font-size:11px;color:var(--orange);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.5px;">Final & 3rd Place</div>';
+    [['final','🏆 Champion'],['third','🥉 3rd Place']].forEach(([key,label]) => {
+      html += `<div style="margin-bottom:7px;">
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">${label}</div>
+        <select id="apf-${key}" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:var(--card);color:var(--text);">
+          <option value="">— pick —</option>
+          ${allTeams.map(t=>`<option value="${t}" ${ex&&ex[key]===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+        ${howSel(key)}
+      </div>`;
+    });
+  } else if (ev.type === 'ko_block') {
+    const sc4 = ev.scoring || {result:4,qualified:3,how:2};
+    (ev.matches||[]).forEach(m => {
+      const pm = ex?.[m.key]||{};
+      const t1e = m.team1.replace(/'/g,"\'"); const t2e = m.team2.replace(/'/g,"\'");
+      html += `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;font-size:12px;">
+        <div style="font-weight:700;color:var(--orange);margin-bottom:6px;">${m.team1} vs ${m.team2}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">⏱ 90-min result · ${sc4.result||4}pts</div>
+        <div style="display:flex;gap:5px;margin-bottom:6px;">
+          ${['1','X','2'].map(v=>`<button type="button" onclick="apickSelect('ko_${m.key}_result','${v}',this)" style="flex:1;padding:6px;border:2px solid ${pm.result===v?'var(--orange)':'var(--border)'};border-radius:7px;background:${pm.result===v?'var(--orange)':'var(--card)'};color:${pm.result===v?'white':'var(--text)'};font-size:13px;font-weight:700;cursor:pointer;">${v}</button>`).join('')}
+          <input type="hidden" id="apf-ko_${m.key}_result" value="${pm.result||''}">
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">🏆 Qualifié · ${sc4.qualified||3}pts</div>
+        <div style="display:flex;gap:5px;margin-bottom:6px;">
+          ${[m.team1,m.team2].map(t=>`<button type="button" onclick="apickSelect('ko_${m.key}_qual','${t.replace(/'/g,"\'")}',this)" style="flex:1;padding:5px 3px;border:2px solid ${pm.qualified===t?'var(--orange)':'var(--border)'};border-radius:7px;background:${pm.qualified===t?'var(--orange)':'var(--card)'};color:${pm.qualified===t?'white':'var(--text)'};font-size:10px;font-weight:600;cursor:pointer;">${t}</button>`).join('')}
+          <input type="hidden" id="apf-ko_${m.key}_qual" value="${pm.qualified||''}">
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px;">🔄 Comment · ${sc4.how||2}pts</div>
+        <div style="display:flex;gap:5px;">
+          ${['TR','PROL','TAB'].map(v=>`<button type="button" onclick="apickSelect('ko_${m.key}_how','${v}',this)" style="flex:1;padding:5px;border:2px solid ${pm.how===v?'var(--orange)':'var(--border)'};border-radius:7px;background:${pm.how===v?'var(--orange)':'var(--card)'};color:${pm.how===v?'white':'var(--text)'};font-size:10px;font-weight:600;cursor:pointer;">${v==='TR'?'90min':v==='PROL'?'Extra T.':'Pen.'}</button>`).join('')}
+          <input type="hidden" id="apf-ko_${m.key}_how" value="${pm.how||''}">
+        </div>
+      </div>`;
+    });
   } else {
     html += '<div style="color:#aaa;font-size:12px;">Type non supporté: '+ev.type+'</div>';
   }
@@ -3333,6 +3409,23 @@ async function saveAdminPickForUser() {
     const top4 = [0,1,2,3].map(pos => document.getElementById('apf-top4-'+pos)?.value || '');
     if (!top4[0]) { showToast('⚠️ Sélectionner au moins la 1ère place !'); return; }
     data = { top4 };
+  } else if (ev.type === 'bracket') {
+    const sc5 = ev.scoring || {};
+    const hasHow5 = !!(sc5.how);
+    const keys5 = [...(ev.r16||[]).map(m=>m.key), ...(ev.qf||[]).map(q=>q.key), ...(ev.sf||[]).map(s=>s.key), 'final','third'];
+    keys5.forEach(k => {
+      const el = document.getElementById('apf-'+k);
+      if (el?.value) data[k] = el.value;
+      if (hasHow5) { const hel = document.getElementById('apf-'+k+'_how'); if (hel?.value) data[k+'_how'] = hel.value; }
+    });
+    if (!data.final) { showToast('⚠️ Sélectionner au moins le champion !'); return; }
+  } else if (ev.type === 'ko_block') {
+    (ev.matches||[]).forEach(m => {
+      const res  = document.getElementById('apf-ko_'+m.key+'_result')?.value || '';
+      const qual = document.getElementById('apf-ko_'+m.key+'_qual')?.value   || '';
+      const how  = document.getElementById('apf-ko_'+m.key+'_how')?.value    || '';
+      data[m.key] = { result:res, qualified:qual, how };
+    });
   }
 
   // Check if prono already exists
