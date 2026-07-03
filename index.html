@@ -1044,6 +1044,21 @@ const EVENTS = [
     ]
   },
 
+  { id:120, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🏆',
+    name:'🏆 Quarts de Finale · WC 2026', sub:'QF → Finale · Vainqueur + How · 48 pts',
+    type:'bracket', enhanced:true, qf_start:true,
+    status:'open', urgency:true, cutoff:'July 8 · 15h', deadline:'2026-07-08T13:00:00Z',
+    scoring:{qf:4, sf:4, third:3, champion:5, how:2},
+    r16:[],
+    qf:[
+      {key:'qa', t1:'TBD', t2:'TBD'},
+      {key:'qb', t1:'TBD', t2:'TBD'},
+      {key:'qc', t1:'TBD', t2:'TBD'},
+      {key:'qd', t1:'TBD', t2:'TBD'},
+    ],
+    sf:[{key:'sa',src:['qa','qb']},{key:'sb',src:['qc','qd']}],
+  },
+
   { id:119, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'⚔️',
     name:'⚔️ Round of 16', sub:'5 Knockout Matches · Winner + Qualifié + How · 45 pts max',
     type:'ko_block', status:'open', urgency:true, cutoff:'July 4 · 17h', deadline:'2026-07-04T15:00:00Z',
@@ -2196,7 +2211,8 @@ function _renderBracketEnhanced() {
     const brd=i%2===0
       ?'border-right:2px solid var(--border);border-top:2px solid var(--border);border-top-right-radius:6px;'
       :'border-right:2px solid var(--border);border-bottom:2px solid var(--border);border-bottom-right-radius:6px;';
-    qfHtml+=`<div style="height:${BV_H}px;box-sizing:border-box;display:flex;align-items:center;${brd}padding:4px 8px 4px 2px;">${bvBox(q.key,w(q.src[0]),w(q.src[1]))}</div>`;
+    const qt1=ev.qf_start?q.t1:w(q.src[0]),qt2=ev.qf_start?q.t2:w(q.src[1]);
+    qfHtml+=`<div style="height:${BV_H}px;box-sizing:border-box;display:flex;align-items:center;${brd}padding:4px 8px 4px 2px;">${bvBox(q.key,qt1,qt2)}</div>`;
   }
   qfHtml+=`</div>`;
 
@@ -2234,7 +2250,7 @@ function _renderBracketEnhanced() {
     <span style="color:var(--orange);font-weight:600;">E.T.</span> (extra time) ·
     <span style="color:var(--orange);font-weight:600;">Pen.</span> (penalties) — +${sc.how}pt bonus each.
   </div>`;
-  const html=`${instr}${r16Sec}${brkSec}
+  const html=`${instr}${ev.qf_start?'':r16Sec}${brkSec}
   <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:12px;padding:6px;background:var(--orange-bg);border-radius:8px;">
     🎯 <strong>${maxPts} pts max</strong> · Winner + How (90'/E.T./Pen. = +${sc.how||2}pt chacun)
   </div>`;
@@ -3060,7 +3076,7 @@ function _botGenData(ev, bot) {
       const favOf=(t1,t2)=>rank(t1)>=rank(t2)?t1:t2;
       const howFor=(t1,t2)=>Math.abs(rank(t1)-rank(t2))>=3?'TR':Math.abs(rank(t1)-rank(t2))>=1?_botRnd(['TR','PROL']):_botRnd(['PROL','TAB']);
       (realEv.r16||[]).forEach(m=>{d[m.key]=favOf(m.t1,m.t2);if(realEv.enhanced)d[m.key+'_how']=howFor(m.t1,m.t2);});
-      (realEv.qf||[]).forEach(q=>{const t1=d[q.src[0]],t2=d[q.src[1]];if(t1&&t2){d[q.key]=favOf(t1,t2);if(realEv.enhanced)d[q.key+'_how']=howFor(t1,t2);}});
+      (realEv.qf||[]).forEach(q=>{const t1=realEv.qf_start?q.t1:d[q.src[0]],t2=realEv.qf_start?q.t2:d[q.src[1]];if(t1&&t2){d[q.key]=favOf(t1,t2);if(realEv.enhanced)d[q.key+'_how']=howFor(t1,t2);}});
       (realEv.sf||[]).forEach(s=>{const t1=d[s.src[0]],t2=d[s.src[1]];if(t1&&t2){d[s.key]=favOf(t1,t2);if(realEv.enhanced)d[s.key+'_how']=howFor(t1,t2);}});
       const ft1=d['sa'],ft2=d['sb'];
       if(ft1&&ft2){d['final']=favOf(ft1,ft2);if(realEv.enhanced)d['final_how']=howFor(ft1,ft2);}
@@ -3276,7 +3292,7 @@ async function renderAdminPickForm() {
   } else if (ev.type === 'bracket') {
     const sc3 = ev.scoring || {r16:4,qf:3,sf:3,third:3,champion:3,how:2};
     const hasHow = !!(sc3.how);
-    const allTeams = [...new Set((ev.r16||[]).flatMap(m=>[m.t1,m.t2]))];
+    const allTeams = [...new Set(ev.qf_start ? (ev.qf||[]).flatMap(q=>[q.t1,q.t2]) : (ev.r16||[]).flatMap(m=>[m.t1,m.t2]))];
     const howSel = (key) => !hasHow ? '' : `
       <div style="margin-top:3px;display:flex;gap:4px;">
         ${['TR','PROL','TAB'].map(v=>`<button type="button" onclick="apickSelect('${key}_how','${v}',this)" style="flex:1;padding:3px;border:1.5px solid var(--border);border-radius:5px;background:var(--card);color:var(--text);font-size:10px;cursor:pointer;">${v==='TR'?'90min':v==='PROL'?'ET':'Pen.'}</button>`).join('')}
@@ -3298,7 +3314,7 @@ async function renderAdminPickForm() {
       </div>`;
     });
     // QF / SF
-    [['Quarter-finals', ev.qf||[], (q)=>{const src=q.src.flatMap(rk=>{const m=(ev.r16||[]).find(x=>x.key===rk);return m?[m.t1,m.t2]:[];}); return src;}],
+    [['Quarter-finals', ev.qf||[], (q)=>{ if(ev.qf_start) return [q.t1,q.t2]; const src=q.src.flatMap(rk=>{const m=(ev.r16||[]).find(x=>x.key===rk);return m?[m.t1,m.t2]:[];}); return src;}],
      ['Semi-finals',   ev.sf||[], ()=>allTeams]].forEach(([label, rounds, getCands]) => {
       html += `<div style="font-weight:700;font-size:11px;color:var(--orange);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.5px;">${label}</div>`;
       rounds.forEach((r,i) => {
@@ -3875,9 +3891,9 @@ function renderAdminForm(ev, existing) {
     };
     // Candidates for each round (teams that could reach that match)
     const r16Cands = (r16Key) => { const m=ev.r16.find(x=>x.key===r16Key); return m?[m.t1,m.t2]:[]; };
-    const qfCands  = (q) => [...new Set(q.src.flatMap(r=>r16Cands(r)))];
+    const qfCands  = (q) => ev.qf_start ? [q.t1,q.t2] : [...new Set(q.src.flatMap(r=>r16Cands(r)))];
     const sfCands  = (s) => [...new Set(s.src.flatMap(r=>{ const q=ev.qf.find(x=>x.key===r); return q?qfCands(q):[]; }))];
-    const allTeams = [...new Set((ev.r16||[]).flatMap(m=>[m.t1,m.t2]))];
+    const allTeams = [...new Set(ev.qf_start ? (ev.qf||[]).flatMap(q=>[q.t1,q.t2]) : (ev.r16||[]).flatMap(m=>[m.t1,m.t2]))];
 
     const selectRow2 = (key, label, candidates) => {
       const exW=ex[key]||'', exH=ex[key+'_how']||'';
