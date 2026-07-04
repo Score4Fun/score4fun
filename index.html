@@ -1058,21 +1058,21 @@ const EVENTS = [
     ],
     sf:[{key:'sa',src:['qa','qb']},{key:'sb',src:['qc','qd']}],
     scorers:[
-      {val:'__own__',           label:'⚽ Ow(e)n GoAl · 11 buts',        disabled:true},
-      {val:'Lionel Messi',      label:'🇦🇷 Lionel Messi · 7 buts'},
-      {val:'Kylian Mbappé',     label:'🇫🇷 Kylian Mbappé · 6 buts'},
-      {val:'Harry Kane',        label:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Harry Kane · 5 buts'},
-      {val:'Erling Haaland',    label:'🇳🇴 Erling Haaland · 5 buts'},
-      {val:'Vinicius Junior',   label:'🇧🇷 Vinicius Junior · 4 buts'},
-      {val:'Mikel Oyarzabal',   label:'🇪🇸 Mikel Oyarzabal · 4 buts'},
-      {val:'Ousmane Dembélé',   label:'🇫🇷 Ousmane Dembélé · 4 buts'},
-      {val:'Matheus Cunha',     label:'🇧🇷 Matheus Cunha · 3 buts'},
-      {val:'Jonathan David',    label:'🇨🇦 Jonathan David · 3 buts'},
-      {val:'Folarin Balogun',   label:'🇺🇸 Folarin Balogun · 3 buts'},
-      {val:'Ismael Saibari',    label:'🇲🇦 Ismael Saibari · 3 buts'},
-      {val:'Julian Quiñones',   label:'🇲🇽 Julian Quiñones · 3 buts'},
-      {val:'Cristiano Ronaldo', label:'🇵🇹 Cristiano Ronaldo · 3 buts'},
-      {val:'Johan Manzambi',    label:'🇨🇭 Johan Manzambi · 3 buts'},
+      {val:'__own__',           label:'😂 Ow(e)n GoAl · 11 goals',       disabled:true},
+      {val:'Lionel Messi',      label:'🇦🇷 Lionel Messi · 7 goals'},
+      {val:'Kylian Mbappé',     label:'🇫🇷 Kylian Mbappé · 6 goals'},
+      {val:'Harry Kane',        label:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Harry Kane · 5 goals'},
+      {val:'Erling Haaland',    label:'🇳🇴 Erling Haaland · 5 goals'},
+      {val:'Vinicius Junior',   label:'🇧🇷 Vinicius Junior · 4 goals'},
+      {val:'Mikel Oyarzabal',   label:'🇪🇸 Mikel Oyarzabal · 4 goals'},
+      {val:'Ousmane Dembélé',   label:'🇫🇷 Ousmane Dembélé · 4 goals'},
+      {val:'Matheus Cunha',     label:'🇧🇷 Matheus Cunha · 3 goals'},
+      {val:'Jonathan David',    label:'🇨🇦 Jonathan David · 3 goals'},
+      {val:'Folarin Balogun',   label:'🇺🇸 Folarin Balogun · 3 goals'},
+      {val:'Ismael Saibari',    label:'🇲🇦 Ismael Saibari · 3 goals'},
+      {val:'Julian Quiñones',   label:'🇲🇽 Julian Quiñones · 3 goals'},
+      {val:'Cristiano Ronaldo', label:'🇵🇹 Cristiano Ronaldo · 3 goals'},
+      {val:'Johan Manzambi',    label:'🇨🇭 Johan Manzambi · 3 goals'},
     ],
   },
 
@@ -2214,9 +2214,9 @@ function _renderBracketEnhanced() {
     <span style="color:var(--orange);font-weight:600;">Pen.</span> (penalties) — +${sc.how}pt bonus each.
   </div>`;
   const scorerSec = (ev.scorers && sc.topScorer) ? `<div style="margin-top:14px;">
-    <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">⚽ Meilleur Buteur · ${sc.topScorer}pt</div>
+    <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">⚽ Top Scorer · ${sc.topScorer}pt</div>
     <select id="brk-top-scorer" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);font-size:13px;">
-      <option value="">— Choisis le meilleur buteur —</option>
+      <option value="">— Pick the top scorer —</option>
       ${(ev.scorers||[]).map(s=>s.disabled
         ?'<option disabled style="color:#aaa;font-style:italic;">'+s.label+'</option>'
         :`<option value="${s.val}" ${p.topScorer===s.val?'selected':''}>${s.label}</option>`
@@ -2589,7 +2589,7 @@ function openResultDetail(eventId) {
       html += pr('Champion', p.final, sc2b.champion||5);
       html += `<div class="rd-section">🥉 3rd · ${sc2b.third||4}pts</div>`;
       html += pr('3rd Place', p.third, sc2b.third||4);
-      if(sc2b.topScorer){html+=`<div class="rd-section">⚽ Meilleur Buteur · ${sc2b.topScorer}pt</div>`;html+=pr('Top Scorer',p.topScorer,sc2b.topScorer);}
+      if(sc2b.topScorer){html+=`<div class="rd-section">⚽ Top Scorer · ${sc2b.topScorer}pt</div>`;html+=pr('Top Scorer',p.topScorer,sc2b.topScorer);}
     } else if (ev.type === 'ko_block') {
       const sc2 = ev.scoring||{result:4,qualified:3,how:2};
       const howLbl = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'—';
@@ -2696,7 +2696,7 @@ function openResultDetail(eventId) {
     html += selectRow('Champion', p.final, official.final, sc3b.champion||5);
     html += `<div class="rd-section">🥉 3rd Place · ${sc3b.third||4}pts</div>`;
     html += selectRow('3rd Place', p.third, official.third, sc3b.third||4);
-    if(sc3b.topScorer){html+=`<div class="rd-section">⚽ Meilleur Buteur · ${sc3b.topScorer}pts</div>`;html+=selectRow('Top Scorer',p.topScorer,official.topScorer,sc3b.topScorer);}
+    if(sc3b.topScorer){html+=`<div class="rd-section">⚽ Top Scorer · ${sc3b.topScorer}pts</div>`;html+=selectRow('Top Scorer',p.topScorer,official.topScorer,sc3b.topScorer);}
   } else if (ev.type === 'ko_block') {
     const sc3 = ev.scoring||{result:4,qualified:3,how:2};
     const howLbl2 = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'—';
@@ -3351,7 +3351,7 @@ async function renderAdminPickForm() {
   }
   if (ev.scorers && ev.scoring?.topScorer) {
     const curTs = ex?.topScorer||'';
-    html += `<div style="font-weight:700;font-size:11px;color:var(--orange);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.5px;">⚽ Meilleur Buteur · ${ev.scoring.topScorer}pt</div>
+    html += `<div style="font-weight:700;font-size:11px;color:var(--orange);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.5px;">⚽ Top Scorer · ${ev.scoring.topScorer}pt</div>
       <div style="margin-bottom:7px;">
         <select id="apf-topScorer" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:var(--card);color:var(--text);">
           <option value="">— pick —</option>
@@ -3361,7 +3361,7 @@ async function renderAdminPickForm() {
   }
   if (ev.scorers && ev.scoring?.topScorer) {
     const curTs = ex?.topScorer||'';
-    html += `<div style="font-weight:700;font-size:11px;color:var(--orange);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.5px;">⚽ Meilleur Buteur · ${ev.scoring.topScorer}pt</div>
+    html += `<div style="font-weight:700;font-size:11px;color:var(--orange);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.5px;">⚽ Top Scorer · ${ev.scoring.topScorer}pt</div>
       <div style="margin-bottom:7px;">
         <select id="apf-topScorer" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:var(--card);color:var(--text);">
           <option value="">— pick —</option>
@@ -3922,7 +3922,7 @@ function renderAdminForm(ev, existing) {
     if(ev.scorers && ev.scoring?.topScorer){
       const exTs=ex.topScorer||'';
       const sopts=(ev.scorers||[]).filter(s=>!s.disabled).map(s=>`<option value="${s.val}" ${exTs===s.val?'selected':''}>${s.label}</option>`).join('');
-      form+=`<div style="font-size:10px;font-weight:700;color:var(--orange);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;">⚽ Meilleur Buteur officiel</div>
+      form+=`<div style="font-size:10px;font-weight:700;color:var(--orange);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;">⚽ Official Top Scorer</div>
         <div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;">
           <select id="admin-${ev.id}-topScorer" style="width:100%;font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--text);">
             <option value="">— Select —</option>${sopts}
