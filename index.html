@@ -3314,6 +3314,16 @@ async function renderAdminPickForm() {
   } else {
     html += '<div style="color:#aaa;font-size:12px;">Type non supporté: '+ev.type+'</div>';
   }
+  if (ev.scorers && ev.scoring?.topScorer) {
+    const curTs = ex?.topScorer||'';
+    html += `<div style="font-weight:700;font-size:11px;color:var(--orange);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.5px;">⚽ Meilleur Buteur · ${ev.scoring.topScorer}pt</div>
+      <div style="margin-bottom:7px;">
+        <select id="apf-topScorer" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:var(--card);color:var(--text);">
+          <option value="">— pick —</option>
+          ${(ev.scorers||[]).map(s=>s.disabled?'<option disabled style="color:#aaa;">'+s.label+'</option>':`<option value="${s.val}" ${curTs===s.val?'selected':''}>${s.label}</option>`).join('')}
+        </select>
+      </div>`;
+  }
   html += `<button onclick="saveAdminPickForUser()" style="margin-top:12px;padding:10px 20px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;width:100%;">💾 Enregistrer le prono</button>`;
   wrap.innerHTML = html;
 
