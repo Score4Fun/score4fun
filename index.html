@@ -284,6 +284,8 @@
     .nav-label { font-size: 10px; color: var(--text-muted); font-weight: 500; }
     .nav-item.active .nav-icon { color: var(--orange); }
     .nav-item.active .nav-label { color: var(--orange); }
+    .news-badge { position:absolute;top:2px;right:10px;width:9px;height:9px;background:#e53935;border-radius:50%;border:1.5px solid white;animation:badgePulse 1.2s ease-in-out infinite; }
+    @keyframes badgePulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.35);opacity:.7} }
 
     .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
     .toast.show { opacity: 1; }
