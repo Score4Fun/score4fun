@@ -656,7 +656,7 @@
     <div class="nav-item" onclick="showPage('pronos')" id="nav-pronos"><span class="nav-icon">✅</span><span class="nav-label">Results</span></div>
     <div class="nav-item" onclick="showPage('classements')" id="nav-classements"><span class="nav-icon">🏆</span><span class="nav-label">Rankings</span></div>
     <div class="nav-item" onclick="showPage('groupes')" id="nav-groupes"><span class="nav-icon">👥</span><span class="nav-label">Groups</span></div>
-    <div class="nav-item" onclick="showPage('news')" id="nav-news"><span class="nav-icon">📰</span><span class="nav-label">News</span></div>
+    <div class="nav-item" onclick="showPage('news')" id="nav-news" style="position:relative;"><span class="nav-icon">📰</span><span id="news-badge" class="news-badge" style="display:none;"></span><span class="nav-label">News</span></div>
     <div class="nav-item" onclick="showPage('admin')" id="nav-admin" style="display:none;"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span></div>
     <div class="nav-item" onclick="showPage('profil')" id="nav-profil"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></div>
   </nav>
@@ -1335,7 +1335,7 @@ function launchApp() {
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   loadUserPronos().then(() => {
-    updateTopBar(); renderSportTabs(); renderHomeEvents(); updateRating(); updatePodiums();
+    updateTopBar(); renderSportTabs(); renderHomeEvents(); updateRating(); updatePodiums(); checkNewsBadge();
     loadRankingsHome(); renderPronos(); renderGroupes(); renderProfil();
     renderHomeGroups();
     // Détecter ?join=CODE dans l'URL pour rejoindre un groupe directement
@@ -4939,6 +4939,18 @@ function renderNews() {
   `).join('');
 }
 
+function _latestNewsId() { return NEWS_POSTS.length ? Math.max(...NEWS_POSTS.map(p=>p.id)) : 0; }
+function markNewsRead() {
+  localStorage.setItem('s4f_news_read', String(_latestNewsId()));
+  const b = document.getElementById('news-badge');
+  if (b) b.style.display = 'none';
+}
+function checkNewsBadge() {
+  const read = parseInt(localStorage.getItem('s4f_news_read')||'0');
+  const b = document.getElementById('news-badge');
+  if (b) b.style.display = _latestNewsId() > read ? 'block' : 'none';
+}
+
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -4949,7 +4961,7 @@ function showPage(name) {
   if (name==='pronos') renderPronos();
   if (name==='groupes') renderGroupes();
   if (name==='admin') renderAdmin();
-  if (name==='news') renderNews();
+  if (name==='news') { renderNews(); markNewsRead(); }
 }
 
 // =====================
