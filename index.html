@@ -1076,60 +1076,6 @@ const EVENTS = [
     name:'Last 4 Standing · SF → 🏆', sub:'July 14–19 · Semis · 3rd · Final',
     type:'upcoming', status:'soon', urgency:false, cutoff:'July 14', deadline:'2026-07-14T11:00:00Z' },
 
-  // ===== BRACKET PREDICTION =====
-  { id:116, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🏆', adminOnly:true,
-    name:'🧪 Full Bracket · ⚠️ Do NOT Pick This 😏', sub:'Seriously. Don\'t. (Bugs may qualify as champion 🐛 · 56pts tho 👀)',
-    type:'bracket', status:'open', urgency:false, cutoff:'July 4', deadline:'2026-07-04T11:00:00Z',
-    scoring:{r16:4, qf:3, sf:3, third:3, champion:3},
-    r16:[
-      {key:'ra', t1:'Team A', t2:'Team B'},
-      {key:'rb', t1:'Team C', t2:'Team D'},
-      {key:'rc', t1:'Team E', t2:'Team F'},
-      {key:'rd', t1:'Team G', t2:'Team H'},
-      {key:'re', t1:'Team I', t2:'Team J'},
-      {key:'rf', t1:'Team K', t2:'Team L'},
-      {key:'rg', t1:'Team M', t2:'Team N'},
-      {key:'rh', t1:'Team O', t2:'Team P'},
-    ],
-    qf:[
-      {key:'qa', src:['ra','rb']},
-      {key:'qb', src:['rc','rd']},
-      {key:'qc', src:['re','rf']},
-      {key:'qd', src:['rg','rh']},
-    ],
-    sf:[
-      {key:'sa', src:['qa','qb']},
-      {key:'sb', src:['qc','qd']},
-    ],
-  },
-
-  // ===== BRACKET ADMIN LAB =====
-  { id:118, adminOnly:true, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🏟️',
-    name:'⚡ Road to the Final · WC 2026', sub:'R16 → Final · Pick who qualifies + How they make it · 88 pts',
-    type:'bracket', enhanced:true, status:'open', urgency:false, cutoff:'July 4 · 19h', deadline:'2026-07-04T17:00:00Z',
-    scoring:{r16:4, qf:3, sf:3, third:3, champion:3, how:2},
-    r16:[
-      {key:'ra', t1:'🇵🇾 Paraguay', t2:'🇫🇷 France'},
-      {key:'rb', t1:'🇨🇦 Canada', t2:'🇲🇦 Morocco'},
-      {key:'rc', t1:'🇵🇹 Portugal', t2:'🇪🇸 Spain'},
-      {key:'rd', t1:'🇺🇸 USA', t2:'🇧🇪 Belgium'},
-      {key:'re', t1:'🇧🇷 Brazil', t2:'🇳🇴 Norway'},
-      {key:'rf', t1:'🇲🇽 Mexico', t2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England'},
-      {key:'rg', t1:'ARG / CPV', t2:'AUS / Egypt'},
-      {key:'rh', t1:'🇨🇭 Switzerland', t2:'COL / GHA'},
-    ],
-    qf:[
-      {key:'qa', src:['ra','rb']},
-      {key:'qb', src:['rc','rd']},
-      {key:'qc', src:['re','rf']},
-      {key:'qd', src:['rg','rh']},
-    ],
-    sf:[
-      {key:'sa', src:['qa','qb']},
-      {key:'sb', src:['qc','qd']},
-    ],
-  },
-
   // ===== TENNIS - Roland Garros =====
   // Demi-finales Hommes
 
@@ -1171,11 +1117,11 @@ const EVENTS = [
 
   // ===== F1 - Saison 2026 (prochaines courses) =====
 
-  { id:32, adminOnly:true, sport:'f1', comp:'Season 2026', phase:'July 2026', emoji:'🏎️',
+  { id:32, sport:'f1', comp:'Season 2026', phase:'July 2026', emoji:'🏎️',
     name:'British GP 2026', sub:'Silverstone · Northamptonshire',
     type:'f1_race',
     candidates:['Max Verstappen','Lewis Hamilton','Charles Leclerc','Lando Norris','Oscar Piastri','George Russell','Kimi Antonelli','Carlos Sainz','Fernando Alonso','Isack Hadjar','Lance Stroll','Pierre Gasly','Franco Colapinto','Alex Albon','Nico Hülkenberg','Gabriel Bortoleto','Valtteri Bottas','Sergio Pérez','Arvid Lindblad'],
-    status:'soon', urgency:false, cutoff:'July 6', deadline:'2026-07-06T13:00:00Z' },
+    status:'open', urgency:true, cutoff:'July 6', deadline:'2026-07-06T13:00:00Z' },
 
 
   // ===== CYCLISME =====
