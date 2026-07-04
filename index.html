@@ -1048,15 +1048,32 @@ const EVENTS = [
     name:'🏆 Quarts de Finale · WC 2026', sub:'QF → Finale · Vainqueur + How · 48 pts',
     type:'bracket', enhanced:true, qf_start:true, adminOnly:true,
     status:'open', urgency:true, cutoff:'July 9 · 22h', deadline:'2026-07-09T20:00:00Z',
-    scoring:{qf:4, sf:4, third:3, champion:5, how:2},
+    scoring:{qf:4, sf:4, third:3, champion:5, how:2, topScorer:5},
     r16:[],
     qf:[
       {key:'qa', t1:'Paraguay / France', t2:'Canada / Maroc'},
       {key:'qb', t1:'Portugal / España', t2:'USA / Belgium'},
       {key:'qc', t1:'Brazil / Norway',   t2:'Mexico / England'},
-      {key:'qd', t1:'ARG / CPV / AUS / EGY', t2:'Swiss / COL / GHA'},
+      {key:'qd', t1:'Argentina / Egypt', t2:'Switzerland / Colombia'},
     ],
     sf:[{key:'sa',src:['qa','qb']},{key:'sb',src:['qc','qd']}],
+    scorers:[
+      {val:'__own__',           label:'⚽ Ow(e)n GoAl · 11 buts',        disabled:true},
+      {val:'Lionel Messi',      label:'🇦🇷 Lionel Messi · 7 buts'},
+      {val:'Kylian Mbappé',     label:'🇫🇷 Kylian Mbappé · 6 buts'},
+      {val:'Harry Kane',        label:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Harry Kane · 5 buts'},
+      {val:'Erling Haaland',    label:'🇳🇴 Erling Haaland · 5 buts'},
+      {val:'Vinicius Junior',   label:'🇧🇷 Vinicius Junior · 4 buts'},
+      {val:'Mikel Oyarzabal',   label:'🇪🇸 Mikel Oyarzabal · 4 buts'},
+      {val:'Ousmane Dembélé',   label:'🇫🇷 Ousmane Dembélé · 4 buts'},
+      {val:'Matheus Cunha',     label:'🇧🇷 Matheus Cunha · 3 buts'},
+      {val:'Jonathan David',    label:'🇨🇦 Jonathan David · 3 buts'},
+      {val:'Folarin Balogun',   label:'🇺🇸 Folarin Balogun · 3 buts'},
+      {val:'Ismael Saibari',    label:'🇲🇦 Ismael Saibari · 3 buts'},
+      {val:'Julian Quiñones',   label:'🇲🇽 Julian Quiñones · 3 buts'},
+      {val:'Cristiano Ronaldo', label:'🇵🇹 Cristiano Ronaldo · 3 buts'},
+      {val:'Johan Manzambi',    label:'🇨🇭 Johan Manzambi · 3 buts'},
+    ],
   },
 
   { id:119, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'⚔️',
@@ -2196,7 +2213,17 @@ function _renderBracketEnhanced() {
     <span style="color:var(--orange);font-weight:600;">E.T.</span> (extra time) ·
     <span style="color:var(--orange);font-weight:600;">Pen.</span> (penalties) — +${sc.how}pt bonus each.
   </div>`;
-  const html=`${instr}${ev.qf_start?'':r16Sec}${brkSec}
+  const scorerSec = (ev.scorers && sc.topScorer) ? `<div style="margin-top:14px;">
+    <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">⚽ Meilleur Buteur · ${sc.topScorer}pt</div>
+    <select id="brk-top-scorer" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);font-size:13px;">
+      <option value="">— Choisis le meilleur buteur —</option>
+      ${(ev.scorers||[]).map(s=>s.disabled
+        ?'<option disabled style="color:#aaa;font-style:italic;">'+s.label+'</option>'
+        :`<option value="${s.val}" ${p.topScorer===s.val?'selected':''}>${s.label}</option>`
+      ).join('')}
+    </select>
+  </div>` : '';
+  const html=`${instr}${ev.qf_start?'':r16Sec}${brkSec}${scorerSec}
   <div style="font-size:10px;color:var(--text-muted);text-align:center;margin-top:12px;padding:6px;background:var(--orange-bg);border-radius:8px;">
     🎯 <strong>${maxPts} pts max</strong> · Winner + How (90'/E.T./Pen. = +${sc.how||2}pt chacun)
   </div>`;
@@ -2323,6 +2350,11 @@ async function submitProno() {
     if (!(bEv.sf||[]).every(s=>brkP[s.key]))  { showToast('⚠️ Pick both Semi-final winners!'); return; }
     if (!brkP.final) { showToast('⚠️ Pick the Final winner!'); return; }
     if (!brkP.third) { showToast('⚠️ Pick the 3rd place winner!'); return; }
+    if (bEv.scorers && bEv.scoring?.topScorer) {
+      const ts=document.getElementById('brk-top-scorer')?.value;
+      if (!ts) { showToast('⚠️ Choisis le meilleur buteur !'); return; }
+      brkP.topScorer=ts;
+    }
     pronoData = Object.assign({}, brkP);
 
   } else if (currentEvent.type==='ko_block') {
@@ -2557,6 +2589,7 @@ function openResultDetail(eventId) {
       html += pr('Champion', p.final, sc2b.champion||5);
       html += `<div class="rd-section">🥉 3rd · ${sc2b.third||4}pts</div>`;
       html += pr('3rd Place', p.third, sc2b.third||4);
+      if(sc2b.topScorer){html+=`<div class="rd-section">⚽ Meilleur Buteur · ${sc2b.topScorer}pt</div>`;html+=pr('Top Scorer',p.topScorer,sc2b.topScorer);}
     } else if (ev.type === 'ko_block') {
       const sc2 = ev.scoring||{result:4,qualified:3,how:2};
       const howLbl = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'—';
@@ -2663,6 +2696,7 @@ function openResultDetail(eventId) {
     html += selectRow('Champion', p.final, official.final, sc3b.champion||5);
     html += `<div class="rd-section">🥉 3rd Place · ${sc3b.third||4}pts</div>`;
     html += selectRow('3rd Place', p.third, official.third, sc3b.third||4);
+    if(sc3b.topScorer){html+=`<div class="rd-section">⚽ Meilleur Buteur · ${sc3b.topScorer}pts</div>`;html+=selectRow('Top Scorer',p.topScorer,official.topScorer,sc3b.topScorer);}
   } else if (ev.type === 'ko_block') {
     const sc3 = ev.scoring||{result:4,qualified:3,how:2};
     const howLbl2 = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'—';
@@ -2798,6 +2832,7 @@ function computeUserPoints(ev, p, official) {
     (ev.sf ||[]).forEach(m => { if (p[m.key] && official[m.key] && p[m.key]===official[m.key]) { pts += sc.sf ||3; addHow(m.key); } });
     if (p.final && official.final && p.final===official.final) { pts += sc.champion||5; addHow('final'); }
     if (p.third && official.third && p.third===official.third) { pts += sc.third   ||4; addHow('third'); }
+    if (sc.topScorer && p.topScorer && official.topScorer && p.topScorer===official.topScorer) pts += sc.topScorer;
   } else if (ev.type === 'f1_race' || ev.type === 'top4') {
     const top4 = p.top4 || [];
     const off4 = official.top4 || [];
@@ -2825,7 +2860,7 @@ function getMaxPts(ev) {
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return 23;
   if (ev.type === 'tennis_sf') return 16;
   if (ev.type === '1x2') return 4;
-  if (ev.type === 'bracket') { const sc=ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5}; const base=(ev.r16?.length||8)*(sc.r16||1)+(ev.qf?.length||4)*(sc.qf||2)+(ev.sf?.length||2)*(sc.sf||3)+(sc.third||4)+(sc.champion||5); const howPts=sc.how?((ev.r16?.length||8)+(ev.qf?.length||4)+(ev.sf?.length||2)+2)*(sc.how):0; return base+howPts; }
+  if (ev.type === 'bracket') { const sc=ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5}; const base=(ev.r16?.length||8)*(sc.r16||1)+(ev.qf?.length||4)*(sc.qf||2)+(ev.sf?.length||2)*(sc.sf||3)+(sc.third||4)+(sc.champion||5); const howPts=sc.how?((ev.r16?.length||8)+(ev.qf?.length||4)+(ev.sf?.length||2)+2)*(sc.how):0; return base+howPts+(sc.topScorer||0); }
   if (ev.type === 'ko_block') { const sc=ev.scoring||{result:4,qualified:3,how:2}; return (ev.matches?.length||0)*((sc.result||4)+(sc.qualified||3)+(sc.how||2)); }
   if (ev.type === 'f1_race') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0) + 4;
   if (ev.type === 'top4') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0);
@@ -3324,6 +3359,16 @@ async function renderAdminPickForm() {
         </select>
       </div>`;
   }
+  if (ev.scorers && ev.scoring?.topScorer) {
+    const curTs = ex?.topScorer||'';
+    html += `<div style="font-weight:700;font-size:11px;color:var(--orange);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.5px;">⚽ Meilleur Buteur · ${ev.scoring.topScorer}pt</div>
+      <div style="margin-bottom:7px;">
+        <select id="apf-topScorer" style="width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);font-size:12px;background:var(--card);color:var(--text);">
+          <option value="">— pick —</option>
+          ${(ev.scorers||[]).map(s=>s.disabled?'<option disabled style="color:#aaa;">'+s.label+'</option>':`<option value="${s.val}" ${curTs===s.val?'selected':''}>${s.label}</option>`).join('')}
+        </select>
+      </div>`;
+  }
   html += `<button onclick="saveAdminPickForUser()" style="margin-top:12px;padding:10px 20px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;width:100%;">💾 Enregistrer le prono</button>`;
   wrap.innerHTML = html;
 
@@ -3404,6 +3449,7 @@ async function saveAdminPickForUser() {
       if (hasHow5) { const hel = document.getElementById('apf-'+k+'_how'); if (hel?.value) data[k+'_how'] = hel.value; }
     });
     if (!data.final) { showToast('⚠️ Sélectionner au moins le champion !'); return; }
+    if (ev.scorers && sc5.topScorer) { const el=document.getElementById('apf-topScorer'); if(el?.value) data.topScorer=el.value; }
   } else if (ev.type === 'ko_block') {
     (ev.matches||[]).forEach(m => {
       const res  = document.getElementById('apf-ko_'+m.key+'_result')?.value || '';
@@ -3873,6 +3919,16 @@ function renderAdminForm(ev, existing) {
     form+=`<div style="font-size:10px;font-weight:700;color:var(--orange);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;">Final & 3rd Place</div>`;
     form+=selectRow2('final','🏆 Final',allTeams);
     form+=selectRow2('third','🥉 3rd Place',allTeams);
+    if(ev.scorers && ev.scoring?.topScorer){
+      const exTs=ex.topScorer||'';
+      const sopts=(ev.scorers||[]).filter(s=>!s.disabled).map(s=>`<option value="${s.val}" ${exTs===s.val?'selected':''}>${s.label}</option>`).join('');
+      form+=`<div style="font-size:10px;font-weight:700;color:var(--orange);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.5px;">⚽ Meilleur Buteur officiel</div>
+        <div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;">
+          <select id="admin-${ev.id}-topScorer" style="width:100%;font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--text);">
+            <option value="">— Select —</option>${sopts}
+          </select>
+        </div>`;
+    }
     form+=`<button onclick="saveResult(${ev.id},'bracket')" style="margin-top:6px;font-size:12px;padding:6px 0;background:var(--orange);color:white;border:none;border-radius:6px;cursor:pointer;width:100%;font-weight:700;">💾 Save & Calculate</button>`;
     return form;
   }
@@ -4023,6 +4079,7 @@ async function saveResult(eventId, type) {
       }
     }
     if(!result_data.final){showToast('⚠️ Enter at least the Final winner!');return;}
+    if(ev2.scorers&&ev2.scoring?.topScorer){const ts=(document.getElementById('admin-'+eventId+'-topScorer')?.value||'').trim();if(ts)result_data.topScorer=ts;}
   } else if (type === 'f1_race') {
     const top4 = ['p1','p2','p3','p4'].map(k => document.getElementById(`admin-${eventId}-${k}`)?.value || '');
     if (!top4[0]) { showToast('⚠️ Select at least 1st place!'); return; }
