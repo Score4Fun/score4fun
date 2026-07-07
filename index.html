@@ -1047,7 +1047,7 @@ const EVENTS = [
   },
 
   { id:120, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🏆',
-    name:'🏆 Quarts de Finale · WC 2026', sub:'QF → Finale · Vainqueur + How · 48 pts',
+    name:'🏆 Quarts de Finale · WC 2026', sub:'QF → Finale · Vainqueur + How · 53 pts',
     type:'bracket', enhanced:true, qf_start:true, adminOnly:true,
     status:'open', urgency:true, cutoff:'July 9 · 22h', deadline:'2026-07-09T20:00:00Z',
     scoring:{qf:4, sf:4, third:3, champion:5, how:2, topScorer:5},
@@ -2856,7 +2856,7 @@ function getMaxPts(ev) {
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return 23;
   if (ev.type === 'tennis_sf') return 16;
   if (ev.type === '1x2') return 4;
-  if (ev.type === 'bracket') { const sc=ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5}; const base=(ev.r16?.length||8)*(sc.r16||1)+(ev.qf?.length||4)*(sc.qf||2)+(ev.sf?.length||2)*(sc.sf||3)+(sc.third||4)+(sc.champion||5); const howPts=sc.how?((ev.r16?.length||8)+(ev.qf?.length||4)+(ev.sf?.length||2)+2)*(sc.how):0; return base+howPts+(sc.topScorer||0); }
+  if (ev.type === 'bracket') { const sc=ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5}; const r16n=ev.qf_start?0:(ev.r16?.length||8); const base=r16n*(sc.r16||1)+(ev.qf?.length||4)*(sc.qf||2)+(ev.sf?.length||2)*(sc.sf||3)+(sc.third||4)+(sc.champion||5); const howPts=sc.how?(r16n+(ev.qf?.length||4)+(ev.sf?.length||2)+2)*(sc.how):0; return base+howPts+(sc.topScorer||0); }
   if (ev.type === 'ko_block') { const sc=ev.scoring||{result:4,qualified:3,how:2}; return (ev.matches?.length||0)*((sc.result||4)+(sc.qualified||3)+(sc.how||2)); }
   if (ev.type === 'f1_race') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0) + 4;
   if (ev.type === 'top4') return Object.values(POINTS_MAP).reduce((a,b)=>a+b,0);
@@ -2871,7 +2871,7 @@ function getMaxFormula(ev) {
   if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') return '10 + 6 + 4 + 3';
   if (ev.type === 'tennis_sf') return '10 + 6';
   if (ev.type === '1x2') return '4';
-  if (ev.type === 'bracket') { const sc=ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5}; return `8×${sc.r16||1} + 4×${sc.qf||2} + 2×${sc.sf||3} + ${sc.third||4} + ${sc.champion||5}`; }
+  if (ev.type === 'bracket') { const sc=ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5}; const r16nf=ev.qf_start?0:(ev.r16?.length||8); return ev.qf_start ? `4×${sc.qf||2} + 2×${sc.sf||3} + ${sc.third||4} + ${sc.champion||5}` : `${r16nf}×${sc.r16||1} + 4×${sc.qf||2} + 2×${sc.sf||3} + ${sc.third||4} + ${sc.champion||5}`; }
   if (ev.type === 'ko_block') { const n=ev.matches?.length||0,sc=ev.scoring||{result:4,qualified:3,how:2}; return `${n} × (${sc.result||4}+${sc.qualified||3}+${sc.how||2})`; }
   if (ev.type === 'f1_race') return `${partial} + 4`;
   if (ev.type === 'top4') return partial;
