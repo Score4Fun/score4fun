@@ -1319,7 +1319,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V136';
+const APP_VERSION = 'V137';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -4870,6 +4870,48 @@ function renderProfil() {
 // NEWS
 // =====================
 const NEWS_POSTS = [
+  {
+    id: 6,
+    date: 'July 8, 2026',
+    emoji: '🏆',
+    title: 'QF bracket is live — 53 pts up for grabs. EVERYTHING is still on!',
+    body: `The Round of 16 is a wrap. The Quarter-Finals are set — and yes, the favourites are through. The brackets don't lie. 🎯
+
+— — —
+
+📊 <strong>Leaderboard update — things just got spicy.</strong>
+
+<strong>Juju</strong> takes back the lead with <strong>220 pts</strong> — 7 points clear at the top. 👑
+
+Right behind? <strong>Sofi</strong> and <strong>Grampy</strong>, both on <strong>213 pts</strong>. Grampy is coming back <em>very</em> strong… Can he bridge the gap? Or is it already too late? 🤔
+
+— — —
+
+💥 <strong>Badat19 — what happened?</strong> He was top after R16, riding the wave… and then the pressure hit. Turns out he was banking on a LOT of draws. A lot. 
+
+But guess who ended up being nul? 😂 (Sorry Badat, we love you really.)
+
+— — —
+
+🏴󠁧󠁢󠁥󠁮󠁧󠁿 <strong>Tilly</strong> (195 pts) and <strong>petiote</strong> (176 pts) are sitting at the back of the pack — but here's the thing: they are the <strong>ONLY ones</strong> who picked England as World Champions. And England is still in it. 
+
+If the Three Lions go all the way? 🔥 Game over for everyone else. Never count them out.
+
+— — —
+
+🇧🇷 <strong>Sofi</strong>, meanwhile, is in a tricky spot — she's the only one with <strong>Brazil as champion</strong>. And Brazil... well, you know. Gone. She's also the only one with an eliminated team in her very first pick. Rough. 😬
+
+— — —
+
+🎯 <strong>BUT — second chance time!</strong>
+
+The <strong>QF Bracket</strong> is now open for everyone. Pick your winners from the Quarters all the way to the Final. How they get there (90'? ET? Pens?) matters too.
+
+<strong>53 points</strong> still on the table. That's basically a full reset. EVERYTHING is still possible. 🚀
+
+Don't wait — deadline is July 9 · 22h. ⏰`,
+    tag: '⚽ WC 2026'
+  },
   {
     id: 5,
     date: 'July 4, 2026',
