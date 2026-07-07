@@ -1319,7 +1319,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V133';
+const APP_VERSION = 'V135';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
