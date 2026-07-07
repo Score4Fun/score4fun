@@ -3266,6 +3266,10 @@ async function renderAdminPickForm() {
       const label = ['🥇 1st','🥈 2nd','🥉 3rd','4️⃣ 4th'][pos];
       html += `<div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">${label}</div><select id="apf-top4-${pos}" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;"><option value="">— Select —</option>${cands.map(c=>`<option value="${c}" ${exTop4[pos]===c?'selected':''}>${c}</option>`).join('')}</select></div>`;
     });
+    if (ev.type === 'f1_race') {
+      const exFastest = ex?.fastest || '';
+      html += `<div style="margin-bottom:8px;margin-top:4px;"><div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">🏅 Fastest Lap</div><select id="apf-fastest" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;"><option value="">— Select —</option>${cands.map(c=>`<option value="${c}" ${exFastest===c?'selected':''}>${c}</option>`).join('')}</select></div>`;
+    }
   } else if (ev.type === 'bracket') {
     const sc3 = ev.scoring || {r16:4,qf:3,sf:3,third:3,champion:3,how:2};
     const hasHow = !!(sc3.how);
@@ -3435,6 +3439,10 @@ async function saveAdminPickForUser() {
     const top4 = [0,1,2,3].map(pos => document.getElementById('apf-top4-'+pos)?.value || '');
     if (!top4[0]) { showToast('⚠️ Sélectionner au moins la 1ère place !'); return; }
     data = { top4 };
+    if (ev.type === 'f1_race') {
+      const fastest = document.getElementById('apf-fastest')?.value || '';
+      if (fastest) data.fastest = fastest;
+    }
   } else if (ev.type === 'bracket') {
     const sc5 = ev.scoring || {};
     const hasHow5 = !!(sc5.how);
