@@ -1048,7 +1048,7 @@ const EVENTS = [
 
   { id:120, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'🏆',
     name:'🏆 Quarts de Finale · WC 2026', sub:'QF → Finale · Vainqueur + How · 53 pts',
-    type:'bracket', enhanced:true, qf_start:true, adminOnly:true,
+    type:'bracket', enhanced:true, qf_start:true,
     status:'open', urgency:true, cutoff:'July 9 · 22h', deadline:'2026-07-09T20:00:00Z',
     scoring:{qf:4, sf:4, third:3, champion:5, how:2, topScorer:5},
     r16:[],
@@ -1056,7 +1056,7 @@ const EVENTS = [
       {key:'qa', t1:'🇫🇷 France',    t2:'🇲🇦 Morocco'},
       {key:'qb', t1:'🇪🇸 Spain',     t2:'🇧🇪 Belgium'},
       {key:'qc', t1:'🇳🇴 Norway',    t2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 England'},
-      {key:'qd', t1:'🇦🇷 Argentina', t2:'🏴‍☠️ Switzlumbia'},
+      {key:'qd', t1:'🇦🇷 Argentina', t2:'🇨🇭 Switzerland'},
     ],
     sf:[{key:'sa',src:['qa','qb']},{key:'sb',src:['qc','qd']}],
     scorers:[
@@ -1319,7 +1319,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V135';
+const APP_VERSION = 'V136';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
