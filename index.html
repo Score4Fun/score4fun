@@ -1319,7 +1319,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V137';
+const APP_VERSION = 'V138';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -3626,7 +3626,8 @@ async function adminViewAllPronos(uid, pseudo) {
       const sfpicks = (ev.sf||[]).map(s=>d[s.key]?fmt(s.key):null).filter(Boolean);
       if (sfpicks.length) lines.push('🟠 SF: ' + sfpicks.join(' · '));
       if (d.final||d.third) lines.push(`${d.final?'🏆 '+fmt('final'):''}${d.final&&d.third?' · ':''}${d.third?'🥉 '+fmt('third'):''}`);
-      if (!r16picks.length) lines.push('No picks yet');
+      if (d.topScorer) lines.push('⚽ Top scorer: ' + d.topScorer);
+      if (!r16picks.length && !qfpicks.length && !sfpicks.length && !d.final) lines.push('No picks yet');
     } else if (ev.type === 'ko_block') {
       const howLbl = v => v==='TR'?'90 min':v==='PROL'?'Extra time':v==='TAB'?'Penalties':v||'?';
       (ev.matches||[]).forEach(m => {
@@ -3645,7 +3646,7 @@ async function adminViewAllPronos(uid, pseudo) {
     const ev = EVENTS.find(e => e.id === Number(pr.event_id));
     const name  = ev ? ev.name : `Unknown event #${pr.event_id}`;
     const phase = ev ? (ev.phase||ev.comp||'') : (pr.sport||'');
-    const lines = ev ? _pickLines(ev, pr.data) : [JSON.stringify(pr.data||{})];
+    let lines; try { lines = ev ? _pickLines(ev, pr.data) : [JSON.stringify(pr.data||{})]; } catch(e) { lines = ['⚠️ Error: '+e.message]; }
     const saved = pr.created_at ? new Date(pr.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : '';
     const hasResult = ev && Object.keys(pr.data||{}).some(k => (pr.data)[k]);
     return `<div style="background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
