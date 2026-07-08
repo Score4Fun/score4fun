@@ -1087,7 +1087,7 @@ const EVENTS = [
 
   { id:115, sport:'football', comp:'WC 2026', phase:'Knockout Stage', emoji:'⭐',
     name:'Last 4 Standing · SF → 🏆', sub:'July 14–19 · Semis · 3rd · Final',
-    type:'upcoming', status:'soon', urgency:false, cutoff:'July 14', deadline:'2026-07-14T11:00:00Z' },
+    type:'upcoming', status:'soon', urgency:false, cutoff:'July 14', deadline:'2026-07-14T11:00:00Z', adminOnly:true },
 
   // ===== TENNIS - Roland Garros =====
   // Demi-finales Hommes
@@ -1319,7 +1319,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V138';
+const APP_VERSION = 'V139';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
