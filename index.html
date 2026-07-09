@@ -1316,7 +1316,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V140';
+const APP_VERSION = 'V141';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -2572,16 +2572,28 @@ function openResultDetail(eventId) {
       html += pr('Goals range', p.topGoals, sc.topGoals||4);
     } else if (ev.type === 'bracket') {
       const sc2b = ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5};
-      html += `<div class="rd-section">R16 · ${sc2b.r16||1}pt each</div>`;
-      (ev.r16||[]).forEach(m => { html += pm(`${m.t1} vs ${m.t2}`, p[m.key], sc2b.r16||1); });
-      html += `<div class="rd-section">QF · ${sc2b.qf||2}pts each</div>`;
-      (ev.qf||[]).forEach((q,i) => { html += pr(`QF${i+1}`, p[q.key], sc2b.qf||2); });
-      html += `<div class="rd-section">SF · ${sc2b.sf||3}pts each</div>`;
-      (ev.sf||[]).forEach((s,i) => { html += pr(`SF${i+1}`, p[s.key], sc2b.sf||3); });
-      html += `<div class="rd-section">🏆 Final · ${sc2b.champion||5}pts</div>`;
+      const howLblB = v => v==='TR'?"90'":v==='PROL'?'ET':v==='TAB'?'Pen.':v||'—';
+      if (!ev.qf_start) {
+        html += `<div class="rd-section">R16 · ${sc2b.r16||1}pt each</div>`;
+        (ev.r16||[]).forEach(m => { html += pm(`${m.t1} vs ${m.t2}`, p[m.key], sc2b.r16||1); });
+      }
+      html += `<div class="rd-section">QF · ${sc2b.qf||2}pts each + ${sc2b.how||2}pt How</div>`;
+      (ev.qf||[]).forEach((q,i) => {
+        const lbl = ev.qf_start ? `${q.t1} vs ${q.t2}` : `QF${i+1}`;
+        html += pr(lbl, p[q.key], sc2b.qf||2);
+        if (sc2b.how) html += pr('↳ How', howLblB(p[q.key+'_how']), sc2b.how||2);
+      });
+      html += `<div class="rd-section">SF · ${sc2b.sf||3}pts each + ${sc2b.how||2}pt How</div>`;
+      (ev.sf||[]).forEach((s,i) => {
+        html += pr(`SF${i+1}`, p[s.key], sc2b.sf||3);
+        if (sc2b.how) html += pr('↳ How', howLblB(p[s.key+'_how']), sc2b.how||2);
+      });
+      html += `<div class="rd-section">🏆 Final · ${sc2b.champion||5}pts + ${sc2b.how||2}pt How</div>`;
       html += pr('Champion', p.final, sc2b.champion||5);
-      html += `<div class="rd-section">🥉 3rd · ${sc2b.third||4}pts</div>`;
+      if (sc2b.how) html += pr('↳ How', howLblB(p['final_how']), sc2b.how||2);
+      html += `<div class="rd-section">🥉 3rd · ${sc2b.third||4}pts + ${sc2b.how||2}pt How</div>`;
       html += pr('3rd Place', p.third, sc2b.third||4);
+      if (sc2b.how) html += pr('↳ How', howLblB(p['third_how']), sc2b.how||2);
       if(sc2b.topScorer){html+=`<div class="rd-section">⚽ Top Scorer · ${sc2b.topScorer}pt</div>`;html+=pr('Top Scorer',p.topScorer,sc2b.topScorer);}
     } else if (ev.type === 'ko_block') {
       const sc2 = ev.scoring||{result:4,qualified:3,how:2};
@@ -2679,16 +2691,28 @@ function openResultDetail(eventId) {
     html += selectRow('Goals range', p.topGoals, official.topGoals, sc.topGoals||4);
   } else if (ev.type === 'bracket') {
     const sc3b = ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5};
-    html += `<div class="rd-section">Round of 16 · ${sc3b.r16||1}pt each</div>`;
-    (ev.r16||[]).forEach(m => { html += match1x2(`${m.t1} vs ${m.t2}`, p[m.key], official[m.key], sc3b.r16||1); });
-    html += `<div class="rd-section">Quarter-finals · ${sc3b.qf||2}pts each</div>`;
-    (ev.qf||[]).forEach((q,i) => { html += selectRow(`QF${i+1}`, p[q.key], official[q.key], sc3b.qf||2); });
-    html += `<div class="rd-section">Semi-finals · ${sc3b.sf||3}pts each</div>`;
-    (ev.sf||[]).forEach((s,i) => { html += selectRow(`SF${i+1}`, p[s.key], official[s.key], sc3b.sf||3); });
-    html += `<div class="rd-section">🏆 Final · ${sc3b.champion||5}pts</div>`;
+    const howLblBs = v => v==='TR'?"90'":v==='PROL'?'ET':v==='TAB'?'Pen.':v||'—';
+    if (!ev.qf_start) {
+      html += `<div class="rd-section">Round of 16 · ${sc3b.r16||1}pt each</div>`;
+      (ev.r16||[]).forEach(m => { html += match1x2(`${m.t1} vs ${m.t2}`, p[m.key], official[m.key], sc3b.r16||1); });
+    }
+    html += `<div class="rd-section">Quarter-finals · ${sc3b.qf||2}pts each + ${sc3b.how||2}pt How</div>`;
+    (ev.qf||[]).forEach((q,i) => {
+      const lbl = ev.qf_start ? `${q.t1} vs ${q.t2}` : `QF${i+1}`;
+      html += selectRow(lbl, p[q.key], official[q.key], sc3b.qf||2);
+      if (sc3b.how) html += selectRow('↳ How', howLblBs(p[q.key+'_how']), howLblBs(official[q.key+'_how']), sc3b.how||2);
+    });
+    html += `<div class="rd-section">Semi-finals · ${sc3b.sf||3}pts each + ${sc3b.how||2}pt How</div>`;
+    (ev.sf||[]).forEach((s,i) => {
+      html += selectRow(`SF${i+1}`, p[s.key], official[s.key], sc3b.sf||3);
+      if (sc3b.how) html += selectRow('↳ How', howLblBs(p[s.key+'_how']), howLblBs(official[s.key+'_how']), sc3b.how||2);
+    });
+    html += `<div class="rd-section">🏆 Final · ${sc3b.champion||5}pts + ${sc3b.how||2}pt How</div>`;
     html += selectRow('Champion', p.final, official.final, sc3b.champion||5);
-    html += `<div class="rd-section">🥉 3rd Place · ${sc3b.third||4}pts</div>`;
+    if (sc3b.how) html += selectRow('↳ How', howLblBs(p['final_how']), howLblBs(official['final_how']), sc3b.how||2);
+    html += `<div class="rd-section">🥉 3rd Place · ${sc3b.third||4}pts + ${sc3b.how||2}pt How</div>`;
     html += selectRow('3rd Place', p.third, official.third, sc3b.third||4);
+    if (sc3b.how) html += selectRow('↳ How', howLblBs(p['third_how']), howLblBs(official['third_how']), sc3b.how||2);
     if(sc3b.topScorer){html+=`<div class="rd-section">⚽ Top Scorer · ${sc3b.topScorer}pts</div>`;html+=selectRow('Top Scorer',p.topScorer,official.topScorer,sc3b.topScorer);}
   } else if (ev.type === 'ko_block') {
     const sc3 = ev.scoring||{result:4,qualified:3,how:2};
