@@ -1316,7 +1316,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V141';
+const APP_VERSION = 'V142';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -4104,7 +4104,7 @@ async function saveResult(eventId, type) {
         if(how) result_data[key+'_how']=how;
       }
     }
-    if(!result_data.final){showToast('⚠️ Enter at least the Final winner!');return;}
+    if(!Object.keys(result_data).some(k=>!k.endsWith('_how')&&result_data[k])){showToast('⚠️ Enter at least one result!');return;}
     if(ev2.scorers&&ev2.scoring?.topScorer){const ts=(document.getElementById('admin-'+eventId+'-topScorer')?.value||'').trim();if(ts)result_data.topScorer=ts;}
   } else if (type === 'f1_race') {
     const top4 = ['p1','p2','p3','p4'].map(k => document.getElementById(`admin-${eventId}-${k}`)?.value || '');
