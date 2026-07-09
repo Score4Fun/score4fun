@@ -793,11 +793,12 @@ function renderMemberPronoCards(body, pronoCards) {
           +'<div class="rd-pts '+(totalPt===0?'zero':'')+'">'+( totalPt>0?'+'+totalPt+' pt':'' )+'</div>'
           +'</div>';
       };
-      (ev.r16||[]).forEach(m => { inner += brkRow(m.t1+' vs '+m.t2, p[m.key], official?official[m.key]:undefined, sc.r16||1, p[m.key+'_how'], official?official[m.key+'_how']:undefined); });
-      (ev.qf||[]).forEach((q,i) => { inner += brkRow('QF'+(i+1), p[q.key], official?official[q.key]:undefined, sc.qf||2, p[q.key+'_how'], official?official[q.key+'_how']:undefined); });
+      if (!ev.qf_start) (ev.r16||[]).forEach(m => { inner += brkRow(m.t1+' vs '+m.t2, p[m.key], official?official[m.key]:undefined, sc.r16||1, p[m.key+'_how'], official?official[m.key+'_how']:undefined); });
+      (ev.qf||[]).forEach((q,i) => { const lbl=ev.qf_start?q.t1+' vs '+q.t2:'QF'+(i+1); inner += brkRow(lbl, p[q.key], official?official[q.key]:undefined, sc.qf||2, p[q.key+'_how'], official?official[q.key+'_how']:undefined); });
       (ev.sf||[]).forEach((s,i) => { inner += brkRow('SF'+(i+1), p[s.key], official?official[s.key]:undefined, sc.sf||3, p[s.key+'_how'], official?official[s.key+'_how']:undefined); });
       inner += brkRow('🥉 3rd Place', p.third, official?official.third:undefined, sc.third||3, p.third_how, official?official.third_how:undefined);
       inner += brkRow('🏆 Final', p.final, official?official.final:undefined, sc.champion||3, p.final_how, official?official.final_how:undefined);
+      if (sc.topScorer) inner += selectRow('⚽ Top Scorer', p.topScorer, official?official.topScorer:null, sc.topScorer||5);
     } else if (ev.type === 'ko_block') {
       const sc = ev.scoring || {result:4, qualified:3, how:2};
       const howL2 = v => v==='TR'?"90'":v==='PROL'?'E.T.':v==='TAB'?'Pen.':v||'?';
@@ -1316,7 +1317,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V142';
+const APP_VERSION = 'V143';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
