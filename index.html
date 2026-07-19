@@ -1317,7 +1317,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V144';
+const APP_VERSION = 'V145';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -2251,7 +2251,7 @@ function buildTeamSelect(id, teams, currentVal, placeholder) {
   placeholder = placeholder || '— Select a team —';
   const opts = teams.map(t => {
     const sel = t === currentVal ? ' cs-sel' : '';
-    return '<div class="cs-opt' + sel + '" onclick="csSelect(\'' + id + '\',this)">' + t + '</div>';
+    return '<div class="cs-opt' + sel + '" data-val="' + t.replace(/"/g,'&quot;') + '" onclick="csSelect(\'' + id + '\',this)">' + t + '</div>';
   }).join('');
   const display = currentVal || '';
   const phCls = display ? '' : ' placeholder';
@@ -2290,7 +2290,7 @@ function csFilter(id, q) {
   });
 }
 function csSelect(id, el) {
-  const val = el.textContent.trim();
+  const val = el.getAttribute('data-val') || el.textContent.trim();
   const hidden = document.getElementById(id);
   const display = document.getElementById('csd-' + id);
   const drop = document.getElementById('csdd-' + id);
@@ -2812,15 +2812,18 @@ function computeUserPoints(ev, p, official) {
     if (p.halftime && p.halftime === official.halftime) pts += 3;
     if (p.firstScorer && p.firstScorer === official.firstScorer) pts += 3;
   } else if (ev.type === 'tournament_bonus') {
+    // normTeam: strips leading emoji prefix (e.g. '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' → 'England')
+    // Needed because Twemoji MutationObserver may have stripped emojis from stored values
+    const normTeam = s => s ? (s.replace(/^\S+\s+/, '').trim() || s.trim()) : s;
     const podiumKeys = ['champion','finaliste','third','fourth'];
-    const offPodium = podiumKeys.map(k => official[k]);
+    const offPodiumNorm = podiumKeys.map(k => normTeam(official[k]||''));
     podiumKeys.forEach((k, i) => {
       if (!p[k]) return;
-      const j = offPodium.indexOf(p[k]);
+      const j = offPodiumNorm.indexOf(normTeam(p[k]));
       if (j === -1) return;
       pts += Math.max(0, Math.min(POINTS_MAP[i]||0, POINTS_MAP[j]||0) - Math.abs(i-j));
     });
-    if (p.topScorer && p.topScorer === official.topScorer) pts += (sc.topScorer||7);
+    if (p.topScorer && normTeam(p.topScorer) === normTeam(official.topScorer||'')) pts += (sc.topScorer||7);
     if (p.topGoals && p.topGoals === official.topGoals) pts += (sc.topGoals||4);
   } else if (ev.type === 'tennis_final_h' || ev.type === 'tennis_final_f') {
     if (p.winner    && p.winner    === official.winner)    pts += 10;
