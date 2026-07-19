@@ -1358,7 +1358,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V147';
+const APP_VERSION = 'V148';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -2892,9 +2892,19 @@ function computeUserPoints(ev, p, official) {
     if (p.halftime && p.halftime === official.halftime) pts += 3;
     if (p.firstScorer && p.firstScorer === official.firstScorer) pts += 3;
   } else if (ev.type === 'tournament_bonus') {
-    // normTeam: strips leading emoji prefix (e.g. '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' → 'England')
-    // Needed because Twemoji MutationObserver may have stripped emojis from stored values
-    const normTeam = s => s ? (s.replace(/^\S+\s+/, '').trim() || s.trim()) : s;
+    // normTeam: strips emoji prefix AND translates French names → English (historical data)
+    const TEAM_FR_EN2 = {
+      'Angleterre':'England','Espagne':'Spain','Allemagne':'Germany',
+      'Argentine':'Argentina','Pays-Bas':'Netherlands','Maroc':'Morocco',
+      'Norvège':'Norway','Ecosse':'Scotland','États-Unis':'USA',
+      'Croatie':'Croatia','Brésil':'Brazil','Sénégal':'Senegal',
+      'Corée du Sud':'South Korea','Arabie Saoudite':'Saudi Arabia'
+    };
+    const normTeam = s => {
+      if (!s) return '';
+      const t = (s.replace(/^\S+\s+/, '').trim() || s.trim());
+      return TEAM_FR_EN2[t] || t;
+    };
     const podiumKeys = ['champion','finaliste','third','fourth'];
     const offPodiumNorm = podiumKeys.map(k => normTeam(official[k]||''));
     podiumKeys.forEach((k, i) => {
