@@ -762,12 +762,41 @@ function renderMemberPronoCards(body, pronoCards) {
       inner += selectRow('First scorer', p.firstScorer, official ? official.firstScorer : null, 3);
     } else if (ev.type === 'tournament_bonus') {
       const sc = ev.scoring || {};
-      inner += selectRow('🥇 Champion', p.champion, official ? official.champion : null, POINTS_MAP[0]);
-      inner += selectRow('🥈 Finaliste', p.finaliste, official ? official.finaliste : null, POINTS_MAP[1]);
-      inner += selectRow('🥉 3ème', p.third, official ? official.third : null, POINTS_MAP[2]);
-      inner += selectRow('4ème', p.fourth, official ? official.fourth : null, POINTS_MAP[3]);
-      inner += selectRow('Top scorer', p.topScorer, official ? official.topScorer : null, sc.topScorer||7);
-      inner += selectRow('Goals range', p.topGoals, official ? official.topGoals : null, sc.topGoals||4);
+      const normTeam = s => s ? (s.replace(/^\S+\s+/, '').trim() || s.trim()) : '';
+      const podiumKeys4 = ['champion','finaliste','third','fourth'];
+      const off4 = official || {};
+      const offNorm4 = podiumKeys4.map(k => normTeam(off4[k]||''));
+      const tbRow = (label, myPick, i, offPick) => {
+        const pending = !official || (!offPick && offPick !== 0);
+        const myN = normTeam(myPick||'');
+        const j = myN ? offNorm4.indexOf(myN) : -1;
+        const pts = (myN && j !== -1) ? Math.max(0, Math.min(POINTS_MAP[i]||0, POINTS_MAP[j]||0) - Math.abs(i-j)) : 0;
+        const cls = pending ? (myPick?'pending':'') : (!myPick ? '' : j===i ? 'correct' : 'wrong');
+        return '<div class="rd-select-row">'
+          +'<div class="rd-select-label">'+label+'</div>'
+          +'<div class="rd-select-val '+cls+'" style="font-size:12px;">'+(myPick||'—')+'</div>'
+          +(!pending && offPick && normTeam(offPick)!==myN ? '<div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;">✓ '+offPick+'</div>' : '')
+          +'<div class="rd-pts '+(pts===0?'zero':'')+'">'+( pts>0?'+'+pts+' pt':'')+'</div>'
+          +'</div>';
+      };
+      const tbScorer = (label, myPick, offPick, maxPts) => {
+        const pending = !official || (!offPick && offPick !== 0);
+        const match = !pending && myPick && normTeam(myPick)===normTeam(offPick||'');
+        const pts = match ? maxPts : 0;
+        const cls = pending ? (myPick?'pending':'') : (!myPick?'':match?'correct':'wrong');
+        return '<div class="rd-select-row">'
+          +'<div class="rd-select-label">'+label+'</div>'
+          +'<div class="rd-select-val '+cls+'" style="font-size:12px;">'+(myPick||'—')+'</div>'
+          +(!pending && !match && offPick ? '<div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;">✓ '+offPick+'</div>' : '')
+          +'<div class="rd-pts '+(pts===0?'zero':'')+'">'+( pts>0?'+'+pts+' pt':'')+'</div>'
+          +'</div>';
+      };
+      inner += tbRow('🥇 Champion', p.champion, 0, off4.champion||null);
+      inner += tbRow('🥈 Finaliste', p.finaliste, 1, off4.finaliste||null);
+      inner += tbRow('🥉 3ème', p.third, 2, off4.third||null);
+      inner += tbRow('4ème', p.fourth, 3, off4.fourth||null);
+      inner += tbScorer('Top scorer', p.topScorer, off4.topScorer||null, sc.topScorer||7);
+      inner += selectRow('Goals range', p.topGoals, off4.topGoals||null, sc.topGoals||4);
     } else if (ev.type === 'tennis_sf') {
       inner += selectRow('Winner', p.winner, official ? official.winner : null, 10);
       inner += selectRow('Sets played', String(p.sets||''), String(official ? official.sets : ''), 6);
@@ -1317,7 +1346,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V145';
+const APP_VERSION = 'V146';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -2682,13 +2711,40 @@ function openResultDetail(eventId) {
     html += selectRow('Équipe', p.firstScorer, official.firstScorer, 3);
   } else if (ev.type === 'tournament_bonus') {
     const sc = ev.scoring || {};
+    const normTeam = s => s ? (s.replace(/^\S+\s+/, '').trim() || s.trim()) : '';
+    const podiumKeys4b = ['champion','finaliste','third','fourth'];
+    const offNorm4b = podiumKeys4b.map(k => normTeam(official[k]||''));
+    const tbRowB = (label, myPick, i) => {
+      const myN = normTeam(myPick||'');
+      const j = myN ? offNorm4b.indexOf(myN) : -1;
+      const pts = (myN && j !== -1) ? Math.max(0, Math.min(POINTS_MAP[i]||0, POINTS_MAP[j]||0) - Math.abs(i-j)) : 0;
+      const offDisp = official[podiumKeys4b[i]]||'';
+      const cls = !myPick ? '' : j===i ? 'correct' : 'wrong';
+      return '<div class="rd-select-row">'
+        +'<div class="rd-select-label">'+label+'</div>'
+        +'<div class="rd-select-val '+cls+'" style="font-size:12px;">'+(myPick||'—')+'</div>'
+        +(offDisp && normTeam(offDisp)!==myN ? '<div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;">✓ '+offDisp+'</div>' : '')
+        +'<div class="rd-pts '+(pts===0?'zero':'')+'">'+( pts>0?'+'+pts+' pt':'')+'</div>'
+        +'</div>';
+    };
+    const tbScorerB = (label, myPick, offPick, maxPts) => {
+      const match = !!(myPick && normTeam(myPick)===normTeam(offPick||''));
+      const pts = match ? maxPts : 0;
+      const cls = !myPick ? '' : match ? 'correct' : 'wrong';
+      return '<div class="rd-select-row">'
+        +'<div class="rd-select-label">'+label+'</div>'
+        +'<div class="rd-select-val '+cls+'" style="font-size:12px;">'+(myPick||'—')+'</div>'
+        +(!match && offPick ? '<div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;">✓ '+offPick+'</div>' : '')
+        +'<div class="rd-pts '+(pts===0?'zero':'')+'">'+( pts>0?'+'+pts+' pt':'')+'</div>'
+        +'</div>';
+    };
     html += `<div class="rd-section">Podium · 10-8-6-4 pts</div>`;
-    html += selectRow('🥇 Champion', p.champion, official.champion, POINTS_MAP[0]);
-    html += selectRow('🥈 Finaliste', p.finaliste, official.finaliste, POINTS_MAP[1]);
-    html += selectRow('🥉 3ème', p.third, official.third, POINTS_MAP[2]);
-    html += selectRow('4ème', p.fourth, official.fourth, POINTS_MAP[3]);
+    html += tbRowB('🥇 Champion', p.champion, 0);
+    html += tbRowB('🥈 Finaliste', p.finaliste, 1);
+    html += tbRowB('🥉 3ème', p.third, 2);
+    html += tbRowB('4ème', p.fourth, 3);
     html += `<div class="rd-section">Buteur & buts</div>`;
-    html += selectRow('Top scorer nationality', p.topScorer, official.topScorer, sc.topScorer||7);
+    html += tbScorerB('Top scorer nationality', p.topScorer, official.topScorer, sc.topScorer||7);
     html += selectRow('Goals range', p.topGoals, official.topGoals, sc.topGoals||4);
   } else if (ev.type === 'bracket') {
     const sc3b = ev.scoring||{r16:1,qf:2,sf:3,third:4,champion:5};
