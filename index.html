@@ -762,7 +762,19 @@ function renderMemberPronoCards(body, pronoCards) {
       inner += selectRow('First scorer', p.firstScorer, official ? official.firstScorer : null, 3);
     } else if (ev.type === 'tournament_bonus') {
       const sc = ev.scoring || {};
-      const normTeam = s => s ? (s.replace(/^\S+\s+/, '').trim() || s.trim()) : '';
+      const TEAM_FR_EN = {
+        'Angleterre':'England','Espagne':'Spain','Allemagne':'Germany',
+        'Argentine':'Argentina','Pays-Bas':'Netherlands','Maroc':'Morocco',
+        'Norvège':'Norway','Ecosse':'Scotland','États-Unis':'USA',
+        'Croatie':'Croatia','Brésil':'Brazil','Sénégal':'Senegal',
+        'Corée du Sud':'South Korea','Côte Ivoire':"Côte d'Ivoire",
+        'Arabie Saoudite':'Saudi Arabia','Uruguay':'Uruguay'
+      };
+      const normTeam = s => {
+        if (!s) return '';
+        const t = (s.replace(/^\S+\s+/, '').trim() || s.trim());
+        return TEAM_FR_EN[t] || t;
+      };
       const podiumKeys4 = ['champion','finaliste','third','fourth'];
       const off4 = official || {};
       const offNorm4 = podiumKeys4.map(k => normTeam(off4[k]||''));
@@ -1346,7 +1358,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V146';
+const APP_VERSION = 'V147';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
@@ -2711,7 +2723,19 @@ function openResultDetail(eventId) {
     html += selectRow('Équipe', p.firstScorer, official.firstScorer, 3);
   } else if (ev.type === 'tournament_bonus') {
     const sc = ev.scoring || {};
-    const normTeam = s => s ? (s.replace(/^\S+\s+/, '').trim() || s.trim()) : '';
+    const TEAM_FR_EN = {
+        'Angleterre':'England','Espagne':'Spain','Allemagne':'Germany',
+        'Argentine':'Argentina','Pays-Bas':'Netherlands','Maroc':'Morocco',
+        'Norvège':'Norway','Ecosse':'Scotland','États-Unis':'USA',
+        'Croatie':'Croatia','Brésil':'Brazil','Sénégal':'Senegal',
+        'Corée du Sud':'South Korea','Côte Ivoire':"Côte d'Ivoire",
+        'Arabie Saoudite':'Saudi Arabia','Uruguay':'Uruguay'
+      };
+      const normTeam = s => {
+        if (!s) return '';
+        const t = (s.replace(/^\S+\s+/, '').trim() || s.trim());
+        return TEAM_FR_EN[t] || t;
+      };
     const podiumKeys4b = ['champion','finaliste','third','fourth'];
     const offNorm4b = podiumKeys4b.map(k => normTeam(official[k]||''));
     const tbRowB = (label, myPick, i) => {
@@ -3548,12 +3572,22 @@ async function saveAdminPickForUser() {
   const {data:existing} = await sb.from('pronos').select('user_id').eq('user_id',uid).eq('event_id',evId).maybeSingle();
   const isNew = !existing;
 
-  const {error} = await sb.from('pronos').upsert({
+  // Try upsert; if RLS blocks it the admin needs the policy fix in Supabase
+  let saveError = null;
+  const {error:ue} = await sb.from('pronos').upsert({
     user_id:uid, event_id:evId, event_name:ev.name, sport:ev.sport,
     data, created_at:new Date().toISOString()
   },{onConflict:'user_id,event_id'});
-
-  if (error) { showToast('❌ Erreur: '+error.message); return; }
+  saveError = ue;
+  if (saveError && saveError.message && saveError.message.includes('row-level')) {
+    showToast("⚠️ RLS: demande à l'admin Supabase d'ajouter la policy Admin manages pronos (voir console)");
+    console.warn('RLS FIX NEEDED — run in Supabase SQL editor:\n' +
+      'CREATE POLICY \"Admin manages all pronos\" ON public.pronos FOR ALL TO authenticated ' +
+      'USING (auth.uid()=\'95cdcb57-2265-41f7-bd73-ddc844ffe3e2\' OR user_id=auth.uid()) ' +
+      'WITH CHECK (auth.uid()=\'95cdcb57-2265-41f7-bd73-ddc844ffe3e2\' OR user_id=auth.uid());');
+    return;
+  }
+  if (saveError) { showToast('❌ Erreur: '+saveError.message); return; }
 
   if (isNew) {
     // Increment pronos_count
