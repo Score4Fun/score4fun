@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<meta name="theme-color" content="#0f0f1a"/>
+<title>Hidden Eleven — Score4Fun</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;padding-bottom:60px;}
+
+/* HEADER */
+.s4f-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.06);}
+.back-btn{display:flex;align-items:center;gap:5px;color:rgba(255,255,255,.45);font-size:13px;text-decoration:none;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,.05);transition:background .15s;}
+.back-btn:hover{background:rgba(255,255,255,.1);}
+.s4f-logo{font-size:17px;font-weight:800;color:#f5c842;}
+.s4f-logo span{color:#fff;}
+.gw-badge{font-size:11px;font-weight:700;color:#f5c842;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:4px 11px;letter-spacing:.04em;}
+
+/* HERO */
+.hero{text-align:center;padding:22px 20px 14px;}
+.hero-kicker{font-size:10px;font-weight:700;color:#f5c842;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}
+.hero-title{font-size:30px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.4);line-height:1.5;max-width:340px;margin:0 auto 16px;}
+
+/* COUNTDOWN */
+.countdown-bar{display:inline-flex;align-items:center;gap:8px;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);border-radius:24px;padding:7px 16px;font-size:12px;font-weight:500;color:rgba(255,255,255,.5);}
+#countdown-val{font-weight:700;color:#f5c842;min-width:72px;text-align:center;font-size:13px;}
+.countdown-bar.expired{background:rgba(255,80,80,.07);border-color:rgba(255,80,80,.25);}
+.countdown-bar.expired #countdown-val{color:#ff6b6b;}
+
+/* GRID */
+.grid-wrap{padding:18px 8px 0;display:flex;justify-content:center;}
+#grid{border-collapse:separate;border-spacing:3px;user-select:none;touch-action:none;}
+#grid td{
+  width:clamp(26px,8vw,36px);height:clamp(26px,8vw,36px);
+  text-align:center;vertical-align:middle;
+  font-size:clamp(10px,3.2vw,14px);font-weight:700;
+  background:#17172e;border:1px solid rgba(255,255,255,.07);
+  border-radius:5px;cursor:pointer;color:rgba(255,255,255,.8);
+  transition:background .07s,transform .07s;
+}
+#grid td.active{background:#f5c842;color:#1a1200;transform:scale(1.1);}
+#grid td.found{background:#163b26;color:#6edda0;border-color:#1e5c3a;}
+
+/* STATUS */
+.grid-status{text-align:center;padding:10px 20px;font-size:13px;color:rgba(255,255,255,.35);min-height:38px;transition:color .2s;}
+.grid-status.ok{color:#6edda0;}
+.grid-status.err{color:#ff6b6b;}
+
+/* FOUND LIST */
+.found-section{padding:4px 20px 0;min-height:32px;}
+.found-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.25);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:none;}
+.found-chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{background:#122b1e;border:1px solid #1e5c3a;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:#6edda0;display:flex;align-items:center;gap:7px;}
+.chip-club{font-weight:400;color:rgba(255,255,255,.35);font-size:11px;}
+
+/* RESULT PANEL */
+#result-panel{margin:18px 16px 0;background:#111127;border:1px solid rgba(245,200,66,.14);border-radius:20px;padding:20px;display:none;}
+.rp-name{font-size:22px;font-weight:800;letter-spacing:-.3px;margin-bottom:3px;}
+.rp-meta{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:18px;}
+
+/* WHEEL */
+.wheel-section{display:flex;flex-direction:column;align-items:center;}
+.wheel-hint{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:14px;}
+.wheel-wrap{position:relative;width:170px;height:170px;margin-bottom:10px;}
+#pointer{position:absolute;top:-9px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:18px solid #f5c842;z-index:5;}
+#wheel-canvas{border-radius:50%;}
+#spin-tag{font-size:11px;color:rgba(255,255,255,.3);height:16px;text-align:center;}
+
+/* QUESTION */
+#q-section{display:none;margin-top:18px;border-top:1px solid rgba(255,255,255,.07);padding-top:18px;}
+#q-cat{font-size:10px;font-weight:700;color:#f5c842;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
+#q-text{font-size:15px;font-weight:600;margin-bottom:14px;line-height:1.45;}
+.ans-btn{width:100%;padding:11px 14px;margin-bottom:8px;border-radius:10px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);color:rgba(255,255,255,.8);font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:background .12s,border-color .12s;font-family:'Inter',sans-serif;}
+.ans-btn:hover{background:rgba(245,200,66,.07);border-color:rgba(245,200,66,.2);}
+.ans-btn.selected{background:rgba(245,200,66,.1);border-color:#f5c842;color:#f5c842;}
+#q-confirm{font-size:12px;color:#6edda0;margin-top:8px;font-weight:600;display:none;}
+</style>
+</head>
+<body>
+
+<header class="s4f-header">
+  <a class="back-btn" href="/">&#8592; Hub</a>
+  <div class="s4f-logo">Score<span>4</span>Fun</div>
+  <div class="gw-badge" id="gw-badge">GW —</div>
+</header>
+
+<div class="hero">
+  <div class="hero-kicker">Gameweek Challenge</div>
+  <div class="hero-title">Hidden Eleven</div>
+  <div class="hero-sub">Find a player hiding in the grid. The wheel decides your prediction question.</div>
+  <div class="countdown-bar" id="countdown-bar">
+    <span>Deadline:</span>
+    <span id="countdown-val">--:--:--</span>
+  </div>
+</div>
+
+<div class="grid-wrap"><table id="grid"></table></div>
+<div class="grid-status" id="grid-status">Drag through letters to spell a player name</div>
+
+<div class="found-section">
+  <div class="found-label" id="found-label">Found</div>
+  <div class="found-chips" id="found-chips"></div>
+</div>
+
+<div id="result-panel">
+  <div class="rp-name" id="rp-name"></div>
+  <div class="rp-meta" id="rp-meta"></div>
+  <div class="wheel-section">
+    <div class="wheel-hint">The wheel picks your prediction topic</div>
+    <div class="wheel-wrap">
+      <div id="pointer"></div>
+      <canvas id="wheel-canvas" width="170" height="170"></canvas>
+    </div>
+    <div id="spin-tag"></div>
+  </div>
+  <div id="q-section">
+    <div id="q-cat"></div>
+    <div id="q-text"></div>
+    <div id="q-answers"></div>
+    <div id="q-confirm"></div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================
+   GAMEWEEK CONFIG — update these two sections each week
+   ========================================================== */
+const GW = {
+  number:   4,
+  season:   '2026/27',
+  deadline: '2026-09-27T10:00:00Z'  // UTC — first GW4 kickoff time
+};
+
+const PLAYERS = [
+  { name:'SALAH',    club:'Liverpool',    pos:'MID', price:'13.0' },
+  { name:'HAALAND',  club:'Man City',     pos:'FWD', price:'15.0' },
+  { name:'PALMER',   club:'Chelsea',      pos:'MID', price:'11.0' },
+  { name:'SAKA',     club:'Arsenal',      pos:'MID', price:'10.5' },
+  { name:'WATKINS',  club:'Aston Villa',  pos:'FWD', price:'9.5'  },
+  { name:'SALIBA',   club:'Arsenal',      pos:'DEF', price:'6.5'  },
+];
+
+/* ==========================================================
+   WHEEL QUESTIONS (fixed — same every gameweek)
+   ========================================================== */
+const QUESTIONS = [
+  { label:'Minutes',  color:'#b8860b', q:'How many minutes will {p} play this GW?',      opts:['0–15 min','16–60 min','61 min or more'] },
+  { label:'Goals',    color:'#1a6b3a', q:'How many goals will {p} score this GW?',       opts:['0 goals','1 goal','2 or more'] },
+  { label:'Assists',  color:'#1e4f8a', q:'How many assists will {p} get this GW?',       opts:['0 assists','1 assist','2 or more'] },
+  { label:'Card?',    color:'#9b1c1c', q:'Will {p} receive a card this GW?',             opts:['Yellow card','Red card','No card'] },
+  { label:'Starting?',color:'#5b2d8e', q:'Will {p} start in the XI this GW?',            opts:['Starting XI','Off the bench','Not in squad'] },
+  { label:'FPL pts',  color:'#0d5a4e', q:'How many FPL points will {p} get this GW?',   opts:['0–2 pts','3–5 pts','6 pts or more'] },
+];
+
+/* ==========================================================
+   SEEDED RNG (stable grid per gameweek)
+   ========================================================== */
+function rng(seed) {
+  let s = seed >>> 0;
+  return () => { s=(s*1664525+1013904223)>>>0; return s/4294967296; };
+}
+
+/* ==========================================================
+   GRID BUILDER
+   ========================================================== */
+function buildGrid(players, size, seed) {
+  const rand = rng(seed);
+  const g = Array.from({length:size},()=>Array(size).fill(null));
+  const placed = [];
+  const dirs = [[0,1],[1,0],[1,1],[0,-1],[-1,0],[-1,-1],[1,-1],[-1,1]];
+
+  for (const p of players) {
+    const n = p.name, len = n.length;
+    let done = false;
+    for (let t=0; t<300&&!done; t++) {
+      const [dr,dc] = dirs[Math.floor(rand()*8)];
+      const rMax = dr>0?size-len:dr<0?len-1:size-1, rMin = dr<0?len-1:0;
+      const cMax = dc>0?size-len:dc<0?len-1:size-1, cMin = dc<0?len-1:0;
+      if (rMax<rMin||cMax<cMin) continue;
+      const r0 = Math.floor(rand()*(rMax-rMin+1))+rMin;
+      const c0 = Math.floor(rand()*(cMax-cMin+1))+cMin;
+      const pos = [];
+      let conflict = false;
+      for (let i=0;i<len;i++) {
+        const r=r0+i*dr, c=c0+i*dc;
+        if (g[r][c]!==null&&g[r][c]!==n[i]){conflict=true;break;}
+        pos.push([r,c]);
+      }
+      if (!conflict) {
+        pos.forEach(([r,c],i)=>g[r][c]=n[i]);
+        placed.push({player:p, positions:pos});
+        done = true;
+      }
+    }
+  }
+
+  const ABC='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++)
+    if(g[r][c]===null) g[r][c]=ABC[Math.floor(rand()*26)];
+
+  return {g, placed};
+}
+
+/* ==========================================================
+   INIT
+   ========================================================== */
+const SIZE = 10;
+const { g: GRID } = buildGrid(PLAYERS, SIZE, GW.number * 97531);
+const validNames = new Set(PLAYERS.map(p=>p.name));
+const playerMap  = Object.fromEntries(PLAYERS.map(p=>[p.name,p]));
+const found      = new Set();
+
+document.getElementById('gw-badge').textContent = 'GW' + GW.number;
+
+// Build DOM grid
+const gridEl = document.getElementById('grid');
+for (let r=0;r<SIZE;r++) {
+  const tr = document.createElement('tr');
+  for (let c=0;c<SIZE;c++) {
+    const td = document.createElement('td');
+    td.textContent = GRID[r][c];
+    td.dataset.r = r; td.dataset.c = c;
+    tr.appendChild(td);
+  }
+  gridEl.appendChild(tr);
+}
+const cells = gridEl.querySelectorAll('td');
+
+/* ==========================================================
+   COUNTDOWN
+   ========================================================== */
+let deadlinePassed = false;
+const dlDate = new Date(GW.deadline);
+function tick() {
+  const diff = dlDate - Date.now();
+  const bar = document.getElementById('countdown-bar');
+  const val = document.getElementById('countdown-val');
+  if (diff <= 0) {
+    deadlinePassed = true;
+    bar.classList.add('expired');
+    val.textContent = 'CLOSED';
+    return;
+  }
+  const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+  val.textContent = (h?h+'h ':'')+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s';
+}
+tick(); setInterval(tick, 1000);
+
+/* ==========================================================
+   DRAG SELECT
+   ========================================================== */
+let dragging=false, path=[];
+const statusEl = document.getElementById('grid-status');
+
+function startDrag(td) {
+  if (deadlinePassed) return;
+  dragging=true; clearActive(); path=[td]; td.classList.add('active');
+  statusEl.className='grid-status'; statusEl.textContent='Dragging…';
+}
+function extendDrag(td) {
+  if (!dragging||deadlinePassed) return;
+  if (td===path[path.length-1]) return;
+  if (path.length>1&&td===path[path.length-2]) { path.pop().classList.remove('active'); return; }
+  if (path.includes(td)) return;
+  path.push(td); td.classList.add('active');
+}
+function clearActive() { path.forEach(td=>td.classList.remove('active')); path=[]; }
+function endDrag() {
+  if (!dragging) return;
+  dragging = false;
+  if (!path.length) return;
+  const word = path.map(td=>td.textContent).join('');
+  const rev  = word.split('').reverse().join('');
+  const match = validNames.has(word)?word:validNames.has(rev)?rev:null;
+  if (match && !found.has(match)) {
+    path.forEach(td=>{ td.classList.remove('active'); td.classList.add('found'); });
+    path=[];
+    found.add(match);
+    statusEl.className='grid-status ok'; statusEl.textContent='Found '+cap(match)+'! 🎉';
+    addChip(match);
+    showResultPanel(match);
+  } else if (match && found.has(match)) {
+    clearActive();
+    statusEl.className='grid-status err'; statusEl.textContent=cap(match)+' already found!';
+  } else {
+    clearActive();
+    statusEl.className='grid-status err'; statusEl.textContent='Not a valid player — try again!';
+  }
+}
+
+cells.forEach(td=>{
+  td.addEventListener('pointerdown',e=>{e.preventDefault();startDrag(td);});
+  td.addEventListener('pointerenter',()=>extendDrag(td));
+});
+document.addEventListener('pointerup', endDrag);
+document.addEventListener('pointercancel', endDrag);
+
+function cap(w){return w[0]+w.slice(1).toLowerCase();}
+
+/* ==========================================================
+   FOUND CHIPS
+   ========================================================== */
+function addChip(name) {
+  const p = playerMap[name];
+  document.getElementById('found-label').style.display='block';
+  const chip = document.createElement('div');
+  chip.className='chip';
+  chip.innerHTML=cap(name)+' <span class="chip-club">'+p.club+'</span>';
+  document.getElementById('found-chips').appendChild(chip);
+}
+
+/* ==========================================================
+   WHEEL (canvas)
+   ========================================================== */
+let wheelDeg=0, spinning=false;
+
+function drawWheel() {
+  const cvs = document.getElementById('wheel-canvas');
+  const ctx = cvs.getContext('2d');
+  const cx=85,cy=85,r=82;
+  const seg=2*Math.PI/QUESTIONS.length;
+  QUESTIONS.forEach((q,i)=>{
+    const a0=i*seg-Math.PI/2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,a0,a0+seg);
+    ctx.closePath(); ctx.fillStyle=q.color; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,a0,a0+seg);
+    ctx.strokeStyle='rgba(15,15,26,.6)'; ctx.lineWidth=2; ctx.stroke();
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(a0+seg/2);
+    ctx.textAlign='center'; ctx.fillStyle='#fff';
+    ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=3;
+    ctx.font='bold 8px Inter'; ctx.fillText(q.label,50,3);
+    ctx.restore();
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,10,0,2*Math.PI);
+  ctx.fillStyle='#0f0f1a'; ctx.fill();
+}
+
+function showResultPanel(name) {
+  const p = playerMap[name];
+  const panel = document.getElementById('result-panel');
+  panel.style.display='block';
+  document.getElementById('rp-name').textContent=cap(name);
+  document.getElementById('rp-meta').textContent=p.club+' · '+p.pos+' · £'+p.price+'m';
+  document.getElementById('q-section').style.display='none';
+  document.getElementById('spin-tag').textContent='';
+  drawWheel();
+  document.getElementById('wheel-canvas').style.transition='none';
+  document.getElementById('wheel-canvas').style.transform='rotate('+wheelDeg+'deg)';
+  setTimeout(()=>spinWheel(name),500);
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function spinWheel(name) {
+  if (spinning) return;
+  spinning=true;
+  const segAngle = 360/QUESTIONS.length;
+  const targetSeg = Math.floor(Math.random()*QUESTIONS.length);
+  // Position centre of targetSeg under pointer (top)
+  const targetRem = (360 - targetSeg*segAngle - segAngle/2 + 360) % 360;
+  const currentRem = ((wheelDeg % 360) + 360) % 360;
+  let delta = targetRem - currentRem;
+  if (delta<0) delta+=360;
+  const totalSpin = (5+Math.floor(Math.random()*4))*360 + delta;
+  wheelDeg += totalSpin;
+  const cvs = document.getElementById('wheel-canvas');
+  cvs.style.transition='transform 4.2s cubic-bezier(0.15,0.7,0.1,1)';
+  cvs.style.transform='rotate('+wheelDeg+'deg)';
+  document.getElementById('spin-tag').textContent='Spinning…';
+  setTimeout(()=>{
+    spinning=false;
+    document.getElementById('spin-tag').textContent='';
+    showQuestion(QUESTIONS[targetSeg], name);
+  }, 4400);
+}
+
+/* ==========================================================
+   QUESTION PANEL
+   ========================================================== */
+function showQuestion(q, name) {
+  const sec = document.getElementById('q-section');
+  sec.style.display='block';
+  document.getElementById('q-cat').textContent=q.label;
+  document.getElementById('q-text').textContent=q.q.replace('{p}',cap(name));
+  const answersEl = document.getElementById('q-answers');
+  answersEl.innerHTML='';
+  q.opts.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn'; btn.textContent=opt;
+    btn.onclick=()=>{
+      if (btn.classList.contains('selected')) return;
+      answersEl.querySelectorAll('.ans-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const c=document.getElementById('q-confirm');
+      c.style.display='block'; c.textContent='Locked: '+opt+' ✓';
+    };
+    answersEl.appendChild(btn);
+  });
+  document.getElementById('q-confirm').style.display='none';
+}
+</script>
+</body>
+</html>
