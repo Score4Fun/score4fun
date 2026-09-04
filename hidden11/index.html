@@ -354,6 +354,11 @@ async function savePrediction(playerName, q, answer, pts) {
   if (!currentUser) return;
   myPicks[playerName] = { qLabel: q.label, answer, pts };
   updateChip(playerName, q.label, answer, pts);
+  if (Object.keys(myPicks).length >= 3) {
+    revealPaths();
+    showGridOverlay();
+    statusEl.className = 'grid-status ok'; statusEl.textContent = '🔒 All locked in — waiting for GW results!';
+  }
   const userName = (currentUser.user_metadata?.full_name || currentUser.email || '').split(' ')[0];
   await sb.from('h11_predictions').insert({
     user_id: currentUser.id,
@@ -767,8 +772,7 @@ function endDrag() {
     path = [];
     found.add(match);
     if (found.size >= 3) {
-      revealPaths(); showGridOverlay();
-      statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉 — Grid locked (3/3)';
+      statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉 — Now answer the wheel question!';
     } else {
       statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉';
     }
