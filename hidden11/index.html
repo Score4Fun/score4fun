@@ -406,31 +406,99 @@ function switchTab(tab) {
 }
 
 let currentUser = null;
-checkAuth();
 
 /* ==========================================================
-   FPL API — deadline sync + automatic result calculation
+   FPL API — player selection + deadline + results
    ========================================================== */
-async function syncFPLDeadline() {
+
+/* Pick 6 players from FPL bootstrap data, seeded by GW for stability */
+function selectPlayersForGW(elements, teams, gwNum) {
+  const rand = makeRng(gwNum * 13337 + 7);
+  const teamMap = Object.fromEntries(teams.map(t => [t.id, t.short_name]));
+  const posMap  = { 1:'GK', 2:'DEF', 3:'MID', 4:'FWD' };
+
+  const eligible = elements.filter(el =>
+    el.status === 'a' &&
+    el.element_type !== 1 &&           /* no GKs */
+    el.web_name.length >= 6 &&
+    el.web_name.length <= SIZE         /* must fit in grid */
+  ).map(el => ({
+    name:      el.web_name.toUpperCase(),
+    club:      teamMap[el.team] || '?',
+    pos:       posMap[el.element_type] || 'MID',
+    ownership: parseFloat(el.selected_by_percent)
+  }));
+
+  /* Tiers: 2 stars (>25%), 2 mid-tier (8–25%), 2 rotation/mid-table (2–8%) */
+  const tierA = eligible.filter(p => p.ownership >= 25);
+  const tierB = eligible.filter(p => p.ownership >= 8  && p.ownership < 25);
+  const tierC = eligible.filter(p => p.ownership >= 2  && p.ownership < 8);
+
+  function seededPick(arr, n) {
+    const copy = [...arr], out = [];
+    while (out.length < n && copy.length) {
+      out.push(copy.splice(Math.floor(rand() * copy.length), 1)[0]);
+    }
+    return out;
+  }
+
+  const picked = [...seededPick(tierA, 2), ...seededPick(tierB, 2), ...seededPick(tierC, 2)];
+  if (picked.length < 6) {
+    const used = new Set(picked.map(p => p.name));
+    picked.push(...seededPick(eligible.filter(p => !used.has(p.name)), 6 - picked.length));
+  }
+  return picked.slice(0, 6);
+}
+
+/* Fallback players used if FPL API is unreachable */
+const FALLBACK_PLAYERS = [
+  { name:'HAALAND', club:'Man City',    pos:'FWD' },
+  { name:'PALMER',  club:'Chelsea',     pos:'MID' },
+  { name:'WATKINS', club:'Aston Villa', pos:'FWD' },
+  { name:'MBEUMO',  club:'Brentford',   pos:'MID' },
+  { name:'ROGERS',  club:'Chelsea',     pos:'MID' },
+  { name:'NDIAYE',  club:'Everton',     pos:'MID' },
+];
+
+async function initGame() {
+  document.getElementById('grid-status').textContent = 'Loading players…';
+  let fplElements = null;
   try {
     const res = await fetch('https://fantasy.premierleague.com/api/bootstrap-static/');
-    const d = await res.json();
-    /* Update deadline from FPL */
-    const gwData = d.events.find(e => e.id === GW.number);
+    const d   = await res.json();
+    fplElements = d.elements;
+
+    /* Sync GW deadline */
+    const gwData = d.events.find(e => e.id === GW.number) ||
+                   d.events.find(e => e.is_next) ||
+                   d.events.find(e => e.is_current);
     if (gwData) {
+      GW.number   = gwData.id;
       GW.deadline = gwData.deadline_time;
       document.getElementById('gw-badge').textContent = 'GW' + GW.number;
-      document.getElementById('lb-gw').textContent = 'GW' + GW.number;
-      tick();
-      /* If GW results are available, calculate scores */
-      if (gwData.data_checked) {
-        gwResultsReady = true;
-        await calculateGWResults(d.elements);
-      }
+      document.getElementById('lb-gw').textContent    = 'GW' + GW.number;
+      if (gwData.data_checked) gwResultsReady = true;
     }
-  } catch(e) { /* fallback to hardcoded config */ }
+
+    PLAYERS = selectPlayersForGW(d.elements, d.teams, GW.number);
+  } catch(e) {
+    PLAYERS = FALLBACK_PLAYERS;
+  }
+
+  /* Build and render grid */
+  GRID       = buildGrid(PLAYERS, SIZE, GW.number * 97531);
+  validNames = new Set(PLAYERS.map(p => p.name));
+  playerMap  = Object.fromEntries(PLAYERS.map(p => [p.name, p]));
+  renderGrid();
+  document.getElementById('grid-status').textContent = 'Click and drag to spell a player name';
+
+  /* Auth — load predictions now that playerMap is ready */
+  await checkAuth();
+
+  /* Calculate results if GW is already finished */
+  if (gwResultsReady && fplElements) await calculateGWResults(fplElements);
 }
-syncFPLDeadline();
+initGame();
 
 /* Map our player names to FPL element IDs, then fetch live stats */
 async function calculateGWResults(elements) {
@@ -508,14 +576,7 @@ const GW = {
   deadline: '2026-09-12T12:30:00Z'  /* FPL official deadline */
 };
 
-const PLAYERS = [
-  { name:'ISAK',   club:'Liverpool',  pos:'FWD', price:'9.0' },
-  { name:'SAKA',   club:'Arsenal',    pos:'MID', price:'9.5' },
-  { name:'PALMER', club:'Chelsea',    pos:'MID', price:'9.5' },
-  { name:'MBEUMO', club:'Man United', pos:'MID', price:'8.0' },
-  { name:'NDIAYE', club:'Everton',    pos:'MID', price:'6.0' },
-  { name:'ROGERS', club:'Chelsea',    pos:'MID', price:'7.5' },
-];
+let PLAYERS = []; /* populated dynamically from FPL API */
 
 const QUESTIONS = [
   { label:'Minutes',   color:'#b8860b', q:'How many minutes will {p} play this GW?',
@@ -570,34 +631,38 @@ function buildGrid(players, size, seed) {
   return g;
 }
 
-/* Init */
+/* Init — grid built async after FPL fetch */
 const SIZE = 7;
-const GRID = buildGrid(PLAYERS, SIZE, GW.number * 97531);
-const validNames = new Set(PLAYERS.map(p => p.name));
-const playerMap  = Object.fromEntries(PLAYERS.map(p => [p.name, p]));
+let GRID, validNames = new Set(), playerMap = {};
 const found      = new Set();
 const isMobile   = () => window.innerWidth <= 640;
+const gridEl     = document.getElementById('grid');
 
-document.getElementById('gw-badge').textContent = 'GW' + GW.number;
-
-/* Build DOM grid */
-const gridEl = document.getElementById('grid');
-for (let r = 0; r < SIZE; r++) {
-  const tr = document.createElement('tr');
-  for (let c = 0; c < SIZE; c++) {
-    const td = document.createElement('td');
-    td.textContent = GRID[r][c];
-    td.dataset.r = r; td.dataset.c = c;
-    tr.appendChild(td);
+function renderGrid() {
+  gridEl.innerHTML = '';
+  for (let r = 0; r < SIZE; r++) {
+    const tr = document.createElement('tr');
+    for (let c = 0; c < SIZE; c++) {
+      const td = document.createElement('td');
+      td.textContent = GRID[r][c];
+      td.dataset.r = r; td.dataset.c = c;
+      tr.appendChild(td);
+    }
+    gridEl.appendChild(tr);
   }
-  gridEl.appendChild(tr);
+  /* Re-mark already-found cells */
+  found.forEach(name => {
+    const word = name.split('');
+    gridEl.querySelectorAll('td').forEach(td => {
+      if (word.includes(td.textContent)) td.classList.add('found');
+    });
+  });
 }
 
-/* Countdown */
+/* Countdown — reads GW.deadline fresh each tick */
 let deadlinePassed = false;
-const dlDate = new Date(GW.deadline);
 function tick() {
-  const diff = dlDate - Date.now();
+  const diff = new Date(GW.deadline) - Date.now();
   const bar = document.getElementById('countdown-bar');
   const val = document.getElementById('countdown-val');
   if (diff <= 0) { deadlinePassed = true; bar.classList.add('expired'); val.textContent = 'CLOSED'; return; }
@@ -636,6 +701,7 @@ function endDrag() {
   if (!path.length) return;
   const word = path.map(td => td.textContent).join('');
   const rev  = word.split('').reverse().join('');
+  if (!validNames.size) return; /* grid not ready yet */
   const match = validNames.has(word) ? word : validNames.has(rev) ? rev : null;
   if (match && !found.has(match)) {
     path.forEach(td => { td.classList.remove('active'); td.classList.add('found'); });
