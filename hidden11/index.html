@@ -56,7 +56,7 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .chip-club{font-weight:400;color:rgba(255,255,255,.35);font-size:10px;}
 
 /* RESULT PANEL */
-#result-panel{background:#111127;border:1px solid rgba(245,200,66,.14);border-radius:20px;padding:20px;}
+#result-panel{background:#111127;border:1px solid rgba(245,200,66,.14);border-radius:20px;padding:20px;min-height:520px;}
 .rp-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;color:rgba(255,255,255,.15);font-size:13px;text-align:center;gap:12px;}
 .rp-placeholder-icon{font-size:36px;opacity:.2;}
 .rp-content{display:none;}
@@ -393,12 +393,13 @@ function showQuestion(q, name) {
       btn.classList.add('selected');
       const c = document.getElementById('q-confirm');
       c.style.display = 'block'; c.textContent = 'Locked: ' + opt + ' ✓';
+      setTimeout(() => c.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
     };
     answersEl.appendChild(btn);
   });
   document.getElementById('q-confirm').style.display = 'none';
   /* Scroll to question on mobile */
-  if (isMobile()) setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+  setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 }
 </script>
 </body>
