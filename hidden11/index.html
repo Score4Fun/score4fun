@@ -29,8 +29,8 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 
 /* GAME LAYOUT: side-by-side on desktop, stacked on mobile */
 .game-layout{display:flex;gap:20px;max-width:860px;margin:0 auto;padding:16px 16px 0;align-items:flex-start;}
-.game-left{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;}
-.game-right{flex:1;min-width:0;}
+.game-left{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;}
+.game-right{flex:1 1 0;min-width:0;}
 
 /* GRID */
 #grid{border-collapse:separate;border-spacing:4px;user-select:none;touch-action:none;}
@@ -79,6 +79,12 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .ans-btn:hover{background:rgba(245,200,66,.07);border-color:rgba(245,200,66,.2);}
 .ans-btn.selected{background:rgba(245,200,66,.1);border-color:#f5c842;color:#f5c842;}
 #q-confirm{font-size:12px;color:#6edda0;margin-top:8px;font-weight:600;display:none;}
+
+/* DESKTOP: bigger grid cells */
+@media (min-width:641px){
+  #grid td{width:52px;height:52px;font-size:16px;border-radius:7px;}
+  .game-layout{gap:24px;padding:20px 24px 0;}
+}
 
 /* MOBILE: stack vertically, result panel below grid */
 @media (max-width: 640px) {
