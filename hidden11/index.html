@@ -356,8 +356,13 @@ async function loadPredictions(userId) {
     addChip(pred.player_name);
     myPicks[pred.player_name] = { qLabel: pred.question_label, answer: pred.answer, pts: pred.points_potential };
     const q = QUESTIONS.find(q => q.label === pred.question_label);
-    updateChip(pred.player_name, pred.question_label, pred.answer, pred.points_potential);
-    if (q) showResultPanel(pred.player_name, pred.answer, q);
+    if (pred.correct !== null) {
+      /* GW results already scored — restore result state */
+      updateChipResult(pred.player_name, pred.correct, pred.answer, pred.points_earned || 0);
+    } else {
+      updateChip(pred.player_name, pred.question_label, pred.answer, pred.points_potential);
+      if (q) showResultPanel(pred.player_name, pred.answer, q);
+    }
   });
   if (found.size >= 3) document.getElementById('lock-banner').classList.add('show');
   if (found.size >= 3) {
@@ -365,22 +370,33 @@ async function loadPredictions(userId) {
   }
 }
 
+let gwResultsReady = false; /* true once data_checked from FPL */
+
 async function loadLeaderboard() {
   document.getElementById('lb-gw').textContent = 'GW' + GW.number;
   const { data } = await sb.from('h11_predictions')
-    .select('user_name, player_name, points_potential').eq('gw_number', GW.number);
+    .select('user_name, player_name, points_potential, points_earned, correct').eq('gw_number', GW.number);
   const lbEl = document.getElementById('lb-list');
   if (!data || !data.length) { lbEl.innerHTML = '<div class="lb-empty">No predictions yet</div>'; return; }
   const byUser = {};
   data.forEach(r => {
-    if (!byUser[r.user_name]) byUser[r.user_name] = { total: 0, players: [] };
-    byUser[r.user_name].total += r.points_potential;
+    if (!byUser[r.user_name]) byUser[r.user_name] = { potential: 0, earned: 0, players: [], hasResults: false };
+    byUser[r.user_name].potential += r.points_potential;
+    byUser[r.user_name].earned += (r.points_earned || 0);
+    if (r.correct !== null) byUser[r.user_name].hasResults = true;
     byUser[r.user_name].players.push(cap(r.player_name));
   });
-  const sorted = Object.entries(byUser).sort((a,b) => b[1].total - a[1].total);
-  lbEl.innerHTML = sorted.map(([name, d], i) =>
-    `<div class="lb-row"><span class="lb-rank">${i+1}</span><span class="lb-name">${name}<br><span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400">${d.players.join(', ')}</span></span><span class="lb-pts">${d.total}pts</span></div>`
-  ).join('');
+  const useEarned = gwResultsReady || Object.values(byUser).some(u => u.hasResults);
+  const sorted = Object.entries(byUser).sort((a,b) => {
+    const scoreA = useEarned ? a[1].earned : a[1].potential;
+    const scoreB = useEarned ? b[1].earned : b[1].potential;
+    return scoreB - scoreA;
+  });
+  const label = useEarned ? 'pts' : 'Potential';
+  lbEl.innerHTML = sorted.map(([name, d], i) => {
+    const score = useEarned ? d.earned : d.potential;
+    return `<div class="lb-row"><span class="lb-rank">${i+1}</span><span class="lb-name">${name}<br><span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400">${d.players.join(', ')}</span></span><span class="lb-pts">${score} <span style="font-size:10px;font-weight:400">${label}</span></span></div>`;
+  }).join('');
 }
 
 function switchTab(tab) {
@@ -392,23 +408,96 @@ function switchTab(tab) {
 let currentUser = null;
 checkAuth();
 
-/* FPL API — sync real GW deadline */
+/* ==========================================================
+   FPL API — deadline sync + automatic result calculation
+   ========================================================== */
 async function syncFPLDeadline() {
   try {
     const res = await fetch('https://fantasy.premierleague.com/api/bootstrap-static/');
     const d = await res.json();
-    const gw = d.events.find(e => e.is_next) || d.events.find(e => e.is_current);
-    if (gw) {
-      GW.number = gw.id;
-      GW.deadline = gw.deadline_time;
+    /* Update deadline from FPL */
+    const gwData = d.events.find(e => e.id === GW.number);
+    if (gwData) {
+      GW.deadline = gwData.deadline_time;
       document.getElementById('gw-badge').textContent = 'GW' + GW.number;
       document.getElementById('lb-gw').textContent = 'GW' + GW.number;
-      deadlinePassed = false;
       tick();
+      /* If GW results are available, calculate scores */
+      if (gwData.data_checked) {
+        gwResultsReady = true;
+        await calculateGWResults(d.elements);
+      }
     }
   } catch(e) { /* fallback to hardcoded config */ }
 }
 syncFPLDeadline();
+
+/* Map our player names to FPL element IDs, then fetch live stats */
+async function calculateGWResults(elements) {
+  /* Build web_name → FPL id map */
+  const nameMap = {};
+  elements.forEach(el => { nameMap[el.web_name.toUpperCase()] = el.id; });
+
+  const fplIds = {};
+  PLAYERS.forEach(p => { if (nameMap[p.name]) fplIds[p.name] = nameMap[p.name]; });
+  if (!Object.keys(fplIds).length) return;
+
+  /* Fetch live stats for this GW */
+  const liveRes = await fetch(`https://fantasy.premierleague.com/api/event/${GW.number}/live/`);
+  const liveData = await liveRes.json();
+  const statsById = {};
+  liveData.elements.forEach(el => { statsById[el.id] = el.stats; });
+
+  let anyResult = false;
+  for (const [playerName, pick] of Object.entries(myPicks)) {
+    const id = fplIds[playerName];
+    if (!id || !statsById[id]) continue;
+    const stats = statsById[id];
+    const actualAnswer = getActualAnswer(pick.qLabel, stats);
+    const correct = actualAnswer === pick.answer;
+    const earned = correct ? pick.pts : 0;
+    updateChipResult(playerName, correct, actualAnswer, earned);
+    anyResult = true;
+    /* Persist result */
+    if (currentUser) {
+      await sb.from('h11_predictions')
+        .update({ correct, points_earned: earned })
+        .eq('user_id', currentUser.id)
+        .eq('gw_number', GW.number)
+        .eq('player_name', playerName);
+    }
+  }
+  if (anyResult) loadLeaderboard(); /* refresh with actual points */
+}
+
+function getActualAnswer(qLabel, stats) {
+  switch (qLabel) {
+    case 'Minutes':
+      return stats.minutes >= 61 ? '61+ min' : stats.minutes >= 16 ? '16–60 min' : '0–15 min';
+    case 'Goals':
+      return stats.goals_scored >= 2 ? '2+ goals' : stats.goals_scored === 1 ? '1 goal' : '0 goals';
+    case 'Assists':
+      return stats.assists >= 2 ? '2+ assists' : stats.assists === 1 ? '1 assist' : '0 assists';
+    case 'Card?':
+      return stats.red_cards > 0 ? 'Red card' : stats.yellow_cards > 0 ? 'Yellow card' : 'No card';
+    case 'Starting?':
+      if (!stats.minutes) return 'Not in squad';
+      return stats.starts === 1 ? 'Starting XI' : 'Off the bench';
+    case 'FPL pts':
+      return stats.total_points >= 6 ? '6+ pts' : stats.total_points >= 3 ? '3–5 pts' : '0–2 pts';
+    default: return '';
+  }
+}
+
+function updateChipResult(playerName, correct, actualAnswer, earned) {
+  const el = document.getElementById('pr-ans-' + playerName);
+  if (!el) return;
+  const pick = myPicks[playerName];
+  const icon = correct ? '✅' : '❌';
+  const ptsText = correct ? `+${earned}pt${earned > 1 ? 's' : ''}` : '0pt';
+  el.innerHTML = `${icon} <span class="pr-ans">${pick.answer}</span> <span class="pr-pts">${ptsText}</span>`
+    + (!correct ? `<br><span style="font-size:10px;color:rgba(255,255,255,.3)">Actual: ${actualAnswer}</span>` : '');
+}
 
 /* ==========================================================
    GAMEWEEK CONFIG — update each week
