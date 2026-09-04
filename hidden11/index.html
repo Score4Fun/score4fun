@@ -124,6 +124,12 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .ans-btn.locked{pointer-events:none;opacity:.75;}
 .ans-btn.locked.selected{opacity:1;}
 
+/* PICKS SUMMARY */
+.pick-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+.pick-player{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;}
+.pick-detail{font-size:11px;color:rgba(255,255,255,.4);}
+.pick-pts{font-size:12px;font-weight:700;color:#f5c842;float:right;margin-top:-22px;}
+
 /* FREEZE banner */
 .freeze-banner{background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:10px 14px;font-size:12px;color:rgba(255,255,255,.6);text-align:center;margin:8px 0;display:none;}
 .freeze-banner.show{display:block;}
@@ -193,8 +199,8 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 
 <!-- MOBILE TAB BAR -->
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('game')">🎮 Jeu</button>
-  <button class="tab-btn" onclick="switchTab('lb')">🏆 Classement</button>
+  <button class="tab-btn active" onclick="switchTab('game')">🎮 Game</button>
+  <button class="tab-btn" onclick="switchTab('lb')">🏆 Ranking</button>
 </div>
 
 <div class="game-layout">
@@ -234,6 +240,10 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
           <div id="q-answers"></div>
           <div id="q-confirm"></div>
         </div>
+        <div id="picks-summary" style="display:none;margin-top:18px;border-top:1px solid rgba(255,255,255,.07);padding-top:14px;">
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.25);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;">My Picks — GW<span id="picks-gw"></span></div>
+          <div id="picks-list"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -241,8 +251,8 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
   <!-- LEADERBOARD -->
   <div class="tab-lb game-leaderboard">
     <div class="lb-panel">
-      <div class="lb-title">🏆 Classement <span id="lb-gw"></span></div>
-      <div id="lb-list"><div class="lb-empty">Aucune prédiction encore</div></div>
+      <div class="lb-title">🏆 Ranking <span id="lb-gw"></span></div>
+      <div id="lb-list"><div class="lb-empty">No predictions yet</div></div>
     </div>
   </div>
 </div>
@@ -289,8 +299,30 @@ sb.auth.onAuthStateChange((_event, session) => {
   if (session) onSignedIn(session.user);
 });
 
+/* In-memory picks store for summary */
+const myPicks = {};
+
+function refreshPicksSummary() {
+  const el = document.getElementById('picks-summary');
+  const list = document.getElementById('picks-list');
+  const keys = Object.keys(myPicks);
+  if (!keys.length) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  document.getElementById('picks-gw').textContent = GW.number;
+  list.innerHTML = keys.map(pName => {
+    const pk = myPicks[pName];
+    return `<div class="pick-card">
+      <div class="pick-player">${cap(pName)}</div>
+      <div class="pick-detail">${pk.qLabel} · ${pk.answer}</div>
+      <div class="pick-pts">+${pk.pts}pt${pk.pts>1?'s':''}</div>
+    </div>`;
+  }).join('');
+}
+
 async function savePrediction(playerName, q, answer, pts) {
   if (!currentUser) return;
+  myPicks[playerName] = { qLabel: q.label, answer, pts };
+  refreshPicksSummary();
   const userName = (currentUser.user_metadata?.full_name || currentUser.email || '').split(' ')[0];
   await sb.from('h11_predictions').insert({
     user_id: currentUser.id,
@@ -311,11 +343,13 @@ async function loadPredictions(userId) {
   data.forEach(pred => {
     found.add(pred.player_name);
     addChip(pred.player_name);
+    myPicks[pred.player_name] = { qLabel: pred.question_label, answer: pred.answer, pts: pred.points_potential };
     const q = QUESTIONS.find(q => q.label === pred.question_label);
     showResultPanel(pred.player_name, pred.answer, q);
   });
+  refreshPicksSummary();
   if (found.size >= 3) {
-    statusEl.className = 'grid-status'; statusEl.textContent = '3 joueurs trouvés — grille gelée. En attente des résultats !';
+    statusEl.className = 'grid-status'; statusEl.textContent = '3 players found — grid locked. Waiting for GW results!';
   }
 }
 
@@ -324,7 +358,7 @@ async function loadLeaderboard() {
   const { data } = await sb.from('h11_predictions')
     .select('user_name, player_name, points_potential').eq('gw_number', GW.number);
   const lbEl = document.getElementById('lb-list');
-  if (!data || !data.length) { lbEl.innerHTML = '<div class="lb-empty">Aucune prédiction encore</div>'; return; }
+  if (!data || !data.length) { lbEl.innerHTML = '<div class="lb-empty">No predictions yet</div>'; return; }
   const byUser = {};
   data.forEach(r => {
     if (!byUser[r.user_name]) byUser[r.user_name] = { total: 0, players: [] };
@@ -352,7 +386,7 @@ checkAuth();
 const GW = {
   number:   4,
   season:   '2026/27',
-  deadline: '2026-09-27T10:00:00Z'
+  deadline: '2026-09-12T10:00:00Z'
 };
 
 const PLAYERS = [
@@ -366,17 +400,17 @@ const PLAYERS = [
 
 const QUESTIONS = [
   { label:'Minutes',   color:'#b8860b', q:'How many minutes will {p} play this GW?',
-    opts:['0–15 min','16–60 min','61+ min'],          pts:[4,2,1] },
+    opts:['61+ min','16–60 min','0–15 min'],          pts:[1,2,3] },
   { label:'Goals',     color:'#1a6b3a', q:'How many goals will {p} score this GW?',
-    opts:['0 goals','1 goal','2+ goals'],              pts:[1,3,6] },
+    opts:['0 goals','1 goal','2+ goals'],              pts:[1,2,3] },
   { label:'Assists',   color:'#1e4f8a', q:'How many assists will {p} get this GW?',
-    opts:['0 assists','1 assist','2+ assists'],        pts:[1,3,6] },
+    opts:['0 assists','1 assist','2+ assists'],        pts:[1,2,3] },
   { label:'Card?',     color:'#9b1c1c', q:'Will {p} receive a card this GW?',
-    opts:['Yellow card','Red card','No card'],         pts:[4,8,1] },
+    opts:['No card','Yellow card','Red card'],         pts:[1,2,3] },
   { label:'Starting?', color:'#5b2d8e', q:'Will {p} start in the XI this GW?',
-    opts:['Starting XI','Off the bench','Not in squad'], pts:[1,3,5] },
+    opts:['Starting XI','Off the bench','Not in squad'], pts:[1,2,3] },
   { label:'FPL pts',   color:'#0d5a4e', q:'How many FPL points will {p} score this GW?',
-    opts:['0–2 pts','3–5 pts','6+ pts'],              pts:[3,2,4] },
+    opts:['3–5 pts','0–2 pts','6+ pts'],              pts:[1,2,3] },
 ];
 
 /* Seeded RNG for stable grid */
@@ -489,7 +523,7 @@ function endDrag() {
     path = [];
     found.add(match);
     if (found.size >= 3) {
-      statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉 — Max 3 atteint, grille gelée.';
+      statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉 — Grid locked (3/3)';
     } else {
       statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉';
     }
