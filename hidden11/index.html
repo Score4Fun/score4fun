@@ -8,31 +8,36 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;padding-bottom:60px;}
+body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100vh;padding-bottom:40px;}
 
+/* HEADER */
 .s4f-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.06);}
 .back-btn{display:flex;align-items:center;gap:5px;color:rgba(255,255,255,.45);font-size:13px;text-decoration:none;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,.05);}
 .s4f-logo{font-size:17px;font-weight:800;color:#f5c842;}
 .s4f-logo span{color:#fff;}
 .gw-badge{font-size:11px;font-weight:700;color:#f5c842;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:4px 11px;letter-spacing:.04em;}
 
-.hero{text-align:center;padding:22px 20px 14px;}
-.hero-kicker{font-size:10px;font-weight:700;color:#f5c842;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}
-.hero-title{font-size:30px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;}
-.hero-sub{font-size:13px;color:rgba(255,255,255,.4);line-height:1.5;max-width:340px;margin:0 auto 16px;}
-
-.countdown-bar{display:inline-flex;align-items:center;gap:8px;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);border-radius:24px;padding:7px 16px;font-size:12px;font-weight:500;color:rgba(255,255,255,.5);}
+/* HERO */
+.hero{text-align:center;padding:20px 20px 12px;}
+.hero-kicker{font-size:10px;font-weight:700;color:#f5c842;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.hero-title{font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:5px;}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.4);line-height:1.5;max-width:380px;margin:0 auto 14px;}
+.countdown-bar{display:inline-flex;align-items:center;gap:8px;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);border-radius:24px;padding:6px 16px;font-size:12px;font-weight:500;color:rgba(255,255,255,.5);}
 #countdown-val{font-weight:700;color:#f5c842;min-width:72px;text-align:center;font-size:13px;}
 .countdown-bar.expired{background:rgba(255,80,80,.07);border-color:rgba(255,80,80,.25);}
 .countdown-bar.expired #countdown-val{color:#ff6b6b;}
 
+/* GAME LAYOUT: side-by-side on desktop, stacked on mobile */
+.game-layout{display:flex;gap:20px;max-width:860px;margin:0 auto;padding:16px 16px 0;align-items:flex-start;}
+.game-left{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;}
+.game-right{flex:1;min-width:0;}
+
 /* GRID */
-.grid-wrap{padding:18px 8px 0;display:flex;justify-content:center;}
 #grid{border-collapse:separate;border-spacing:4px;user-select:none;touch-action:none;}
 #grid td{
-  width:clamp(34px,11vw,46px);height:clamp(34px,11vw,46px);
+  width:clamp(34px,11vw,44px);height:clamp(34px,11vw,44px);
   text-align:center;vertical-align:middle;
-  font-size:clamp(12px,3.8vw,16px);font-weight:700;
+  font-size:clamp(12px,3.8vw,15px);font-weight:700;
   background:#17172e;border:1.5px solid rgba(255,255,255,.07);
   border-radius:6px;cursor:pointer;color:rgba(255,255,255,.85);
   transition:background .07s,transform .07s;
@@ -40,20 +45,25 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 #grid td.active{background:#f5c842;color:#1a1200;transform:scale(1.12);}
 #grid td.found{background:#163b26;color:#6edda0;border-color:#1e5c3a;}
 
-.grid-status{text-align:center;padding:10px 20px;font-size:13px;color:rgba(255,255,255,.35);min-height:38px;}
+.grid-status{text-align:center;padding:8px 4px;font-size:12px;color:rgba(255,255,255,.35);min-height:32px;width:100%;}
 .grid-status.ok{color:#6edda0;}
 .grid-status.err{color:#ff6b6b;}
 
-.found-section{padding:4px 20px 0;min-height:32px;}
-.found-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.25);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:none;}
-.found-chips{display:flex;flex-wrap:wrap;gap:7px;}
-.chip{background:#122b1e;border:1px solid #1e5c3a;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:#6edda0;display:flex;align-items:center;gap:7px;}
-.chip-club{font-weight:400;color:rgba(255,255,255,.35);font-size:11px;}
+.found-section{width:100%;padding:4px 0 0;}
+.found-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.25);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;display:none;}
+.found-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{background:#122b1e;border:1px solid #1e5c3a;border-radius:20px;padding:4px 11px;font-size:11px;font-weight:600;color:#6edda0;display:flex;align-items:center;gap:6px;}
+.chip-club{font-weight:400;color:rgba(255,255,255,.35);font-size:10px;}
 
-#result-panel{margin:18px 16px 0;background:#111127;border:1px solid rgba(245,200,66,.14);border-radius:20px;padding:20px;display:none;}
+/* RESULT PANEL */
+#result-panel{background:#111127;border:1px solid rgba(245,200,66,.14);border-radius:20px;padding:20px;}
+.rp-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;color:rgba(255,255,255,.15);font-size:13px;text-align:center;gap:12px;}
+.rp-placeholder-icon{font-size:36px;opacity:.2;}
+.rp-content{display:none;}
 .rp-name{font-size:22px;font-weight:800;letter-spacing:-.3px;margin-bottom:3px;}
 .rp-meta{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:18px;}
 
+/* WHEEL */
 .wheel-section{display:flex;flex-direction:column;align-items:center;}
 .wheel-hint{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:14px;}
 .wheel-wrap{position:relative;width:170px;height:170px;margin-bottom:10px;}
@@ -61,6 +71,7 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 #wheel-canvas{border-radius:50%;}
 #spin-tag{font-size:11px;color:rgba(255,255,255,.3);height:16px;text-align:center;}
 
+/* QUESTION */
 #q-section{display:none;margin-top:18px;border-top:1px solid rgba(255,255,255,.07);padding-top:18px;}
 #q-cat{font-size:10px;font-weight:700;color:#f5c842;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
 #q-text{font-size:15px;font-weight:600;margin-bottom:14px;line-height:1.45;}
@@ -68,6 +79,16 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .ans-btn:hover{background:rgba(245,200,66,.07);border-color:rgba(245,200,66,.2);}
 .ans-btn.selected{background:rgba(245,200,66,.1);border-color:#f5c842;color:#f5c842;}
 #q-confirm{font-size:12px;color:#6edda0;margin-top:8px;font-weight:600;display:none;}
+
+/* MOBILE: stack vertically, result panel below grid */
+@media (max-width: 640px) {
+  .game-layout{flex-direction:column;gap:14px;padding:12px 12px 0;}
+  .game-left{width:100%;}
+  .game-right{width:100%;}
+  #result-panel{display:none;} /* shown only when player found on mobile */
+  #result-panel.active{display:block;}
+  .rp-placeholder{display:none !important;}
+}
 </style>
 </head>
 <body>
@@ -88,36 +109,51 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
   </div>
 </div>
 
-<div class="grid-wrap"><table id="grid"></table></div>
-<div class="grid-status" id="grid-status">Click and drag through letters to spell a player name</div>
-
-<div class="found-section">
-  <div class="found-label" id="found-label">Found</div>
-  <div class="found-chips" id="found-chips"></div>
-</div>
-
-<div id="result-panel">
-  <div class="rp-name" id="rp-name"></div>
-  <div class="rp-meta" id="rp-meta"></div>
-  <div class="wheel-section">
-    <div class="wheel-hint">The wheel picks your prediction topic</div>
-    <div class="wheel-wrap">
-      <div id="pointer"></div>
-      <canvas id="wheel-canvas" width="170" height="170"></canvas>
+<div class="game-layout">
+  <!-- LEFT: grid -->
+  <div class="game-left">
+    <table id="grid"></table>
+    <div class="grid-status" id="grid-status">Click and drag to spell a player name</div>
+    <div class="found-section">
+      <div class="found-label" id="found-label">Found</div>
+      <div class="found-chips" id="found-chips"></div>
     </div>
-    <div id="spin-tag"></div>
   </div>
-  <div id="q-section">
-    <div id="q-cat"></div>
-    <div id="q-text"></div>
-    <div id="q-answers"></div>
-    <div id="q-confirm"></div>
+
+  <!-- RIGHT: wheel + question -->
+  <div class="game-right">
+    <div id="result-panel">
+      <!-- Placeholder (desktop only) -->
+      <div class="rp-placeholder" id="rp-placeholder">
+        <div class="rp-placeholder-icon">🔍</div>
+        Find a player in the grid<br>to spin the wheel
+      </div>
+      <!-- Active content -->
+      <div class="rp-content" id="rp-content">
+        <div class="rp-name" id="rp-name"></div>
+        <div class="rp-meta" id="rp-meta"></div>
+        <div class="wheel-section">
+          <div class="wheel-hint">The wheel picks your prediction topic</div>
+          <div class="wheel-wrap">
+            <div id="pointer"></div>
+            <canvas id="wheel-canvas" width="170" height="170"></canvas>
+          </div>
+          <div id="spin-tag"></div>
+        </div>
+        <div id="q-section">
+          <div id="q-cat"></div>
+          <div id="q-text"></div>
+          <div id="q-answers"></div>
+          <div id="q-confirm"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
 /* ==========================================================
-   GAMEWEEK CONFIG — update these two sections each week
+   GAMEWEEK CONFIG — update each week
    ========================================================== */
 const GW = {
   number:   4,
@@ -125,53 +161,44 @@ const GW = {
   deadline: '2026-09-27T10:00:00Z'
 };
 
-/* Max name length = 6 for a 7x7 grid */
 const PLAYERS = [
-  { name:'ISAK',    club:'Liverpool',   pos:'FWD', price:'9.0'  },
-  { name:'SAKA',    club:'Arsenal',     pos:'MID', price:'9.5'  },
-  { name:'PALMER',  club:'Chelsea',     pos:'MID', price:'9.5'  },
-  { name:'MBEUMO',  club:'Man United',  pos:'MID', price:'8.0'  },
-  { name:'NDIAYE',  club:'Everton',     pos:'MID', price:'6.0'  },
-  { name:'ROGERS',  club:'Chelsea',     pos:'MID', price:'7.5'  },
+  { name:'ISAK',   club:'Liverpool',  pos:'FWD', price:'9.0' },
+  { name:'SAKA',   club:'Arsenal',    pos:'MID', price:'9.5' },
+  { name:'PALMER', club:'Chelsea',    pos:'MID', price:'9.5' },
+  { name:'MBEUMO', club:'Man United', pos:'MID', price:'8.0' },
+  { name:'NDIAYE', club:'Everton',    pos:'MID', price:'6.0' },
+  { name:'ROGERS', club:'Chelsea',    pos:'MID', price:'7.5' },
 ];
 
-/* ==========================================================
-   WHEEL QUESTIONS
-   ========================================================== */
 const QUESTIONS = [
-  { label:'Minutes',   color:'#b8860b', q:'How many minutes will {p} play this GW?',    opts:['0–15 min','16–60 min','61+ min'] },
-  { label:'Goals',     color:'#1a6b3a', q:'How many goals will {p} score this GW?',     opts:['0 goals','1 goal','2+ goals'] },
-  { label:'Assists',   color:'#1e4f8a', q:'How many assists will {p} get this GW?',     opts:['0 assists','1 assist','2+ assists'] },
-  { label:'Card?',     color:'#9b1c1c', q:'Will {p} receive a card this GW?',           opts:['Yellow card','Red card','No card'] },
-  { label:'Starting?', color:'#5b2d8e', q:'Will {p} start in the XI this GW?',          opts:['Starting XI','Off the bench','Not in squad'] },
+  { label:'Minutes',   color:'#b8860b', q:'How many minutes will {p} play this GW?',      opts:['0–15 min','16–60 min','61+ min'] },
+  { label:'Goals',     color:'#1a6b3a', q:'How many goals will {p} score this GW?',       opts:['0 goals','1 goal','2+ goals'] },
+  { label:'Assists',   color:'#1e4f8a', q:'How many assists will {p} get this GW?',       opts:['0 assists','1 assist','2+ assists'] },
+  { label:'Card?',     color:'#9b1c1c', q:'Will {p} receive a card this GW?',             opts:['Yellow card','Red card','No card'] },
+  { label:'Starting?', color:'#5b2d8e', q:'Will {p} start in the XI this GW?',            opts:['Starting XI','Off the bench','Not in squad'] },
   { label:'FPL pts',   color:'#0d5a4e', q:'How many FPL points will {p} score this GW?', opts:['0–2 pts','3–5 pts','6+ pts'] },
 ];
 
-/* ==========================================================
-   SEEDED RNG — stable grid per gameweek number
-   ========================================================== */
+/* Seeded RNG for stable grid */
 function makeRng(seed) {
   let s = seed >>> 0;
   return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
 }
 
-/* ==========================================================
-   GRID BUILDER — horizontal & vertical only, no diagonals
-   ========================================================== */
+/* Grid builder — horizontal & vertical only */
 function buildGrid(players, size, seed) {
   const rand = makeRng(seed);
   const g = Array.from({ length: size }, () => Array(size).fill(null));
-  const dirs = [[0, 1], [1, 0]]; /* right, down — no diagonals */
-
+  const dirs = [[0, 1], [1, 0]];
   for (const p of players) {
     const n = p.name, len = n.length;
     let placed = false;
     for (let t = 0; t < 400 && !placed; t++) {
       const [dr, dc] = dirs[Math.floor(rand() * dirs.length)];
-      const rMax = dr > 0 ? size - len : size - 1, rMin = 0;
-      const cMax = dc > 0 ? size - len : size - 1, cMin = 0;
-      const r0 = Math.floor(rand() * (rMax - rMin + 1)) + rMin;
-      const c0 = Math.floor(rand() * (cMax - cMin + 1)) + cMin;
+      const rMax = dr > 0 ? size - len : size - 1;
+      const cMax = dc > 0 ? size - len : size - 1;
+      const r0 = Math.floor(rand() * (rMax + 1));
+      const c0 = Math.floor(rand() * (cMax + 1));
       let conflict = false;
       for (let i = 0; i < len; i++) {
         const r = r0 + i * dr, c = c0 + i * dc;
@@ -183,27 +210,24 @@ function buildGrid(players, size, seed) {
       }
     }
   }
-
   const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   for (let r = 0; r < size; r++)
     for (let c = 0; c < size; c++)
       if (g[r][c] === null) g[r][c] = ABC[Math.floor(rand() * 26)];
-
   return g;
 }
 
-/* ==========================================================
-   INIT
-   ========================================================== */
+/* Init */
 const SIZE = 7;
 const GRID = buildGrid(PLAYERS, SIZE, GW.number * 97531);
 const validNames = new Set(PLAYERS.map(p => p.name));
 const playerMap  = Object.fromEntries(PLAYERS.map(p => [p.name, p]));
 const found      = new Set();
+const isMobile   = () => window.innerWidth <= 640;
 
 document.getElementById('gw-badge').textContent = 'GW' + GW.number;
 
-/* Build DOM table */
+/* Build DOM grid */
 const gridEl = document.getElementById('grid');
 for (let r = 0; r < SIZE; r++) {
   const tr = document.createElement('tr');
@@ -216,28 +240,20 @@ for (let r = 0; r < SIZE; r++) {
   gridEl.appendChild(tr);
 }
 
-/* ==========================================================
-   COUNTDOWN
-   ========================================================== */
+/* Countdown */
 let deadlinePassed = false;
 const dlDate = new Date(GW.deadline);
 function tick() {
   const diff = dlDate - Date.now();
   const bar = document.getElementById('countdown-bar');
   const val = document.getElementById('countdown-val');
-  if (diff <= 0) {
-    deadlinePassed = true; bar.classList.add('expired');
-    val.textContent = 'CLOSED'; return;
-  }
+  if (diff <= 0) { deadlinePassed = true; bar.classList.add('expired'); val.textContent = 'CLOSED'; return; }
   const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
   val.textContent = (h ? h + 'h ' : '') + String(m).padStart(2, '0') + 'm ' + String(s).padStart(2, '0') + 's';
 }
 tick(); setInterval(tick, 1000);
 
-/* ==========================================================
-   DRAG SELECT — uses pointermove + elementFromPoint
-   (fixes pointer capture issue on mobile & desktop)
-   ========================================================== */
+/* Drag select — pointermove + elementFromPoint (avoids pointer capture bug) */
 let dragging = false, path = [];
 const statusEl = document.getElementById('grid-status');
 
@@ -245,7 +261,6 @@ function tdFromEvent(e) {
   const el = document.elementFromPoint(e.clientX, e.clientY);
   return (el && el.tagName === 'TD' && el.closest('#grid')) ? el : null;
 }
-
 function clearActive() { path.forEach(td => td.classList.remove('active')); path = []; }
 
 function startDrag(td) {
@@ -254,18 +269,13 @@ function startDrag(td) {
   path = [td]; td.classList.add('active');
   statusEl.className = 'grid-status'; statusEl.textContent = 'Dragging…';
 }
-
 function extendDrag(td) {
-  if (!dragging || deadlinePassed || !td) return;
+  if (!dragging || !td) return;
   if (td === path[path.length - 1]) return;
-  /* allow backtracking */
-  if (path.length > 1 && td === path[path.length - 2]) {
-    path.pop().classList.remove('active'); return;
-  }
+  if (path.length > 1 && td === path[path.length - 2]) { path.pop().classList.remove('active'); return; }
   if (path.includes(td)) return;
   path.push(td); td.classList.add('active');
 }
-
 function endDrag() {
   if (!dragging) return;
   dragging = false;
@@ -273,46 +283,26 @@ function endDrag() {
   const word = path.map(td => td.textContent).join('');
   const rev  = word.split('').reverse().join('');
   const match = validNames.has(word) ? word : validNames.has(rev) ? rev : null;
-
   if (match && !found.has(match)) {
     path.forEach(td => { td.classList.remove('active'); td.classList.add('found'); });
     path = [];
     found.add(match);
-    statusEl.className = 'grid-status ok';
-    statusEl.textContent = 'Found ' + cap(match) + '! 🎉';
-    addChip(match);
-    showResultPanel(match);
-  } else if (match && found.has(match)) {
-    clearActive();
-    statusEl.className = 'grid-status err';
-    statusEl.textContent = cap(match) + ' already found!';
+    statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉';
+    addChip(match); showResultPanel(match);
+  } else if (match) {
+    clearActive(); statusEl.className = 'grid-status err'; statusEl.textContent = cap(match) + ' already found!';
   } else {
-    clearActive();
-    statusEl.className = 'grid-status err';
-    statusEl.textContent = 'Not a valid player — keep trying!';
+    clearActive(); statusEl.className = 'grid-status err'; statusEl.textContent = 'Not a valid player — keep trying!';
   }
 }
 
-/* Attach events — pointerdown on grid, pointermove/up on document */
-gridEl.addEventListener('pointerdown', e => {
-  e.preventDefault();
-  const td = e.target.closest('td');
-  if (td) startDrag(td);
-});
-
-document.addEventListener('pointermove', e => {
-  if (!dragging) return;
-  extendDrag(tdFromEvent(e));
-});
-
+gridEl.addEventListener('pointerdown', e => { e.preventDefault(); const td = e.target.closest('td'); if (td) startDrag(td); });
+document.addEventListener('pointermove', e => { if (dragging) extendDrag(tdFromEvent(e)); });
 document.addEventListener('pointerup',     endDrag);
 document.addEventListener('pointercancel', endDrag);
-
 function cap(w) { return w[0] + w.slice(1).toLowerCase(); }
 
-/* ==========================================================
-   FOUND CHIPS
-   ========================================================== */
+/* Found chips */
 function addChip(name) {
   const p = playerMap[name];
   document.getElementById('found-label').style.display = 'block';
@@ -322,11 +312,8 @@ function addChip(name) {
   document.getElementById('found-chips').appendChild(chip);
 }
 
-/* ==========================================================
-   WHEEL
-   ========================================================== */
+/* Wheel */
 let wheelDeg = 0, spinning = false;
-
 function drawWheel() {
   const cvs = document.getElementById('wheel-canvas');
   const ctx = cvs.getContext('2d');
@@ -334,36 +321,40 @@ function drawWheel() {
   const seg = 2 * Math.PI / QUESTIONS.length;
   QUESTIONS.forEach((q, i) => {
     const a0 = i * seg - Math.PI / 2;
-    ctx.beginPath(); ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, a0, a0 + seg);
-    ctx.closePath(); ctx.fillStyle = q.color; ctx.fill();
-    ctx.beginPath(); ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, a0, a0 + seg);
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, a0, a0 + seg); ctx.closePath();
+    ctx.fillStyle = q.color; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, a0, a0 + seg);
     ctx.strokeStyle = 'rgba(15,15,26,.7)'; ctx.lineWidth = 2; ctx.stroke();
     ctx.save(); ctx.translate(cx, cy); ctx.rotate(a0 + seg / 2);
     ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
     ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 3;
-    ctx.font = 'bold 8px Inter'; ctx.fillText(q.label, 50, 3);
-    ctx.restore();
+    ctx.font = 'bold 8px Inter'; ctx.fillText(q.label, 50, 3); ctx.restore();
   });
-  ctx.beginPath(); ctx.arc(cx, cy, 10, 0, 2 * Math.PI);
-  ctx.fillStyle = '#0f0f1a'; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 10, 0, 2 * Math.PI); ctx.fillStyle = '#0f0f1a'; ctx.fill();
 }
 
 function showResultPanel(name) {
   const p = playerMap[name];
+  /* Desktop: panel already visible — just swap placeholder for content */
+  document.getElementById('rp-placeholder').style.display = 'none';
+  document.getElementById('rp-content').style.display = 'block';
+  /* Mobile: make panel visible then scroll to it */
   const panel = document.getElementById('result-panel');
-  panel.style.display = 'block';
+  panel.classList.add('active');
+
   document.getElementById('rp-name').textContent = cap(name);
   document.getElementById('rp-meta').textContent = p.club + ' · ' + p.pos + ' · £' + p.price + 'm';
   document.getElementById('q-section').style.display = 'none';
+  document.getElementById('q-confirm').style.display = 'none';
   document.getElementById('spin-tag').textContent = '';
+
   drawWheel();
   const cvs = document.getElementById('wheel-canvas');
   cvs.style.transition = 'none';
   cvs.style.transform = 'rotate(' + wheelDeg + 'deg)';
+
+  if (isMobile()) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   setTimeout(() => spinWheel(name), 500);
-  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function spinWheel(name) {
@@ -371,11 +362,9 @@ function spinWheel(name) {
   spinning = true;
   const segAngle = 360 / QUESTIONS.length;
   const targetSeg = Math.floor(Math.random() * QUESTIONS.length);
-  /* rotate so centre of targetSeg lands under the top pointer */
   const targetRem = (360 - targetSeg * segAngle - segAngle / 2 + 360) % 360;
   const currentRem = ((wheelDeg % 360) + 360) % 360;
-  let delta = targetRem - currentRem;
-  if (delta < 0) delta += 360;
+  let delta = targetRem - currentRem; if (delta < 0) delta += 360;
   wheelDeg += (5 + Math.floor(Math.random() * 4)) * 360 + delta;
   const cvs = document.getElementById('wheel-canvas');
   cvs.style.transition = 'transform 4.2s cubic-bezier(0.15,0.7,0.1,1)';
@@ -388,9 +377,6 @@ function spinWheel(name) {
   }, 4400);
 }
 
-/* ==========================================================
-   QUESTION PANEL
-   ========================================================== */
 function showQuestion(q, name) {
   const sec = document.getElementById('q-section');
   sec.style.display = 'block';
@@ -411,6 +397,8 @@ function showQuestion(q, name) {
     answersEl.appendChild(btn);
   });
   document.getElementById('q-confirm').style.display = 'none';
+  /* Scroll to question on mobile */
+  if (isMobile()) setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 }
 </script>
 </body>
