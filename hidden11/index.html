@@ -228,8 +228,7 @@ function onSignedIn(user) {
 }
 
 document.getElementById('google-signin').addEventListener('click', async () => {
-  const base = location.href.split('?')[0].split('#')[0];
-  await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: base } });
+  await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://score4fun.com/hidden11' } });
 });
 
 document.getElementById('signout-btn').addEventListener('click', async () => {
