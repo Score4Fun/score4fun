@@ -1217,8 +1217,8 @@ const EVENTS = [
   { id:62, sport:'hippisme', comp:'Mauritius 2026', phase:'September 2026', emoji:'🏇',
     name:'The Maiden Cup G1', sub:'Mauritius · 2400m · Top 4',
     type:'top4',
-    candidates:['Cheval A','Cheval B','Cheval C','Cheval D','Cheval E','Cheval F'],
-    status:'soon', urgency:false, cutoff:'6 sept.', deadline:'2026-09-06T08:00:00Z' },
+    candidates:['1 - FUTURE SWING','2 - GOOD COUNCIL','3 - RAPIDASH','4 - SELUKWE','5 - BACCHUS','6 - SUPERIOR FORCE','7 - BOUNCEBACK','8 - PRIME EXAMPLE','9 - COURTLY','10 - VIEW OF THE WORLD','11 - PALERMO','12 - QUANTIFIER'],
+    status:'open', urgency:true, cutoff:'6 sept. 12:00', deadline:'2026-09-06T08:00:00Z' },
 ];
 
 const POINTS_MAP = { 0:10, 1:8, 2:6, 3:4 };
@@ -1358,7 +1358,7 @@ async function loadUserPronos() {
   if (data) data.forEach(p => { userPronos[p.event_id]=p.data; });
 }
 
-const APP_VERSION = 'V150';
+const APP_VERSION = 'V158';
 function launchApp() {
   const vEl = document.getElementById('app-version');
   if (vEl) vEl.textContent = APP_VERSION;
