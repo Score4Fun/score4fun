@@ -750,10 +750,9 @@ function clearActive() { path.forEach(td => td.classList.remove('active')); path
 function startDrag(td) {
   if (deadlinePassed || found.size >= 3) return;
   if (questionPending) {
-    showToast('🎡 Answer the question first!');
     const panel = document.getElementById('result-panel');
     panel.classList.remove('highlight-pulse');
-    void panel.offsetWidth; /* restart animation */
+    void panel.offsetWidth;
     panel.classList.add('highlight-pulse');
     setTimeout(() => panel.classList.remove('highlight-pulse'), 1600);
     if (isMobile()) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
