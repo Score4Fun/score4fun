@@ -62,8 +62,14 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .pr-pts{font-size:12px;font-weight:700;color:#f5c842;}
 /* Grid wrapper (relative, for overlay) */
 .grid-wrap{position:relative;display:inline-block;}
-/* Revealed unfound player paths */
-#grid td.revealed{background:rgba(245,200,66,.13);color:#f5c842;border-color:rgba(245,200,66,.35);}
+/* Reveal legend (player name badges below grid) */
+#reveal-legend{display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px;}
+#reveal-legend.show{display:flex;}
+.rl-badge{font-size:11px;font-weight:700;padding:3px 11px;border-radius:20px;border:1px solid;letter-spacing:.02em;animation:fadeIn .4s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* Toast */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1e1e38;border:1px solid rgba(245,200,66,.3);color:#f5c842;font-size:13px;font-weight:600;padding:10px 20px;border-radius:24px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:999;white-space:nowrap;}
+#toast.show{opacity:1;}
 /* Grid lock overlay */
 .grid-lock-overlay{display:none;position:absolute;inset:0;background:rgba(12,12,24,.78);border-radius:10px;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;z-index:10;gap:6px;}
 .grid-lock-overlay.show{display:flex;}
@@ -235,6 +241,7 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
       </div>
     </div>
     <div class="grid-status" id="grid-status">Click and drag to spell a player name</div>
+    <div id="reveal-legend"></div>
     <div class="found-section">
       <div class="found-label" id="found-label">My Picks</div>
       <div class="found-chips" id="found-chips"></div>
@@ -729,6 +736,7 @@ function clearActive() { path.forEach(td => td.classList.remove('active')); path
 
 function startDrag(td) {
   if (deadlinePassed || found.size >= 3) return;
+  if (questionPending) { showToast('🎡 Answer the question first!'); return; }
   dragging = true; clearActive();
   path = [td]; td.classList.add('active');
   statusEl.className = 'grid-status'; statusEl.textContent = 'Dragging…';
@@ -793,16 +801,51 @@ function updateChip(name, qLabel, answer, pts) {
   if (el) el.innerHTML = `<span style="color:rgba(255,255,255,.4)">${qLabel} →</span> <span class="pr-ans">${answer}</span> <span class="pr-pts">+${pts}pt${pts>1?'s':''}</span>`;
 }
 
-/* Reveal all player paths after lock-in */
+/* Distinct colours per hidden player */
+const REVEAL_COLORS = [
+  { bg:'rgba(100,149,237,.22)', text:'#7aadff', border:'rgba(100,149,237,.45)' },
+  { bg:'rgba(180,100,220,.22)', text:'#d07aff', border:'rgba(180,100,220,.45)' },
+  { bg:'rgba(72,209,180,.22)',  text:'#48d1b4', border:'rgba(72,209,180,.45)'  },
+  { bg:'rgba(255,160,80,.22)',  text:'#ffb060', border:'rgba(255,160,80,.45)'  },
+  { bg:'rgba(240,100,140,.22)', text:'#ff80a8', border:'rgba(240,100,140,.45)' },
+  { bg:'rgba(120,210,80,.22)',  text:'#96e84a', border:'rgba(120,210,80,.45)'  },
+];
+
+/* Reveal all player paths after lock-in with coloured cells + name badges */
 function revealPaths() {
   if (!PATHS) return;
-  PLAYERS.forEach(p => {
-    if (found.has(p.name)) return; /* already green */
+  const legend = document.getElementById('reveal-legend');
+  legend.innerHTML = '';
+  let ci = 0;
+  PLAYERS.forEach((p, idx) => {
+    const color = REVEAL_COLORS[idx % REVEAL_COLORS.length];
+    if (found.has(p.name)) {
+      /* Already found — show as green badge */
+      const badge = document.createElement('span');
+      badge.className = 'rl-badge';
+      badge.style.cssText = `background:rgba(30,92,58,.4);color:#6edda0;border-color:rgba(110,221,160,.4);animation-delay:${ci*80}ms`;
+      badge.textContent = '✓ ' + cap(p.name);
+      legend.appendChild(badge); ci++;
+      return;
+    }
+    /* Colour each cell of the path */
     (PATHS[p.name] || []).forEach(([r, c]) => {
       const td = gridEl.querySelector(`td[data-r="${r}"][data-c="${c}"]`);
-      if (td && !td.classList.contains('found')) td.classList.add('revealed');
+      if (td && !td.classList.contains('found')) {
+        td.style.background   = color.bg;
+        td.style.color        = color.text;
+        td.style.borderColor  = color.border;
+        td.style.transition   = 'background .4s, color .4s, border-color .4s';
+      }
     });
+    /* Name badge below grid */
+    const badge = document.createElement('span');
+    badge.className = 'rl-badge';
+    badge.style.cssText = `background:${color.bg};color:${color.text};border-color:${color.border};animation-delay:${ci*100}ms`;
+    badge.textContent = cap(p.name);
+    legend.appendChild(badge); ci++;
   });
+  legend.classList.add('show');
 }
 
 /* Show semi-opaque overlay on the grid */
@@ -815,6 +858,19 @@ function showGridOverlay() {
   }
   document.getElementById('grid-overlay').classList.add('show');
 }
+
+/* Toast notification */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* Question pending — must answer before picking another player */
+let questionPending = false;
 
 let overlayHidden = false;
 function toggleOverlay() {
@@ -905,6 +961,7 @@ function showQuestion(q, name, lockedAnswer) {
   const answersEl = document.getElementById('q-answers');
   answersEl.innerHTML = '';
   const alreadyLocked = !!lockedAnswer;
+  if (!alreadyLocked) questionPending = true;
   q.opts.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'ans-btn' + (alreadyLocked ? ' locked' : '');
@@ -912,6 +969,7 @@ function showQuestion(q, name, lockedAnswer) {
     if (alreadyLocked && opt === lockedAnswer) btn.classList.add('selected');
     btn.onclick = () => {
       if (alreadyLocked) return;
+      questionPending = false;
       answersEl.querySelectorAll('.ans-btn').forEach(b => { b.classList.remove('selected'); b.classList.add('locked'); });
       btn.classList.add('selected');
       const ptVal = q.pts[i];
@@ -931,5 +989,6 @@ function showQuestion(q, name, lockedAnswer) {
   setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 }
 </script>
+<div id="toast"></div>
 </body>
 </html>
