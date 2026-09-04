@@ -84,6 +84,9 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 #result-panel{background:#111127;border:1px solid rgba(245,200,66,.14);border-radius:20px;padding:20px;min-height:520px;transition:border-color .2s,box-shadow .2s;}
 #result-panel.highlight-pulse{animation:rPulse .5s ease 3;}
 @keyframes rPulse{0%,100%{border-color:rgba(245,200,66,.14);box-shadow:none}50%{border-color:#f5c842;box-shadow:0 0 0 4px rgba(245,200,66,.22);}}
+/* Grid glow — invite to find next player */
+.grid-wrap.grid-pulse{animation:gPulse .7s ease 3;border-radius:10px;}
+@keyframes gPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 3px rgba(245,200,66,.45),0 0 22px rgba(245,200,66,.18);}}
 .rp-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;color:rgba(255,255,255,.15);font-size:13px;text-align:center;gap:12px;}
 .rp-placeholder-icon{font-size:36px;opacity:.2;}
 .rp-content{display:none;}
@@ -356,10 +359,13 @@ async function savePrediction(playerName, q, answer, pts) {
   if (!currentUser) return;
   myPicks[playerName] = { qLabel: q.label, answer, pts };
   updateChip(playerName, q.label, answer, pts);
-  if (Object.keys(myPicks).length >= 3) {
+  const pickCount = Object.keys(myPicks).length;
+  if (pickCount >= 3) {
     revealPaths();
     showGridOverlay();
     statusEl.className = 'grid-status ok'; statusEl.textContent = '🔒 All locked in — waiting for GW results!';
+  } else {
+    setTimeout(pulseGrid, 300); /* invite to find next player */
   }
   const userName = (currentUser.user_metadata?.full_name || currentUser.email || '').split(' ')[0];
   await sb.from('h11_predictions').insert({
@@ -479,14 +485,14 @@ function selectPlayersForGW(elements, teams, gwNum) {
   return picked.slice(0, 6);
 }
 
-/* Fallback players used if FPL API is unreachable */
+/* Fallback players — confirmed available in FPL API 2026-09-05 */
 const FALLBACK_PLAYERS = [
-  { name:'HAALAND', club:'Man City',    pos:'FWD' },
-  { name:'PALMER',  club:'Chelsea',     pos:'MID' },
-  { name:'WATKINS', club:'Aston Villa', pos:'FWD' },
-  { name:'MBEUMO',  club:'Brentford',   pos:'MID' },
-  { name:'ROGERS',  club:'Chelsea',     pos:'MID' },
-  { name:'NDIAYE',  club:'Everton',     pos:'MID' },
+  { name:'HAALAND', club:'Man City',  pos:'FWD' }, /* 71.2% own */
+  { name:'MBEUMO',  club:'Man Utd',   pos:'MID' }, /* 27.0% own */
+  { name:'ROGERS',  club:'Chelsea',   pos:'MID' }, /* 24.8% own */
+  { name:'PALMER',  club:'Chelsea',   pos:'MID' }, /* 19.3% own */
+  { name:'NDIAYE',  club:'Man City',  pos:'MID' }, /* 11.6% own */
+  { name:'HAVERTZ', club:'Arsenal',   pos:'FWD' }, /* 6.8%  own */
 ];
 
 async function initGame() {
@@ -873,6 +879,18 @@ function showGridOverlay() {
     ).join('<br>');
   }
   document.getElementById('grid-overlay').classList.add('show');
+}
+
+/* Pulse the grid to invite finding the next player */
+function pulseGrid() {
+  const wrap = gridEl.closest('.grid-wrap');
+  wrap.classList.remove('grid-pulse');
+  void wrap.offsetWidth;
+  wrap.classList.add('grid-pulse');
+  setTimeout(() => wrap.classList.remove('grid-pulse'), 2200);
+  statusEl.className = 'grid-status ok';
+  statusEl.textContent = '✨ Find your next player in the grid!';
+  if (isMobile()) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /* Toast notification */
