@@ -43,10 +43,11 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .tile-icon{font-size:32px;display:block;margin-bottom:8px;line-height:1;}
 .tile-name{font-size:16px;font-weight:700;margin-bottom:3px;}
 .tile-desc{font-size:11px;line-height:1.45;}
-.tile-arrow{position:absolute;bottom:13px;right:14px;font-size:16px;opacity:.35;}
+.tile-arrow{position:absolute;top:14px;right:14px;font-size:14px;opacity:.3;}
+.tile-build{position:absolute;bottom:12px;right:14px;font-size:11px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:.02em;}
 
 /* FORECAST — gold */
-.tile-forecast{background:#1a1728;border:1.5px solid rgba(245,200,66,.5);}
+.tile-forecast{background:#1a1728;border:1.5px solid rgba(245,200,66,.5);padding-bottom:30px;}
 .tile-forecast:hover{box-shadow:0 8px 24px rgba(245,200,66,.12);}
 .tile-forecast .tile-badge{background:#f5c842;color:#1a1200;}
 .tile-forecast .tile-name{color:#fff;}
@@ -54,7 +55,7 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .tile-forecast .tile-arrow{color:#f5c842;opacity:.6;}
 
 /* HIDDEN ELEVEN — green */
-.tile-h11{background:#0d1f1a;border:1.5px solid rgba(46,204,138,.4);}
+.tile-h11{background:#0d1f1a;border:1.5px solid rgba(46,204,138,.4);padding-bottom:30px;}
 .tile-h11:hover{box-shadow:0 8px 24px rgba(46,204,138,.1);}
 .tile-h11 .tile-badge{background:#2ecc8a;color:#001a0d;}
 .tile-h11 .tile-name{color:#fff;}
@@ -90,18 +91,20 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 
 <div class="tiles">
   <a class="tile tile-forecast" href="/forecast">
-    <span class="tile-badge">🟡 Live · V155</span>
+    <span class="tile-badge">🟡 Live</span>
     <span class="tile-icon">🏆</span>
     <div class="tile-name">Forecast</div>
     <div class="tile-desc">Bracket &amp; match predictions</div>
+    <span class="tile-build">Build V156</span>
     <span class="tile-arrow">↗</span>
   </a>
 
   <a class="tile tile-h11" href="/hidden11">
-    <span class="tile-badge">🟢 Beta · V1</span>
+    <span class="tile-badge">🟢 Beta</span>
     <span class="tile-icon">🔍</span>
     <div class="tile-name">Hidden Eleven</div>
     <div class="tile-desc">FPL word-search + spin wheel</div>
+    <span class="tile-build">Build V1</span>
     <span class="tile-arrow">↗</span>
   </a>
 
