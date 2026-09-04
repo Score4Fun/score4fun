@@ -52,9 +52,17 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 
 .found-section{width:100%;padding:4px 0 0;}
 .found-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.25);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;display:none;}
-.found-chips{display:flex;flex-wrap:wrap;gap:6px;}
-.chip{background:#122b1e;border:1px solid #1e5c3a;border-radius:20px;padding:4px 11px;font-size:11px;font-weight:600;color:#6edda0;display:flex;align-items:center;gap:6px;}
-.chip-club{font-weight:400;color:rgba(255,255,255,.35);font-size:10px;}
+.found-chips{display:flex;flex-direction:column;gap:8px;}
+/* Rich pick cards under grid */
+.pick-row{background:rgba(255,255,255,.04);border-radius:10px;padding:10px 13px;border-left:3px solid rgba(245,200,66,.35);}
+.pr-player{font-size:13px;font-weight:700;color:#fff;display:flex;justify-content:space-between;align-items:center;}
+.pr-club{font-size:10px;color:rgba(255,255,255,.35);font-weight:400;}
+.pr-pick{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;}
+.pr-ans{color:#f5c842;font-weight:600;}
+.pr-pts{font-size:12px;font-weight:700;color:#f5c842;}
+/* Lock banner */
+#lock-banner{display:none;background:linear-gradient(135deg,rgba(245,200,66,.08),rgba(245,200,66,.03));border:1px solid rgba(245,200,66,.25);border-radius:14px;padding:14px;text-align:center;margin-top:10px;}
+#lock-banner.show{display:block;}
 
 /* RESULT PANEL */
 #result-panel{background:#111127;border:1px solid rgba(245,200,66,.14);border-radius:20px;padding:20px;min-height:520px;}
@@ -209,8 +217,13 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
     <table id="grid"></table>
     <div class="grid-status" id="grid-status">Click and drag to spell a player name</div>
     <div class="found-section">
-      <div class="found-label" id="found-label">Found</div>
+      <div class="found-label" id="found-label">My Picks</div>
       <div class="found-chips" id="found-chips"></div>
+      <div id="lock-banner">
+        <div style="font-size:22px;margin-bottom:6px;">🔒</div>
+        <div style="font-size:14px;font-weight:700;color:#f5c842;margin-bottom:5px;">You're all locked in!</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.6;">Sit back &amp; enjoy the Gameweek.<br>May your picks be golden! ⚡</div>
+      </div>
     </div>
   </div>
 
@@ -240,10 +253,6 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
           <div id="q-answers"></div>
           <div id="q-confirm"></div>
         </div>
-        <div id="picks-summary" style="display:none;margin-top:18px;border-top:1px solid rgba(255,255,255,.07);padding-top:14px;">
-          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.25);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;">My Picks — GW<span id="picks-gw"></span></div>
-          <div id="picks-list"></div>
-        </div>
       </div>
     </div>
   </div>
@@ -251,7 +260,8 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
   <!-- LEADERBOARD -->
   <div class="tab-lb game-leaderboard">
     <div class="lb-panel">
-      <div class="lb-title">🏆 Ranking <span id="lb-gw"></span></div>
+      <div class="lb-title">🏆 Ranking <span id="lb-gw"></span> <span style="font-size:9px;background:rgba(255,165,0,.15);color:#ffa500;border-radius:8px;padding:2px 7px;font-weight:600;letter-spacing:.04em;vertical-align:middle;">POTENTIAL</span></div>
+      <div style="font-size:10px;color:rgba(255,255,255,.25);margin-bottom:10px;">Points confirmed after GW results</div>
       <div id="lb-list"><div class="lb-empty">No predictions yet</div></div>
     </div>
   </div>
@@ -322,7 +332,7 @@ function refreshPicksSummary() {
 async function savePrediction(playerName, q, answer, pts) {
   if (!currentUser) return;
   myPicks[playerName] = { qLabel: q.label, answer, pts };
-  refreshPicksSummary();
+  updateChip(playerName, q.label, answer, pts);
   const userName = (currentUser.user_metadata?.full_name || currentUser.email || '').split(' ')[0];
   await sb.from('h11_predictions').insert({
     user_id: currentUser.id,
@@ -346,9 +356,10 @@ async function loadPredictions(userId) {
     addChip(pred.player_name);
     myPicks[pred.player_name] = { qLabel: pred.question_label, answer: pred.answer, pts: pred.points_potential };
     const q = QUESTIONS.find(q => q.label === pred.question_label);
+    updateChip(pred.player_name, pred.question_label, pred.answer, pred.points_potential);
     if (q) showResultPanel(pred.player_name, pred.answer, q);
   });
-  refreshPicksSummary();
+  if (found.size >= 3) document.getElementById('lock-banner').classList.add('show');
   if (found.size >= 3) {
     statusEl.className = 'grid-status ok'; statusEl.textContent = '✅ Your 3 picks are locked — waiting for GW results!';
   }
@@ -381,13 +392,31 @@ function switchTab(tab) {
 let currentUser = null;
 checkAuth();
 
+/* FPL API — sync real GW deadline */
+async function syncFPLDeadline() {
+  try {
+    const res = await fetch('https://fantasy.premierleague.com/api/bootstrap-static/');
+    const d = await res.json();
+    const gw = d.events.find(e => e.is_next) || d.events.find(e => e.is_current);
+    if (gw) {
+      GW.number = gw.id;
+      GW.deadline = gw.deadline_time;
+      document.getElementById('gw-badge').textContent = 'GW' + GW.number;
+      document.getElementById('lb-gw').textContent = 'GW' + GW.number;
+      deadlinePassed = false;
+      tick();
+    }
+  } catch(e) { /* fallback to hardcoded config */ }
+}
+syncFPLDeadline();
+
 /* ==========================================================
    GAMEWEEK CONFIG — update each week
    ========================================================== */
 const GW = {
   number:   4,
   season:   '2026/27',
-  deadline: '2026-09-12T10:00:00Z'
+  deadline: '2026-09-12T12:30:00Z'  /* FPL official deadline */
 };
 
 const PLAYERS = [
@@ -542,14 +571,20 @@ document.addEventListener('pointerup',     endDrag);
 document.addEventListener('pointercancel', endDrag);
 function cap(w) { return w[0] + w.slice(1).toLowerCase(); }
 
-/* Found chips */
+/* Found pick cards */
 function addChip(name) {
   const p = playerMap[name];
   document.getElementById('found-label').style.display = 'block';
-  const chip = document.createElement('div');
-  chip.className = 'chip';
-  chip.innerHTML = cap(name) + ' <span class="chip-club">' + p.club + '</span>';
-  document.getElementById('found-chips').appendChild(chip);
+  const card = document.createElement('div');
+  card.className = 'pick-row';
+  card.id = 'pick-' + name;
+  card.innerHTML = `<div class="pr-player">${cap(name)}<span class="pr-club">${p.club} · ${p.pos}</span></div><div class="pr-pick" id="pr-ans-${name}"><span style="color:rgba(255,255,255,.2);font-style:italic;">Spinning wheel…</span></div>`;
+  document.getElementById('found-chips').appendChild(card);
+}
+function updateChip(name, qLabel, answer, pts) {
+  const el = document.getElementById('pr-ans-' + name);
+  if (el) el.innerHTML = `<span style="color:rgba(255,255,255,.4)">${qLabel} →</span> <span class="pr-ans">${answer}</span> <span class="pr-pts">+${pts}pt${pts>1?'s':''}</span>`;
+  if (found.size >= 3) document.getElementById('lock-banner').classList.add('show');
 }
 
 /* Wheel */
