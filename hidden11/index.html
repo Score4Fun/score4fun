@@ -60,9 +60,19 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .pr-pick{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;}
 .pr-ans{color:#f5c842;font-weight:600;}
 .pr-pts{font-size:12px;font-weight:700;color:#f5c842;}
-/* Lock banner */
-#lock-banner{display:none;background:linear-gradient(135deg,rgba(245,200,66,.08),rgba(245,200,66,.03));border:1px solid rgba(245,200,66,.25);border-radius:14px;padding:14px;text-align:center;margin-top:10px;}
-#lock-banner.show{display:block;}
+/* Grid wrapper (relative, for overlay) */
+.grid-wrap{position:relative;display:inline-block;}
+/* Revealed unfound player paths */
+#grid td.revealed{background:rgba(245,200,66,.13);color:#f5c842;border-color:rgba(245,200,66,.35);}
+/* Grid lock overlay */
+.grid-lock-overlay{display:none;position:absolute;inset:0;background:rgba(12,12,24,.78);border-radius:10px;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;z-index:10;gap:6px;}
+.grid-lock-overlay.show{display:flex;}
+.glo-title{font-size:22px;font-weight:800;color:#f5c842;}
+.glo-picks{font-size:11.5px;color:rgba(255,255,255,.65);line-height:2;margin:4px 0;}
+.glo-picks b{color:#fff;font-weight:700;}
+.glo-sub{font-size:11px;color:rgba(255,255,255,.3);}
+.glo-reveal-btn{margin-top:8px;padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;transition:.15s;}
+.glo-reveal-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
 
 /* RESULT PANEL */
 #result-panel{background:#111127;border:1px solid rgba(245,200,66,.14);border-radius:20px;padding:20px;min-height:520px;}
@@ -214,16 +224,20 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 <div class="game-layout">
   <!-- LEFT: grid -->
   <div class="tab-game game-left">
-    <table id="grid"></table>
+    <div class="grid-wrap">
+      <table id="grid"></table>
+      <div class="grid-lock-overlay" id="grid-overlay">
+        <div style="font-size:30px;">🔒</div>
+        <div class="glo-title">Locked In!</div>
+        <div class="glo-picks" id="overlay-picks"></div>
+        <div class="glo-sub">Waiting for GW results ⚡</div>
+        <button class="glo-reveal-btn" onclick="toggleOverlay()">👁 Show paths</button>
+      </div>
+    </div>
     <div class="grid-status" id="grid-status">Click and drag to spell a player name</div>
     <div class="found-section">
       <div class="found-label" id="found-label">My Picks</div>
       <div class="found-chips" id="found-chips"></div>
-      <div id="lock-banner">
-        <div style="font-size:22px;margin-bottom:6px;">🔒</div>
-        <div style="font-size:14px;font-weight:700;color:#f5c842;margin-bottom:5px;">You're all locked in!</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.6;">Sit back &amp; enjoy the Gameweek.<br>May your picks be golden! ⚡</div>
-      </div>
     </div>
   </div>
 
@@ -364,8 +378,9 @@ async function loadPredictions(userId) {
       if (q) showResultPanel(pred.player_name, pred.answer, q);
     }
   });
-  if (found.size >= 3) document.getElementById('lock-banner').classList.add('show');
   if (found.size >= 3) {
+    revealPaths();
+    showGridOverlay();
     statusEl.className = 'grid-status ok'; statusEl.textContent = '✅ Your 3 picks are locked — waiting for GW results!';
   }
 }
@@ -486,7 +501,9 @@ async function initGame() {
   }
 
   /* Build and render grid */
-  GRID       = buildGrid(PLAYERS, SIZE, GW.number * 97531);
+  const built = buildGrid(PLAYERS, SIZE, GW.number * 97531);
+  GRID       = built.grid;
+  PATHS      = built.paths;
   validNames = new Set(PLAYERS.map(p => p.name));
   playerMap  = Object.fromEntries(PLAYERS.map(p => [p.name, p]));
   renderGrid();
@@ -630,6 +647,7 @@ function buildGrid(players, size, seed) {
     return null;
   }
 
+  const paths = {};
   for (const p of players) {
     const name = p.name;
     let placed = false;
@@ -644,6 +662,7 @@ function buildGrid(players, size, seed) {
       if (rest !== null) {
         const fullPath = [[r0, c0], ...rest];
         fullPath.forEach(([r, c], i) => { g[r][c] = name[i]; });
+        paths[name] = fullPath;
         placed = true; break;
       }
     }
@@ -654,12 +673,12 @@ function buildGrid(players, size, seed) {
   for (let r = 0; r < size; r++)
     for (let c = 0; c < size; c++)
       if (g[r][c] === null) g[r][c] = ABC[Math.floor(rand() * 26)];
-  return g;
+  return { grid: g, paths };
 }
 
 /* Init — grid built async after FPL fetch */
 const SIZE = 7;
-let GRID, validNames = new Set(), playerMap = {};
+let GRID, PATHS, validNames = new Set(), playerMap = {};
 const found      = new Set();
 const isMobile   = () => window.innerWidth <= 640;
 const gridEl     = document.getElementById('grid');
@@ -740,6 +759,7 @@ function endDrag() {
     path = [];
     found.add(match);
     if (found.size >= 3) {
+      revealPaths(); showGridOverlay();
       statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉 — Grid locked (3/3)';
     } else {
       statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉';
@@ -771,7 +791,42 @@ function addChip(name) {
 function updateChip(name, qLabel, answer, pts) {
   const el = document.getElementById('pr-ans-' + name);
   if (el) el.innerHTML = `<span style="color:rgba(255,255,255,.4)">${qLabel} →</span> <span class="pr-ans">${answer}</span> <span class="pr-pts">+${pts}pt${pts>1?'s':''}</span>`;
-  if (found.size >= 3) document.getElementById('lock-banner').classList.add('show');
+}
+
+/* Reveal all player paths after lock-in */
+function revealPaths() {
+  if (!PATHS) return;
+  PLAYERS.forEach(p => {
+    if (found.has(p.name)) return; /* already green */
+    (PATHS[p.name] || []).forEach(([r, c]) => {
+      const td = gridEl.querySelector(`td[data-r="${r}"][data-c="${c}"]`);
+      if (td && !td.classList.contains('found')) td.classList.add('revealed');
+    });
+  });
+}
+
+/* Show semi-opaque overlay on the grid */
+function showGridOverlay() {
+  const el = document.getElementById('overlay-picks');
+  if (el) {
+    el.innerHTML = Object.entries(myPicks).map(([name, pick]) =>
+      `<b>${cap(name)}</b> · ${pick.qLabel}: <span style="color:#f5c842">${pick.answer}</span>`
+    ).join('<br>');
+  }
+  document.getElementById('grid-overlay').classList.add('show');
+}
+
+let overlayHidden = false;
+function toggleOverlay() {
+  const ov = document.getElementById('grid-overlay');
+  const btn = ov.querySelector('.glo-reveal-btn');
+  overlayHidden = !overlayHidden;
+  ov.style.opacity = overlayHidden ? '0' : '';
+  ov.style.pointerEvents = overlayHidden ? 'none' : '';
+  btn.textContent = overlayHidden ? '🔒 Show overlay' : '👁 Show paths';
+  if (overlayHidden) {
+    setTimeout(() => { overlayHidden = false; ov.style.opacity=''; ov.style.pointerEvents=''; btn.textContent='👁 Show paths'; }, 4000);
+  }
 }
 
 /* Wheel */
