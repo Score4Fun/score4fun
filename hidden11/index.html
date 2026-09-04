@@ -296,7 +296,7 @@ document.getElementById('signout-btn').addEventListener('click', async () => {
 });
 
 sb.auth.onAuthStateChange((_event, session) => {
-  if (session) onSignedIn(session.user);
+  if (session && !currentUser) onSignedIn(session.user);
 });
 
 /* In-memory picks store for summary */
@@ -341,15 +341,16 @@ async function loadPredictions(userId) {
     .select('*').eq('user_id', userId).eq('gw_number', GW.number);
   if (!data || !data.length) return;
   data.forEach(pred => {
+    if (!playerMap[pred.player_name]) return; /* skip stale predictions */
     found.add(pred.player_name);
     addChip(pred.player_name);
     myPicks[pred.player_name] = { qLabel: pred.question_label, answer: pred.answer, pts: pred.points_potential };
     const q = QUESTIONS.find(q => q.label === pred.question_label);
-    showResultPanel(pred.player_name, pred.answer, q);
+    if (q) showResultPanel(pred.player_name, pred.answer, q);
   });
   refreshPicksSummary();
   if (found.size >= 3) {
-    statusEl.className = 'grid-status'; statusEl.textContent = '3 players found — grid locked. Waiting for GW results!';
+    statusEl.className = 'grid-status ok'; statusEl.textContent = '✅ Your 3 picks are locked — waiting for GW results!';
   }
 }
 
@@ -484,7 +485,7 @@ function tick() {
   if (diff <= 0) { deadlinePassed = true; bar.classList.add('expired'); val.textContent = 'CLOSED'; return; }
   const totalH = Math.floor(diff / 3600000), d = Math.floor(totalH / 24), h = totalH % 24;
   const m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-  val.textContent = (d ? d + 'j ' : '') + (h || d ? h + 'h ' : '') + String(m).padStart(2,'0') + 'm ' + String(s).padStart(2,'0') + 's';
+  val.textContent = (d ? d + 'd ' : '') + (h || d ? h + 'h ' : '') + String(m).padStart(2,'0') + 'm ' + String(s).padStart(2,'0') + 's';
 }
 tick(); setInterval(tick, 1000);
 
