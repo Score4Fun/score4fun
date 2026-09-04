@@ -92,10 +92,41 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
   .game-layout{flex-direction:column;gap:14px;padding:12px 12px 0;}
   .game-left{width:100%;}
   .game-right{width:100%;}
-  #result-panel{display:none;} /* shown only when player found on mobile */
+  #result-panel{display:none;}
   #result-panel.active{display:block;}
   .rp-placeholder{display:none !important;}
+  .game-leaderboard{width:100%;}
 }
+
+/* LEADERBOARD panel */
+.game-leaderboard{flex:0 0 210px;min-width:0;}
+.lb-panel{background:#111127;border:1px solid rgba(245,200,66,.12);border-radius:16px;padding:16px;}
+.lb-title{font-size:12px;font-weight:700;color:#f5c842;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+.lb-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.lb-row:last-child{border-bottom:none;}
+.lb-rank{font-size:11px;font-weight:700;color:rgba(255,255,255,.25);width:16px;}
+.lb-name{flex:1;font-size:12px;font-weight:600;color:rgba(255,255,255,.8);}
+.lb-pts{font-size:12px;font-weight:700;color:#f5c842;}
+.lb-empty{font-size:12px;color:rgba(255,255,255,.2);text-align:center;padding:20px 0;}
+
+/* MOBILE TABS */
+.tab-bar{display:none;}
+@media (max-width:640px){
+  .tab-bar{display:flex;gap:8px;padding:10px 12px 0;justify-content:center;}
+  .tab-btn{flex:1;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.45);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.15s;}
+  .tab-btn.active{background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.3);color:#f5c842;}
+  .tab-game, .tab-lb{width:100%;}
+  .tab-lb{display:none;}
+}
+
+/* ANSWER buttons with points */
+.ans-pts{float:right;font-size:11px;font-weight:700;color:rgba(245,200,66,.6);background:rgba(245,200,66,.08);border-radius:10px;padding:1px 7px;margin-left:8px;}
+.ans-btn.locked{pointer-events:none;opacity:.75;}
+.ans-btn.locked.selected{opacity:1;}
+
+/* FREEZE banner */
+.freeze-banner{background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:10px 14px;font-size:12px;color:rgba(255,255,255,.6);text-align:center;margin:8px 0;display:none;}
+.freeze-banner.show{display:block;}
 
 /* LOGIN OVERLAY */
 #login-overlay{position:fixed;inset:0;background:#0f0f1a;z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
@@ -160,9 +191,15 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
   </div>
 </div>
 
+<!-- MOBILE TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('game')">🎮 Jeu</button>
+  <button class="tab-btn" onclick="switchTab('lb')">🏆 Classement</button>
+</div>
+
 <div class="game-layout">
   <!-- LEFT: grid -->
-  <div class="game-left">
+  <div class="tab-game game-left">
     <table id="grid"></table>
     <div class="grid-status" id="grid-status">Click and drag to spell a player name</div>
     <div class="found-section">
@@ -172,7 +209,7 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
   </div>
 
   <!-- RIGHT: wheel + question -->
-  <div class="game-right">
+  <div class="tab-game game-right">
     <div id="result-panel">
       <!-- Placeholder (desktop only) -->
       <div class="rp-placeholder" id="rp-placeholder">
@@ -200,6 +237,14 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
       </div>
     </div>
   </div>
+
+  <!-- LEADERBOARD -->
+  <div class="tab-lb game-leaderboard">
+    <div class="lb-panel">
+      <div class="lb-title">🏆 Classement <span id="lb-gw"></span></div>
+      <div id="lb-list"><div class="lb-empty">Aucune prédiction encore</div></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -220,11 +265,14 @@ async function checkAuth() {
   else { loginOverlay.style.display = 'flex'; }
 }
 
-function onSignedIn(user) {
+async function onSignedIn(user) {
+  currentUser = user;
   loginOverlay.style.display = 'none';
   userChip.style.display = 'flex';
   const name = (user.user_metadata?.full_name || user.email || '').split(' ')[0] || 'Player';
   userNameEl.textContent = name;
+  await loadPredictions(user.id);
+  loadLeaderboard();
 }
 
 document.getElementById('google-signin').addEventListener('click', async () => {
@@ -241,6 +289,61 @@ sb.auth.onAuthStateChange((_event, session) => {
   if (session) onSignedIn(session.user);
 });
 
+async function savePrediction(playerName, q, answer, pts) {
+  if (!currentUser) return;
+  const userName = (currentUser.user_metadata?.full_name || currentUser.email || '').split(' ')[0];
+  await sb.from('h11_predictions').insert({
+    user_id: currentUser.id,
+    user_name: userName,
+    gw_number: GW.number,
+    player_name: playerName,
+    question_label: q.label,
+    answer,
+    points_potential: pts
+  }).select();
+  loadLeaderboard();
+}
+
+async function loadPredictions(userId) {
+  const { data } = await sb.from('h11_predictions')
+    .select('*').eq('user_id', userId).eq('gw_number', GW.number);
+  if (!data || !data.length) return;
+  data.forEach(pred => {
+    found.add(pred.player_name);
+    addChip(pred.player_name);
+    const q = QUESTIONS.find(q => q.label === pred.question_label);
+    showResultPanel(pred.player_name, pred.answer, q);
+  });
+  if (found.size >= 3) {
+    statusEl.className = 'grid-status'; statusEl.textContent = '3 joueurs trouvés — grille gelée. En attente des résultats !';
+  }
+}
+
+async function loadLeaderboard() {
+  document.getElementById('lb-gw').textContent = 'GW' + GW.number;
+  const { data } = await sb.from('h11_predictions')
+    .select('user_name, player_name, points_potential').eq('gw_number', GW.number);
+  const lbEl = document.getElementById('lb-list');
+  if (!data || !data.length) { lbEl.innerHTML = '<div class="lb-empty">Aucune prédiction encore</div>'; return; }
+  const byUser = {};
+  data.forEach(r => {
+    if (!byUser[r.user_name]) byUser[r.user_name] = { total: 0, players: [] };
+    byUser[r.user_name].total += r.points_potential;
+    byUser[r.user_name].players.push(cap(r.player_name));
+  });
+  const sorted = Object.entries(byUser).sort((a,b) => b[1].total - a[1].total);
+  lbEl.innerHTML = sorted.map(([name, d], i) =>
+    `<div class="lb-row"><span class="lb-rank">${i+1}</span><span class="lb-name">${name}<br><span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400">${d.players.join(', ')}</span></span><span class="lb-pts">${d.total}pts</span></div>`
+  ).join('');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0) === (tab==='game')));
+  document.querySelectorAll('.tab-game').forEach(el => el.style.display = tab === 'game' ? '' : 'none');
+  document.querySelector('.tab-lb').style.display = tab === 'lb' ? '' : 'none';
+}
+
+let currentUser = null;
 checkAuth();
 
 /* ==========================================================
@@ -262,12 +365,18 @@ const PLAYERS = [
 ];
 
 const QUESTIONS = [
-  { label:'Minutes',   color:'#b8860b', q:'How many minutes will {p} play this GW?',      opts:['0–15 min','16–60 min','61+ min'] },
-  { label:'Goals',     color:'#1a6b3a', q:'How many goals will {p} score this GW?',       opts:['0 goals','1 goal','2+ goals'] },
-  { label:'Assists',   color:'#1e4f8a', q:'How many assists will {p} get this GW?',       opts:['0 assists','1 assist','2+ assists'] },
-  { label:'Card?',     color:'#9b1c1c', q:'Will {p} receive a card this GW?',             opts:['Yellow card','Red card','No card'] },
-  { label:'Starting?', color:'#5b2d8e', q:'Will {p} start in the XI this GW?',            opts:['Starting XI','Off the bench','Not in squad'] },
-  { label:'FPL pts',   color:'#0d5a4e', q:'How many FPL points will {p} score this GW?', opts:['0–2 pts','3–5 pts','6+ pts'] },
+  { label:'Minutes',   color:'#b8860b', q:'How many minutes will {p} play this GW?',
+    opts:['0–15 min','16–60 min','61+ min'],          pts:[4,2,1] },
+  { label:'Goals',     color:'#1a6b3a', q:'How many goals will {p} score this GW?',
+    opts:['0 goals','1 goal','2+ goals'],              pts:[1,3,6] },
+  { label:'Assists',   color:'#1e4f8a', q:'How many assists will {p} get this GW?',
+    opts:['0 assists','1 assist','2+ assists'],        pts:[1,3,6] },
+  { label:'Card?',     color:'#9b1c1c', q:'Will {p} receive a card this GW?',
+    opts:['Yellow card','Red card','No card'],         pts:[4,8,1] },
+  { label:'Starting?', color:'#5b2d8e', q:'Will {p} start in the XI this GW?',
+    opts:['Starting XI','Off the bench','Not in squad'], pts:[1,3,5] },
+  { label:'FPL pts',   color:'#0d5a4e', q:'How many FPL points will {p} score this GW?',
+    opts:['0–2 pts','3–5 pts','6+ pts'],              pts:[3,2,4] },
 ];
 
 /* Seeded RNG for stable grid */
@@ -339,8 +448,9 @@ function tick() {
   const bar = document.getElementById('countdown-bar');
   const val = document.getElementById('countdown-val');
   if (diff <= 0) { deadlinePassed = true; bar.classList.add('expired'); val.textContent = 'CLOSED'; return; }
-  const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-  val.textContent = (h ? h + 'h ' : '') + String(m).padStart(2, '0') + 'm ' + String(s).padStart(2, '0') + 's';
+  const totalH = Math.floor(diff / 3600000), d = Math.floor(totalH / 24), h = totalH % 24;
+  const m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+  val.textContent = (d ? d + 'j ' : '') + (h || d ? h + 'h ' : '') + String(m).padStart(2,'0') + 'm ' + String(s).padStart(2,'0') + 's';
 }
 tick(); setInterval(tick, 1000);
 
@@ -355,7 +465,7 @@ function tdFromEvent(e) {
 function clearActive() { path.forEach(td => td.classList.remove('active')); path = []; }
 
 function startDrag(td) {
-  if (deadlinePassed) return;
+  if (deadlinePassed || found.size >= 3) return;
   dragging = true; clearActive();
   path = [td]; td.classList.add('active');
   statusEl.className = 'grid-status'; statusEl.textContent = 'Dragging…';
@@ -378,7 +488,11 @@ function endDrag() {
     path.forEach(td => { td.classList.remove('active'); td.classList.add('found'); });
     path = [];
     found.add(match);
-    statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉';
+    if (found.size >= 3) {
+      statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉 — Max 3 atteint, grille gelée.';
+    } else {
+      statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉';
+    }
     addChip(match); showResultPanel(match);
   } else if (match) {
     clearActive(); statusEl.className = 'grid-status err'; statusEl.textContent = cap(match) + ' already found!';
@@ -424,12 +538,10 @@ function drawWheel() {
   ctx.beginPath(); ctx.arc(cx, cy, 10, 0, 2 * Math.PI); ctx.fillStyle = '#0f0f1a'; ctx.fill();
 }
 
-function showResultPanel(name) {
+function showResultPanel(name, lockedAnswer, lockedQ) {
   const p = playerMap[name];
-  /* Desktop: panel already visible — just swap placeholder for content */
   document.getElementById('rp-placeholder').style.display = 'none';
   document.getElementById('rp-content').style.display = 'block';
-  /* Mobile: make panel visible then scroll to it */
   const panel = document.getElementById('result-panel');
   panel.classList.add('active');
 
@@ -444,6 +556,11 @@ function showResultPanel(name) {
   cvs.style.transition = 'none';
   cvs.style.transform = 'rotate(' + wheelDeg + 'deg)';
 
+  if (lockedAnswer && lockedQ) {
+    /* Already answered — show directly without spinning */
+    showQuestion(lockedQ, name, lockedAnswer);
+    return;
+  }
   if (isMobile()) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   setTimeout(() => spinWheel(name), 500);
 }
@@ -468,28 +585,37 @@ function spinWheel(name) {
   }, 4400);
 }
 
-function showQuestion(q, name) {
+function showQuestion(q, name, lockedAnswer) {
   const sec = document.getElementById('q-section');
   sec.style.display = 'block';
   document.getElementById('q-cat').textContent = q.label;
   document.getElementById('q-text').textContent = q.q.replace('{p}', cap(name));
   const answersEl = document.getElementById('q-answers');
   answersEl.innerHTML = '';
-  q.opts.forEach(opt => {
+  const alreadyLocked = !!lockedAnswer;
+  q.opts.forEach((opt, i) => {
     const btn = document.createElement('button');
-    btn.className = 'ans-btn'; btn.textContent = opt;
+    btn.className = 'ans-btn' + (alreadyLocked ? ' locked' : '');
+    btn.innerHTML = opt + '<span class="ans-pts">+' + q.pts[i] + 'pt' + (q.pts[i] > 1 ? 's' : '') + '</span>';
+    if (alreadyLocked && opt === lockedAnswer) btn.classList.add('selected');
     btn.onclick = () => {
-      if (btn.classList.contains('selected')) return;
-      answersEl.querySelectorAll('.ans-btn').forEach(b => b.classList.remove('selected'));
+      if (alreadyLocked) return;
+      answersEl.querySelectorAll('.ans-btn').forEach(b => { b.classList.remove('selected'); b.classList.add('locked'); });
       btn.classList.add('selected');
+      const ptVal = q.pts[i];
       const c = document.getElementById('q-confirm');
-      c.style.display = 'block'; c.textContent = 'Locked: ' + opt + ' ✓';
+      c.style.display = 'block'; c.textContent = 'Locked: ' + opt + ' (+' + ptVal + 'pt' + (ptVal > 1 ? 's' : '') + ') ✓';
+      savePrediction(name, q, opt, ptVal);
       setTimeout(() => c.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
     };
     answersEl.appendChild(btn);
   });
-  document.getElementById('q-confirm').style.display = 'none';
-  /* Scroll to question on mobile */
+  const c = document.getElementById('q-confirm');
+  if (alreadyLocked) {
+    const i = q.opts.indexOf(lockedAnswer);
+    c.style.display = 'block';
+    c.textContent = 'Locked: ' + lockedAnswer + ' (+' + (i >= 0 ? q.pts[i] : '?') + 'pts) ✓';
+  } else { c.style.display = 'none'; }
   setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 }
 </script>
