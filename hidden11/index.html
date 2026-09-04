@@ -599,31 +599,57 @@ function makeRng(seed) {
   return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
 }
 
-/* Grid builder — horizontal & vertical only */
+/* Grid builder — snake paths (up/down/left/right, no diagonal, turns allowed) */
 function buildGrid(players, size, seed) {
   const rand = makeRng(seed);
   const g = Array.from({ length: size }, () => Array(size).fill(null));
-  const dirs = [[0, 1], [1, 0]];
+  const DIRS = [[-1,0],[1,0],[0,-1],[0,1]];
+
+  function shuffled(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /* DFS: find a valid snake path for letters name[idx..] starting from (r,c) */
+  function findPath(name, idx, r, c, visited) {
+    if (idx === name.length) return [];
+    for (const [dr, dc] of shuffled(DIRS)) {
+      const nr = r + dr, nc = c + dc;
+      if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
+      const key = nr * size + nc;
+      if (visited.has(key)) continue;
+      if (g[nr][nc] !== null && g[nr][nc] !== name[idx]) continue;
+      visited.add(key);
+      const rest = findPath(name, idx + 1, nr, nc, visited);
+      if (rest !== null) return [[nr, nc], ...rest];
+      visited.delete(key);
+    }
+    return null;
+  }
+
   for (const p of players) {
-    const n = p.name, len = n.length;
+    const name = p.name;
     let placed = false;
-    for (let t = 0; t < 400 && !placed; t++) {
-      const [dr, dc] = dirs[Math.floor(rand() * dirs.length)];
-      const rMax = dr > 0 ? size - len : size - 1;
-      const cMax = dc > 0 ? size - len : size - 1;
-      const r0 = Math.floor(rand() * (rMax + 1));
-      const c0 = Math.floor(rand() * (cMax + 1));
-      let conflict = false;
-      for (let i = 0; i < len; i++) {
-        const r = r0 + i * dr, c = c0 + i * dc;
-        if (g[r][c] !== null && g[r][c] !== n[i]) { conflict = true; break; }
-      }
-      if (!conflict) {
-        for (let i = 0; i < len; i++) g[r0 + i * dr][c0 + i * dc] = n[i];
-        placed = true;
+    const starts = shuffled(
+      Array.from({ length: size * size }, (_, i) => [Math.floor(i / size), i % size])
+        .filter(([r, c]) => g[r][c] === null || g[r][c] === name[0])
+    );
+    for (const [r0, c0] of starts) {
+      if (g[r0][c0] !== null && g[r0][c0] !== name[0]) continue;
+      const visited = new Set([r0 * size + c0]);
+      const rest = findPath(name, 1, r0, c0, visited);
+      if (rest !== null) {
+        const fullPath = [[r0, c0], ...rest];
+        fullPath.forEach(([r, c], i) => { g[r][c] = name[i]; });
+        placed = true; break;
       }
     }
+    if (!placed) console.warn('Could not place', name);
   }
+
   const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   for (let r = 0; r < size; r++)
     for (let c = 0; c < size; c++)
@@ -691,8 +717,14 @@ function startDrag(td) {
 function extendDrag(td) {
   if (!dragging || !td) return;
   if (td === path[path.length - 1]) return;
+  /* Allow backtrack by one step */
   if (path.length > 1 && td === path[path.length - 2]) { path.pop().classList.remove('active'); return; }
   if (path.includes(td)) return;
+  /* Only orthogonally adjacent cells (no diagonal, no jump) */
+  const last = path[path.length - 1];
+  const dr = Math.abs(+td.dataset.r - +last.dataset.r);
+  const dc = Math.abs(+td.dataset.c - +last.dataset.c);
+  if (dr + dc !== 1) return;
   path.push(td); td.classList.add('active');
 }
 function endDrag() {
