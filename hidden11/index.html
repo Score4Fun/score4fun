@@ -81,7 +81,9 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .glo-reveal-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
 
 /* RESULT PANEL */
-#result-panel{background:#111127;border:1px solid rgba(245,200,66,.14);border-radius:20px;padding:20px;min-height:520px;}
+#result-panel{background:#111127;border:1px solid rgba(245,200,66,.14);border-radius:20px;padding:20px;min-height:520px;transition:border-color .2s,box-shadow .2s;}
+#result-panel.highlight-pulse{animation:rPulse .5s ease 3;}
+@keyframes rPulse{0%,100%{border-color:rgba(245,200,66,.14);box-shadow:none}50%{border-color:#f5c842;box-shadow:0 0 0 4px rgba(245,200,66,.22);}}
 .rp-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;color:rgba(255,255,255,.15);font-size:13px;text-align:center;gap:12px;}
 .rp-placeholder-icon{font-size:36px;opacity:.2;}
 .rp-content{display:none;}
@@ -741,7 +743,16 @@ function clearActive() { path.forEach(td => td.classList.remove('active')); path
 
 function startDrag(td) {
   if (deadlinePassed || found.size >= 3) return;
-  if (questionPending) { showToast('🎡 Answer the question first!'); return; }
+  if (questionPending) {
+    showToast('🎡 Answer the question first!');
+    const panel = document.getElementById('result-panel');
+    panel.classList.remove('highlight-pulse');
+    void panel.offsetWidth; /* restart animation */
+    panel.classList.add('highlight-pulse');
+    setTimeout(() => panel.classList.remove('highlight-pulse'), 1600);
+    if (isMobile()) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
   dragging = true; clearActive();
   path = [td]; td.classList.add('active');
   statusEl.className = 'grid-status'; statusEl.textContent = 'Dragging…';
@@ -771,12 +782,13 @@ function endDrag() {
     path.forEach(td => { td.classList.remove('active'); td.classList.add('found'); });
     path = [];
     found.add(match);
+    statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉';
     if (found.size >= 3) {
-      statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉 — Now answer the wheel question!';
+      revealPaths(); /* show all 6 paths immediately */
+      setTimeout(() => { addChip(match); showResultPanel(match); }, 1000); /* wheel after reveal */
     } else {
-      statusEl.className = 'grid-status ok'; statusEl.textContent = 'Found ' + cap(match) + '! 🎉';
+      addChip(match); showResultPanel(match);
     }
-    addChip(match); showResultPanel(match);
   } else if (match) {
     clearActive(); statusEl.className = 'grid-status err'; statusEl.textContent = cap(match) + ' already found!';
   } else {
