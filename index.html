@@ -95,7 +95,7 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
     <span class="tile-icon">🏆</span>
     <div class="tile-name">Forecast</div>
     <div class="tile-desc">Bracket &amp; match predictions</div>
-    <span class="tile-build">Build V156</span>
+    <span class="tile-build" id="forecast-build">Build V150</span>
     <span class="tile-arrow">↗</span>
   </a>
 
@@ -104,7 +104,7 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
     <span class="tile-icon">🔍</span>
     <div class="tile-name">Hidden Eleven</div>
     <div class="tile-desc">FPL word-search + spin wheel</div>
-    <span class="tile-build">Build V1</span>
+    <span class="tile-build" id="h11-build">Build V1</span>
     <span class="tile-arrow">↗</span>
   </a>
 
@@ -123,6 +123,15 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
   </div>
 </div>
 
+
+
+<script>
+/* Game version constants — update ONLY when that game changes */
+const FORECAST_BUILD = 'V150';
+const H11_BUILD      = 'V1';
+document.getElementById('forecast-build').textContent = 'Build ' + FORECAST_BUILD;
+document.getElementById('h11-build').textContent      = 'Build ' + H11_BUILD;
+</script>
 
 </body>
 </html>
