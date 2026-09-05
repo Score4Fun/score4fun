@@ -111,6 +111,16 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .ans-btn.selected{background:rgba(245,200,66,.1);border-color:#f5c842;color:#f5c842;}
 #q-confirm{font-size:12px;color:#6edda0;margin-top:8px;font-weight:600;display:none;}
 
+/* ORACLE PATH */
+.oracle-panel{background:#111127;border:1px solid rgba(180,130,255,.18);border-radius:14px;padding:12px 14px;margin-bottom:10px;}
+.oracle-title{font-size:10px;font-weight:700;color:rgba(180,130,255,.7);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.oracle-body{display:flex;align-items:center;gap:14px;}
+.oracle-cat-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.oracle-cat-row:last-child{margin-bottom:0;}
+.oracle-cat-label{font-size:10px;color:rgba(255,255,255,.4);width:52px;flex-shrink:0;}
+.oracle-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;transition:background .35s;}
+.oracle-complete{font-size:10px;font-weight:700;color:#b47fff;margin-left:2px;}
+
 /* DESKTOP: layout, spacing, height optimisation */
 @media (min-width:641px){
   body{padding-bottom:20px;}
@@ -311,6 +321,16 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
       <span>GW<span id="gw-badge-desk"></span> Deadline:</span>
       <span id="countdown-val-desk">--:--:--</span>
     </div>
+
+    <!-- ORACLE PATH -->
+    <div class="oracle-panel" id="oracle-panel" style="display:none;">
+      <div class="oracle-title">🔮 Oracle Path</div>
+      <div class="oracle-body">
+        <svg id="oracle-svg" width="110" height="110" viewBox="-55 -55 110 110" style="flex-shrink:0;overflow:visible;"></svg>
+        <div id="oracle-cats"></div>
+      </div>
+    </div>
+
     <div class="lb-panel">
       <div class="lb-title">🏆 Ranking <span id="lb-gw"></span> <span style="font-size:9px;background:rgba(255,165,0,.15);color:#ffa500;border-radius:8px;padding:2px 7px;font-weight:600;letter-spacing:.04em;vertical-align:middle;">POTENTIAL</span></div>
       <div style="font-size:10px;color:rgba(255,255,255,.25);margin-bottom:10px;">Points confirmed after GW results</div>
@@ -345,6 +365,7 @@ async function onSignedIn(user) {
   userNameEl.textContent = name;
   await loadPredictions(user.id);
   loadLeaderboard();
+  loadOraclePath();
 }
 
 document.getElementById('google-signin').addEventListener('click', async () => {
@@ -432,6 +453,100 @@ async function loadPredictions(userId) {
 }
 
 let gwResultsReady = false; /* true once data_checked from FPL */
+
+/* ---- ORACLE PATH ---- */
+const ORACLE_CATS = [
+  { label:'Goals',    color:'#22a84a', dim:'rgba(34,168,74,.12)'   },
+  { label:'Assists',  color:'#3a80d0', dim:'rgba(58,128,208,.12)'  },
+  { label:'Minutes',  color:'#e0a020', dim:'rgba(224,160,32,.12)'  },
+  { label:'Card',     color:'#d04040', dim:'rgba(208,64,64,.12)'   },
+  { label:'Starting', color:'#9050d8', dim:'rgba(144,80,216,.12)'  },
+  { label:'FPL pts',  color:'#20b8a0', dim:'rgba(32,184,160,.12)'  },
+];
+const ORACLE_MAX = 3;
+const ORACLE_RINGS = [{inner:14,outer:24},{inner:27,outer:36},{inner:39,outer:47}];
+const ORACLE_GAP  = 4;
+
+function oraclePt(r, deg) {
+  const rad = (deg - 90) * Math.PI / 180;
+  return [r * Math.cos(rad), r * Math.sin(rad)];
+}
+function oracleArc(iR, oR, s, e) {
+  const f = n => n.toFixed(2);
+  const [x1,y1]=oraclePt(oR,s),[x2,y2]=oraclePt(oR,e);
+  const [x3,y3]=oraclePt(iR,e),[x4,y4]=oraclePt(iR,s);
+  const l=e-s>180?1:0;
+  return `M${f(x1)},${f(y1)} A${oR},${oR} 0 ${l},1 ${f(x2)},${f(y2)} L${f(x3)},${f(y3)} A${iR},${iR} 0 ${l},0 ${f(x4)},${f(y4)} Z`;
+}
+function renderOraclePie(levels) {
+  const svg = document.getElementById('oracle-svg');
+  if (!svg) return;
+  svg.innerHTML = '';
+  const full = levels.every(l => l >= ORACLE_MAX);
+  ORACLE_CATS.forEach((cat, i) => {
+    const s = i * 60 + ORACLE_GAP / 2, e = (i+1) * 60 - ORACLE_GAP / 2;
+    ORACLE_RINGS.forEach((ring, j) => {
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', oracleArc(ring.inner, ring.outer, s, e));
+      path.setAttribute('fill', levels[i] > j ? cat.color : cat.dim);
+      svg.appendChild(path);
+    });
+  });
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',0); c.setAttribute('cy',0); c.setAttribute('r',10);
+  c.setAttribute('fill', full ? '#b47fff' : 'rgba(17,17,39,.9)');
+  svg.appendChild(c);
+  if (full) {
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','central');
+    t.setAttribute('font-size','10'); t.textContent = '🔮';
+    svg.appendChild(t);
+  }
+}
+function renderOracleCats(levels) {
+  const el = document.getElementById('oracle-cats');
+  if (!el) return;
+  el.innerHTML = '';
+  const full = levels.every(l => l >= ORACLE_MAX);
+  ORACLE_CATS.forEach((cat, i) => {
+    const row = document.createElement('div');
+    row.className = 'oracle-cat-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'oracle-cat-label'; lbl.textContent = cat.label;
+    row.appendChild(lbl);
+    for (let j = 0; j < ORACLE_MAX; j++) {
+      const d = document.createElement('div');
+      d.className = 'oracle-dot';
+      d.style.background = levels[i] > j ? cat.color : cat.dim;
+      row.appendChild(d);
+    }
+    if (levels[i] >= ORACLE_MAX) {
+      const ok = document.createElement('span');
+      ok.className = 'oracle-complete'; ok.textContent = '✓';
+      row.appendChild(ok);
+    }
+    el.appendChild(row);
+  });
+  const title = document.getElementById('oracle-panel')?.querySelector('.oracle-title');
+  if (title) title.textContent = full ? '🔮 Oracle — Complete!' : '🔮 Oracle Path';
+}
+async function loadOraclePath() {
+  if (!currentUser) return;
+  const { data } = await sb.from('h11_predictions')
+    .select('question_label')
+    .eq('user_id', currentUser.id)
+    .eq('correct', true);
+  const counts = {};
+  ORACLE_CATS.forEach(c => counts[c.label] = 0);
+  (data || []).forEach(r => {
+    const key = r.question_label;
+    if (counts[key] !== undefined) counts[key] = Math.min(counts[key] + 1, ORACLE_MAX);
+  });
+  const levels = ORACLE_CATS.map(c => counts[c.label]);
+  renderOraclePie(levels);
+  renderOracleCats(levels);
+  document.getElementById('oracle-panel').style.display = 'block';
+}
 
 async function loadLeaderboard() {
   document.getElementById('lb-gw').textContent = 'GW' + GW.number;
@@ -601,7 +716,7 @@ async function calculateGWResults(elements) {
         .eq('player_name', playerName);
     }
   }
-  if (anyResult) loadLeaderboard(); /* refresh with actual points */
+  if (anyResult) { loadLeaderboard(); loadOraclePath(); } /* refresh with actual points */
 }
 
 function getActualAnswer(qLabel, stats) {
