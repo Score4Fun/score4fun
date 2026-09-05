@@ -323,8 +323,8 @@ const userNameEl   = document.getElementById('user-name');
 
 async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
-  if (session) { onSignedIn(session.user); }
-  else { loginOverlay.style.display = 'flex'; }
+  if (session && !currentUser) { onSignedIn(session.user); }
+  else if (!session) { loginOverlay.style.display = 'flex'; }
 }
 
 async function onSignedIn(user) {
@@ -834,6 +834,7 @@ function cap(w) { return w[0] + w.slice(1).toLowerCase(); }
 
 /* Found pick cards */
 function addChip(name) {
+  if (document.getElementById('pick-' + name)) return; /* guard: no duplicate cards */
   const p = playerMap[name];
   document.getElementById('found-label').style.display = 'block';
   const card = document.createElement('div');
@@ -858,8 +859,10 @@ const REVEAL_COLORS = [
 ];
 
 /* Reveal all player paths after lock-in with coloured cells + name badges */
+let pathsRevealed = false;
 function revealPaths() {
-  if (!PATHS) return;
+  if (!PATHS || pathsRevealed) return;
+  pathsRevealed = true;
   const legend = document.getElementById('reveal-legend');
   legend.innerHTML = '';
   let ci = 0;
