@@ -478,17 +478,30 @@ function oracleArc(iR, oR, s, e) {
   const l=e-s>180?1:0;
   return `M${f(x1)},${f(y1)} A${oR},${oR} 0 ${l},1 ${f(x2)},${f(y2)} L${f(x3)},${f(y3)} A${iR},${iR} 0 ${l},0 ${f(x4)},${f(y4)} Z`;
 }
-function renderOraclePie(levels) {
+let oracleLevels = ORACLE_CATS.map(() => 0);
+let oraclePendingLabel = null; /* category currently being answered */
+
+function oraclePendingColor(cat) {
+  /* semi-transparent version of the colour — "preview" ring */
+  return cat.color + '55';
+}
+
+function renderOraclePie(levels, pendingLabel) {
   const svg = document.getElementById('oracle-svg');
   if (!svg) return;
   svg.innerHTML = '';
   const full = levels.every(l => l >= ORACLE_MAX);
   ORACLE_CATS.forEach((cat, i) => {
     const s = i * 60 + ORACLE_GAP / 2, e = (i+1) * 60 - ORACLE_GAP / 2;
+    const isPending = cat.label === pendingLabel && levels[i] < ORACLE_MAX;
     ORACLE_RINGS.forEach((ring, j) => {
       const path = document.createElementNS('http://www.w3.org/2000/svg','path');
       path.setAttribute('d', oracleArc(ring.inner, ring.outer, s, e));
-      path.setAttribute('fill', levels[i] > j ? cat.color : cat.dim);
+      let fill;
+      if (levels[i] > j)            fill = cat.color;              /* filled */
+      else if (isPending && levels[i] === j) fill = oraclePendingColor(cat); /* next pending */
+      else                           fill = cat.dim;                /* empty */
+      path.setAttribute('fill', fill);
       svg.appendChild(path);
     });
   });
@@ -503,7 +516,7 @@ function renderOraclePie(levels) {
     svg.appendChild(t);
   }
 }
-function renderOracleCats(levels) {
+function renderOracleCats(levels, pendingLabel) {
   const el = document.getElementById('oracle-cats');
   if (!el) return;
   el.innerHTML = '';
@@ -514,10 +527,13 @@ function renderOracleCats(levels) {
     const lbl = document.createElement('span');
     lbl.className = 'oracle-cat-label'; lbl.textContent = cat.label;
     row.appendChild(lbl);
+    const isPending = cat.label === pendingLabel && levels[i] < ORACLE_MAX;
     for (let j = 0; j < ORACLE_MAX; j++) {
       const d = document.createElement('div');
       d.className = 'oracle-dot';
-      d.style.background = levels[i] > j ? cat.color : cat.dim;
+      if (levels[i] > j)                        d.style.background = cat.color;
+      else if (isPending && levels[i] === j)     d.style.background = oraclePendingColor(cat);
+      else                                       d.style.background = cat.dim;
       row.appendChild(d);
     }
     if (levels[i] >= ORACLE_MAX) {
@@ -529,6 +545,12 @@ function renderOracleCats(levels) {
   });
   const title = document.getElementById('oracle-panel')?.querySelector('.oracle-title');
   if (title) title.textContent = full ? '🔮 Oracle — Complete!' : '🔮 Oracle Path';
+}
+
+function setOraclePending(label) {
+  oraclePendingLabel = label;
+  renderOraclePie(oracleLevels, oraclePendingLabel);
+  renderOracleCats(oracleLevels, oraclePendingLabel);
 }
 async function loadOraclePath() {
   if (!currentUser) return;
@@ -542,9 +564,9 @@ async function loadOraclePath() {
     const key = r.question_label;
     if (counts[key] !== undefined) counts[key] = Math.min(counts[key] + 1, ORACLE_MAX);
   });
-  const levels = ORACLE_CATS.map(c => counts[c.label]);
-  renderOraclePie(levels);
-  renderOracleCats(levels);
+  oracleLevels = ORACLE_CATS.map(c => counts[c.label]);
+  renderOraclePie(oracleLevels, oraclePendingLabel);
+  renderOracleCats(oracleLevels, oraclePendingLabel);
   document.getElementById('oracle-panel').style.display = 'block';
 }
 
@@ -1152,7 +1174,8 @@ function showQuestion(q, name, lockedAnswer) {
   const answersEl = document.getElementById('q-answers');
   answersEl.innerHTML = '';
   const alreadyLocked = !!lockedAnswer;
-  if (!alreadyLocked) questionPending = true;
+  if (!alreadyLocked) { questionPending = true; setOraclePending(q.label); }
+  else { setOraclePending(null); }
   q.opts.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'ans-btn' + (alreadyLocked ? ' locked' : '');
@@ -1161,6 +1184,7 @@ function showQuestion(q, name, lockedAnswer) {
     btn.onclick = () => {
       if (alreadyLocked) return;
       questionPending = false;
+      setOraclePending(null);
       answersEl.querySelectorAll('.ans-btn').forEach(b => { b.classList.remove('selected'); b.classList.add('locked'); });
       btn.classList.add('selected');
       const ptVal = q.pts[i];
