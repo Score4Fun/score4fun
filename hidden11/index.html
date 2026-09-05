@@ -125,6 +125,10 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
   .game-left{flex:0 0 400px;}
   .game-right{flex:0 0 400px;}
   .game-leaderboard{flex:0 0 300px;}
+  .rp-placeholder{display:none !important;}
+  .rp-content{display:block;}
+  #rp-name{display:none;}
+  #rp-meta{display:none;}
   #grid td{width:40px;height:40px;font-size:13px;border-radius:6px;}
   #grid{border-spacing:3px;}
   #result-panel{min-height:390px;}
@@ -550,6 +554,9 @@ async function initGame() {
   playerMap  = Object.fromEntries(PLAYERS.map(p => [p.name, p]));
   renderGrid();
   document.getElementById('grid-status').textContent = 'Click and drag to spell a player name';
+
+  /* Draw wheel immediately so it's visible on desktop before any pick */
+  drawWheel();
 
   /* Auth — load predictions now that playerMap is ready */
   await checkAuth();
@@ -981,7 +988,9 @@ function showResultPanel(name, lockedAnswer, lockedQ) {
   panel.classList.add('active');
 
   document.getElementById('rp-name').textContent = cap(name);
+  document.getElementById('rp-name').style.display = 'block';
   document.getElementById('rp-meta').textContent = p.club + ' · ' + p.pos + ' · £' + p.price + 'm';
+  document.getElementById('rp-meta').style.display = 'block';
   document.getElementById('q-section').style.display = 'none';
   document.getElementById('q-confirm').style.display = 'none';
   document.getElementById('spin-tag').textContent = '';
