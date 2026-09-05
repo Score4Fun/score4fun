@@ -26,7 +26,8 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 .countdown-bar{display:inline-flex;align-items:center;gap:8px;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);border-radius:24px;padding:6px 16px;font-size:12px;font-weight:500;color:rgba(255,255,255,.5);}
 #countdown-val{font-weight:700;color:#f5c842;min-width:72px;text-align:center;font-size:13px;}
 .countdown-bar.expired{background:rgba(255,80,80,.07);border-color:rgba(255,80,80,.25);}
-.countdown-bar.expired #countdown-val{color:#ff6b6b;}
+.countdown-bar.expired #countdown-val,.countdown-bar.expired #countdown-val-desk{color:#ff6b6b;}
+.countdown-desk{display:none;margin-bottom:10px;} /* shown on desktop only */
 
 /* GAME LAYOUT: side-by-side on desktop, stacked on mobile */
 .game-layout{display:flex;gap:20px;max-width:1140px;margin:0 auto;padding:16px 16px 0;align-items:flex-start;}
@@ -116,7 +117,9 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
   .s4f-header{padding:10px 28px;}
   .hero{padding:10px 20px 6px;}
   .hero-title{font-size:24px;margin-bottom:3px;}
-  .hero-sub{font-size:12px;margin-bottom:8px;}
+  .hero-sub{font-size:12px;margin-bottom:4px;white-space:nowrap;}
+  .hero .countdown-bar{display:none;}  /* hidden on desktop — shown above leaderboard */
+  .countdown-desk{display:block;}
   .game-layout{max-width:1200px;gap:25px;padding:10px 20px 0;}
   .game-left{flex:0 0 400px;}
   .game-right{flex:0 0 400px;}
@@ -294,6 +297,10 @@ body{background:#0f0f1a;color:#fff;font-family:'Inter',sans-serif;min-height:100
 
   <!-- LEADERBOARD -->
   <div class="tab-lb game-leaderboard">
+    <div class="countdown-bar countdown-desk" id="countdown-bar-desk">
+      <span>GW<span id="gw-badge-desk"></span> Deadline:</span>
+      <span id="countdown-val-desk">--:--:--</span>
+    </div>
     <div class="lb-panel">
       <div class="lb-title">🏆 Ranking <span id="lb-gw"></span> <span style="font-size:9px;background:rgba(255,165,0,.15);color:#ffa500;border-radius:8px;padding:2px 7px;font-weight:600;letter-spacing:.04em;vertical-align:middle;">POTENTIAL</span></div>
       <div style="font-size:10px;color:rgba(255,255,255,.25);margin-bottom:10px;">Points confirmed after GW results</div>
@@ -737,12 +744,21 @@ function renderGrid() {
 let deadlinePassed = false;
 function tick() {
   const diff = new Date(GW.deadline) - Date.now();
-  const bar = document.getElementById('countdown-bar');
-  const val = document.getElementById('countdown-val');
-  if (diff <= 0) { deadlinePassed = true; bar.classList.add('expired'); val.textContent = 'CLOSED'; return; }
+  const bars = [document.getElementById('countdown-bar'), document.getElementById('countdown-bar-desk')].filter(Boolean);
+  const vals = [document.getElementById('countdown-val'), document.getElementById('countdown-val-desk')].filter(Boolean);
+  if (diff <= 0) {
+    deadlinePassed = true;
+    bars.forEach(b => b.classList.add('expired'));
+    vals.forEach(v => v.textContent = 'CLOSED');
+    return;
+  }
   const totalH = Math.floor(diff / 3600000), d = Math.floor(totalH / 24), h = totalH % 24;
   const m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-  val.textContent = (d ? d + 'd ' : '') + (h || d ? h + 'h ' : '') + String(m).padStart(2,'0') + 'm ' + String(s).padStart(2,'0') + 's';
+  const txt = (d ? d + 'd ' : '') + (h || d ? h + 'h ' : '') + String(m).padStart(2,'0') + 'm ' + String(s).padStart(2,'0') + 's';
+  vals.forEach(v => v.textContent = txt);
+  /* sync GW badge on desk countdown */
+  const gwBadgeDk = document.getElementById('gw-badge-desk');
+  if (gwBadgeDk) gwBadgeDk.textContent = GW.number;
 }
 tick(); setInterval(tick, 1000);
 
